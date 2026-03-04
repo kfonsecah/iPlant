@@ -22,20 +22,22 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  bgImage: {
+    opacity: 0.07,
+    tintColor: "#34D399",
+  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 32,
+    paddingBottom: 20,
   },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    marginBottom: 4,
+    backgroundColor: colors.background,
   },
   headerTitle: {
     color: colors.textPrimary,

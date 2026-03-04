@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Image, ScrollView, StatusBar, Text, View } from "react-native";
+import { Image, ImageBackground, ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import BottomTabBar from "../../components/bottomTabBar/BottomTabBar";
 import { UserInterface } from "../../types-dtos/user.types";
 import { styles } from "./UserProfile.styles";
 
@@ -44,7 +45,11 @@ export default function UserProfile() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1117" />
-      <View style={styles.container}>
+      <ImageBackground
+        source={require("../../../assets/images/LogInBackground.png")}
+        style={styles.container}
+        imageStyle={styles.bgImage}
+      >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Mi perfil</Text>
           <View style={styles.settingsBtn}>
@@ -53,6 +58,7 @@ export default function UserProfile() {
         </View>
 
         <ScrollView
+          style={{ flex: 1 }}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -128,7 +134,8 @@ export default function UserProfile() {
             </View>
           </View>
         </ScrollView>
-      </View>
+        <BottomTabBar activeTab="profile" />
+      </ImageBackground>
     </SafeAreaView>
   );
 }
