@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Image, ImageBackground, ScrollView, StatusBar, Text, View } from "react-native";
+import { Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomTabBar from "../../components/bottomTabBar/BottomTabBar";
 import { UserInterface } from "../../types-dtos/user.types";
@@ -26,13 +26,21 @@ const user: UserInterface = {
   },
 };
 
-const categoryEmojis: Record<string, string> = {
-  Interior: "🏡",
-  Tropicales: "🌴",
-  Suculentas: "🪴",
-  "Aromáticas": "🌿",
-  Cactus: "🌵",
+type CategoryMeta = {
+  sub: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
 };
+
+const categoryMeta: Record<string, CategoryMeta> = {
+  Interior:    { sub: "Plantas de hogar",  icon: "home"         },
+  Tropicales:  { sub: "Climas cálidos",    icon: "leaf"         },
+  Suculentas:  { sub: "Bajo riego",        icon: "sunny"        },
+  "Aromáticas":{ sub: "Sabor y aroma",     icon: "flower"       },
+  Cactus:      { sub: "Alta resistencia",  icon: "leaf-outline" },
+};
+
+const BANNER_URI =
+  "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80";
 
 export default function UserProfile() {
   const metrics = [
@@ -63,20 +71,41 @@ export default function UserProfile() {
           showsVerticalScrollIndicator={false}
         >
           {/* Profile card */}
-          <View style={[styles.card, { marginBottom: 14 }]}>
-            <View style={styles.profileRow}>
-              <View style={styles.avatarWrapper}>
+          <View style={[styles.card, { padding: 0, marginBottom: 14 }]}>
+            {/* Banner */}
+            <View style={styles.bannerContainer}>
+              <Image source={{ uri: BANNER_URI }} style={styles.bannerImage} resizeMode="cover" />
+            </View>
+
+            {/* Avatar centrado sobre el banner */}
+            <View style={styles.avatarOuter}>
+              <View style={[styles.avatarWrapper, { marginRight: 0 }]}>
                 <Image source={{ uri: user.image }} style={styles.avatar} />
               </View>
-              <View style={styles.nameBlock}>
-                <Text style={styles.nameText}>{user.nombre}</Text>
-                <Text style={styles.handleText}>@{user.apodo}</Text>
-                <View style={styles.privacyPill}>
-                  <Text style={styles.privacyText}>{user.privacidad}</Text>
-                </View>
-              </View>
             </View>
-            <Text style={styles.description}>{user.descripcion}</Text>
+
+            {/* Info centrada */}
+            <View style={styles.profileInfoCenter}>
+              <Text style={styles.nameCentered}>{user.nombre}</Text>
+              <Text style={styles.handleCentered}>@{user.apodo}</Text>
+              <View style={styles.privacyPillCenter}>
+                <Text style={styles.privacyText}>{user.privacidad}</Text>
+              </View>
+              <Text style={styles.descriptionCentered}>{user.descripcion}</Text>
+            </View>
+
+            {/* Divisor */}
+            <View style={styles.profileDivider} />
+
+            {/* Acciones */}
+            <View style={styles.profileActionRow}>
+              <TouchableOpacity style={styles.editBtn} activeOpacity={0.7}>
+                <Text style={styles.editBtnText}>Editar perfil</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.shareBtn} activeOpacity={0.8}>
+                <Ionicons name="share-social-outline" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Metrics card */}
@@ -123,14 +152,29 @@ export default function UserProfile() {
           {/* Categories card */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Categorías</Text>
-            <View style={styles.chipsContainer}>
-              {user.categoriasPlantas.map((categoria) => (
-                <View key={categoria} style={styles.chip}>
-                  <Text style={styles.chipText}>
-                    {categoryEmojis[categoria] ?? "🌱"} {categoria}
-                  </Text>
-                </View>
-              ))}
+            <View style={styles.categoryGrid}>
+              {user.categoriasPlantas.map((categoria, index) => {
+                const meta = categoryMeta[categoria] ?? { sub: "", icon: "leaf" as const };
+                const isLast = index === user.categoriasPlantas.length - 1;
+                const isOdd = user.categoriasPlantas.length % 2 !== 0;
+                return (
+                  <View
+                    key={categoria}
+                    style={[
+                      styles.categoryCardItem,
+                      isLast && isOdd && styles.categoryCardItemFull,
+                    ]}
+                  >
+                    <Text style={styles.categoryCardTitle}>{categoria}</Text>
+                    <Text style={styles.categoryCardSub}>{meta.sub}</Text>
+                    <Image
+                      source={require("../../../assets/images/icon_grass_transparent.png")}
+                      style={styles.categoryCardIcon}
+                      resizeMode="contain"
+                    />
+                  </View>
+                );
+              })}
             </View>
           </View>
         </ScrollView>
