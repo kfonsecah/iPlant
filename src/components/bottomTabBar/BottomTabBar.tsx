@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { tabStyles } from "./BottomTabBar.styles";
 
 type TabItem = {
@@ -25,6 +26,7 @@ type Props = {
 };
 
 export default function BottomTabBar({ activeTab = "plants" }: Props) {
+  const insets = useSafeAreaInsets();
   const activeColor = "#34D399";
   const inactiveColor = "#4B5563";
 
@@ -45,7 +47,7 @@ export default function BottomTabBar({ activeTab = "plants" }: Props) {
   };
 
   return (
-    <View style={tabStyles.root}>
+    <View style={[tabStyles.root, { paddingBottom: insets.bottom }]}>
       <View style={tabStyles.bar}>
         {LEFT_TABS.map(renderTab)}
         <View style={tabStyles.centerSpacer} />

@@ -6,7 +6,6 @@ const tabColors = {
   active: "#34D399",
   inactive: "#4B5563",
   centerBtnBg: "#34D399",
-  centerBtnBorder: "#0D1117",
 };
 
 export const tabStyles = StyleSheet.create({
@@ -19,8 +18,8 @@ export const tabStyles = StyleSheet.create({
   bar: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 6,
+    paddingTop: 9,
+    paddingBottom: 0,
     paddingHorizontal: 6,
   },
   tabItem: {
@@ -43,17 +42,17 @@ export const tabStyles = StyleSheet.create({
   },
   arcWrapper: {
     position: "absolute",
-    top: -28,
+    top: -29,
     left: 0,
     right: 0,
     alignItems: "center",
     zIndex: 2,
   },
   arcBump: {
-    width: 84,
-    height: 30,
-    borderTopLeftRadius: 42,
-    borderTopRightRadius: 42,
+    width: 80,
+    height: 40,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     backgroundColor: tabColors.barBg,
     borderTopWidth: 1,
     borderLeftWidth: 1,
@@ -76,8 +75,7 @@ export const tabStyles = StyleSheet.create({
     backgroundColor: tabColors.centerBtnBg,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 4,
-    borderColor: tabColors.centerBtnBorder,
+    borderWidth: 0,
     shadowColor: tabColors.active,
     shadowOpacity: 0.45,
     shadowRadius: 12,

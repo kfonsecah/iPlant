@@ -20,7 +20,7 @@ const user: UserInterface = {
   cantidadAmigos: 142,
   categoriasPlantas: ["Interior", "Tropicales", "Suculentas", "Aromáticas", "Cactus"],
   plantaFavorita: {
-    nombre: "Monstera deliciosa",
+    nombre: "Canabis Sativa",
     imagen:
       "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80",
   },
@@ -43,7 +43,7 @@ export default function UserProfile() {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1117" />
       <ImageBackground
         source={require("../../../assets/images/LogInBackground.png")}
