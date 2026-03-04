@@ -6,6 +6,10 @@ import BottomTabBar from "../../components/bottomTabBar/BottomTabBar";
 import { UserInterface } from "../../types-dtos/user.types";
 import { styles } from "./UserProfile.styles";
 
+const IMG_GRASS = require("../../../assets/images/icon_grass_transparent.png");
+const IMG_USERS = require("../../../assets/images/icon_users_transparent.png");
+const IMG_FIRE  = require("../../../assets/images/icon_fire_transaprent.png");
+
 const user: UserInterface = {
   nombre: "Valeria Campos",
   apodo: "valcam",
@@ -44,10 +48,10 @@ const BANNER_URI =
 
 export default function UserProfile() {
   const metrics = [
-    { label: "Plantas", value: String(user.cantidadPlantas), icon: "🌿" },
-    { label: "Amigos", value: String(user.cantidadAmigos), icon: "👥" },
-    { label: "Racha", value: `${user.racha}d`, icon: "🔥" },
-    { label: "Cumpleaños", value: user.cumpleanos, icon: "🎂" },
+    { label: "Plantas",    value: String(user.cantidadPlantas), decor: IMG_GRASS },
+    { label: "Amigos",     value: String(user.cantidadAmigos),  decor: IMG_USERS },
+    { label: "Racha",      value: `${user.racha}d`,             decor: IMG_FIRE  },
+    { label: "Cumpleaños", value: user.cumpleanos,              decor: null      },
   ];
 
   return (
@@ -119,7 +123,6 @@ export default function UserProfile() {
                     index === metrics.length - 1 ? styles.metricCardLast : undefined,
                   ]}
                 >
-                  <Text style={styles.metricIcon}>{item.icon}</Text>
                   <Text style={styles.metricLabel}>{item.label}</Text>
                   <Text
                     style={styles.metricValue}
@@ -128,6 +131,13 @@ export default function UserProfile() {
                   >
                     {item.value}
                   </Text>
+                  {item.decor && (
+                    <Image
+                      source={item.decor}
+                      style={styles.metricGrassImage}
+                      resizeMode="contain"
+                    />
+                  )}
                 </View>
               ))}
             </View>
@@ -167,11 +177,9 @@ export default function UserProfile() {
                   >
                     <Text style={styles.categoryCardTitle}>{categoria}</Text>
                     <Text style={styles.categoryCardSub}>{meta.sub}</Text>
-                    <Image
-                      source={require("../../../assets/images/icon_grass_transparent.png")}
-                      style={styles.categoryCardIcon}
-                      resizeMode="contain"
-                    />
+                    <View style={styles.categoryCardIcon}>
+                      <Ionicons name={meta.icon} size={68} color="#34D399" />
+                    </View>
                   </View>
                 );
               })}

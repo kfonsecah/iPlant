@@ -1,0 +1,184 @@
+{
+  "name": "iPlant Design System",
+  "version": "1.0.0",
+  "colors": {
+    "background": {
+      "base": "#0D1117",
+      "card": "#161B22",
+      "chip": "#1C2128"
+    },
+    "border": {
+      "default": "#21262D"
+    },
+    "accent": {
+      "primary": "#34D399",
+      "dim": "#163330",
+      "primaryWithAlpha": "#34D39960"
+    },
+    "text": {
+      "primary": "#E6EDF3",
+      "secondary": "#8B949E",
+      "onAccent": "#FFFFFF"
+    },
+    "tabBar": {
+      "background": "#161B22",
+      "border": "#21262D",
+      "active": "#34D399",
+      "inactive": "#4B5563",
+      "centerButton": "#34D399"
+    }
+  },
+  "typography": {
+    "fontSizes": {
+      "xs": 10,
+      "sm": 11,
+      "base": 12,
+      "md": 13,
+      "lg": 14,
+      "xl": 15,
+      "2xl": 16,
+      "3xl": 17,
+      "4xl": 18,
+      "5xl": 20,
+      "6xl": 22,
+      "7xl": 24
+    },
+    "fontWeights": {
+      "medium": "500",
+      "semibold": "600",
+      "bold": "700"
+    },
+    "lineHeights": {
+      "tight": 15,
+      "normal": 20,
+      "relaxed": 21,
+      "loose": 26
+    },
+    "letterSpacing": {
+      "none": 0,
+      "xs": 0.1,
+      "sm": 0.2,
+      "md": 0.3,
+      "lg": 0.4
+    }
+  },
+  "spacing": {
+    "0": 0,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "6": 6,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "12": 12,
+    "14": 14,
+    "16": 16,
+    "18": 18,
+    "20": 20,
+    "22": 22,
+    "29": 29,
+    "44": 44
+  },
+  "borderRadius": {
+    "pill": 20,
+    "sm": 12,
+    "md": 14,
+    "lg": 16,
+    "xl": 20,
+    "full": 40,
+    "avatar": 46,
+    "avatarInner": 40,
+    "centerButton": 32
+  },
+  "shadows": {
+    "card": {
+      "color": "#000000",
+      "opacity": 0.3,
+      "radius": 16,
+      "offset": { "width": 0, "height": 8 },
+      "elevation": 8
+    },
+    "centerButton": {
+      "color": "#34D399",
+      "opacity": 0.45,
+      "radius": 12,
+      "offset": { "width": 0, "height": 2 },
+      "elevation": 12
+    }
+  },
+  "opacity": {
+    "backgroundTexture": 0.07,
+    "decorativeImage": 0.35,
+    "categoryCardIcon": 0.15
+  },
+  "dimensions": {
+    "avatar": { "width": 80, "height": 80 },
+    "bannerHeight": 130,
+    "settingsButton": { "width": 40, "height": 40 },
+    "shareButton": { "width": 42, "height": 42 },
+    "centerButton": { "width": 64, "height": 64 },
+    "arcBump": { "width": 80, "height": 40 },
+    "metricDecorImage": { "width": 58, "height": 58 },
+    "favoritePlantImage": { "width": "100%", "height": 170 },
+    "categoryCard": { "width": "47%", "height": 90 },
+    "tabBarIconSize": 23,
+    "cameraIconSize": 28,
+    "categoryIconSize": 68
+  },
+  "components": {
+    "card": {
+      "backgroundColor": "#161B22",
+      "borderRadius": 20,
+      "padding": 18,
+      "borderWidth": 1,
+      "borderColor": "#21262D",
+      "marginBottom": 14
+    },
+    "chip": {
+      "paddingHorizontal": 14,
+      "paddingVertical": 8,
+      "borderRadius": 20,
+      "backgroundColor": "#1C2128",
+      "borderWidth": 1,
+      "borderColor": "#21262D"
+    },
+    "privacyPill": {
+      "paddingHorizontal": 12,
+      "paddingVertical": 5,
+      "borderRadius": 20,
+      "backgroundColor": "#163330",
+      "borderWidth": 1,
+      "borderColor": "#34D39960"
+    },
+    "metricCard": {
+      "backgroundColor": "#1C2128",
+      "borderRadius": 14,
+      "paddingVertical": 12,
+      "paddingHorizontal": 10,
+      "borderWidth": 1,
+      "borderColor": "#21262D"
+    },
+    "categoryCard": {
+      "backgroundColor": "#1C2128",
+      "borderRadius": 16,
+      "borderWidth": 1,
+      "borderColor": "#21262D",
+      "padding": 14,
+      "height": 90
+    },
+    "editButton": {
+      "paddingVertical": 10,
+      "borderRadius": 14,
+      "borderWidth": 1,
+      "borderColor": "#21262D",
+      "backgroundColor": "#1C2128"
+    },
+    "shareButton": {
+      "width": 42,
+      "height": 42,
+      "borderRadius": 12,
+      "backgroundColor": "#34D399"
+    }
+  }
+}

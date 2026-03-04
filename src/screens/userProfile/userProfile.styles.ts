@@ -129,14 +129,23 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.chip,
     borderRadius: 14,
     paddingVertical: 12,
-    paddingHorizontal: 6,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: colors.border,
     marginRight: 10,
-    alignItems: "center",
+    alignItems: "flex-start",
+    overflow: "hidden",
   },
   metricCardLast: {
     marginRight: 0,
+  },
+  metricGrassImage: {
+    position: "absolute",
+    bottom: -6,
+    right: -8,
+    width: 58,
+    height: 58,
+    opacity: 0.35,
   },
   metricIcon: {
     fontSize: 20,
@@ -145,14 +154,14 @@ export const styles = StyleSheet.create({
   metricLabel: {
     color: colors.textSecondary,
     fontSize: 11,
-    textAlign: "center",
+    textAlign: "left",
   },
   metricValue: {
     color: colors.accent,
     fontSize: 17,
     fontWeight: "700",
     marginTop: 3,
-    textAlign: "center",
+    textAlign: "left",
   },
   sectionTitle: {
     color: colors.textPrimary,
@@ -324,8 +333,6 @@ export const styles = StyleSheet.create({
     position: "absolute",
     bottom: -8,
     right: -4,
-    width: 72,
-    height: 72,
-    opacity: 0.85,
+    opacity: 0.15,
   },
 });
