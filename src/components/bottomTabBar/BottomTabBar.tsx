@@ -2,7 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { tabStyles } from "./BottomTabBar.styles";
+import { useTheme } from "../../theme/desingSystem";
+import { createTabStyles } from "./BottomTabBar.styles";
 
 type TabItem = {
   key: string;
@@ -27,8 +28,10 @@ type Props = {
 
 export default function BottomTabBar({ activeTab = "plants" }: Props) {
   const insets = useSafeAreaInsets();
-  const activeColor = "#34D399";
-  const inactiveColor = "#4B5563";
+  const theme = useTheme();
+  const tabStyles = createTabStyles(theme);
+  const activeColor = theme.colors.tabBarActive;
+  const inactiveColor = theme.colors.tabBarInactive;
 
   const renderTab = (tab: TabItem) => {
     const isActive = activeTab === tab.key;
@@ -36,7 +39,7 @@ export default function BottomTabBar({ activeTab = "plants" }: Props) {
       <TouchableOpacity key={tab.key} style={tabStyles.tabItem} activeOpacity={0.7}>
         <Ionicons
           name={isActive ? tab.iconActive : tab.icon}
-          size={23}
+          size={theme.dimensions.tabBarIconSize}
           color={isActive ? activeColor : inactiveColor}
         />
         <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>
@@ -61,7 +64,7 @@ export default function BottomTabBar({ activeTab = "plants" }: Props) {
 
       <View style={tabStyles.centerButtonWrapper} pointerEvents="box-none">
         <TouchableOpacity style={tabStyles.centerButton} activeOpacity={0.85}>
-          <Ionicons name="camera" size={28} color="#fff" />
+          <Ionicons name="camera" size={theme.dimensions.cameraIconSize} color={theme.colors.textOnAccent} />
         </TouchableOpacity>
       </View>
     </View>

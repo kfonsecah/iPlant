@@ -3,8 +3,9 @@ import React from "react";
 import { Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomTabBar from "../../components/bottomTabBar/BottomTabBar";
+import { useTheme } from "../../theme/desingSystem";
 import { UserInterface } from "../../types-dtos/user.types";
-import { styles } from "./UserProfile.styles";
+import { createStyles } from "./UserProfile.styles";
 
 const IMG_GRASS = require("../../../assets/images/icon_grass_transparent.png");
 const IMG_USERS = require("../../../assets/images/icon_users_transparent.png");
@@ -47,6 +48,9 @@ const BANNER_URI =
   "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80";
 
 export default function UserProfile() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+
   const metrics = [
     { label: "Plantas",    value: String(user.cantidadPlantas), decor: IMG_GRASS },
     { label: "Amigos",     value: String(user.cantidadAmigos),  decor: IMG_USERS },
@@ -56,7 +60,7 @@ export default function UserProfile() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D1117" />
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <ImageBackground
         source={require("../../../assets/images/LogInBackground.png")}
         style={styles.container}
@@ -65,7 +69,7 @@ export default function UserProfile() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Mi perfil</Text>
           <View style={styles.settingsBtn}>
-            <Ionicons name="settings-outline" size={20} color="#E6EDF3" />
+            <Ionicons name="settings-outline" size={20} color={theme.colors.textPrimary} />
           </View>
         </View>
 
@@ -75,7 +79,7 @@ export default function UserProfile() {
           showsVerticalScrollIndicator={false}
         >
           {/* Profile card */}
-          <View style={[styles.card, { padding: 0, marginBottom: 14 }]}>
+          <View style={styles.cardNoPadding}>
             {/* Banner */}
             <View style={styles.bannerContainer}>
               <Image source={{ uri: BANNER_URI }} style={styles.bannerImage} resizeMode="cover" />
@@ -83,7 +87,7 @@ export default function UserProfile() {
 
             {/* Avatar centrado sobre el banner */}
             <View style={styles.avatarOuter}>
-              <View style={[styles.avatarWrapper, { marginRight: 0 }]}>
+              <View style={styles.avatarWrapperCenter}>
                 <Image source={{ uri: user.image }} style={styles.avatar} />
               </View>
             </View>
@@ -107,13 +111,13 @@ export default function UserProfile() {
                 <Text style={styles.editBtnText}>Editar perfil</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.shareBtn} activeOpacity={0.8}>
-                <Ionicons name="share-social-outline" size={20} color="#fff" />
+                <Ionicons name="share-social-outline" size={20} color={theme.colors.textOnAccent} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Metrics card */}
-          <View style={[styles.card, { paddingVertical: 16 }]}>
+          <View style={styles.cardMetrics}>
             <View style={styles.metricsRow}>
               {metrics.map((item, index) => (
                 <View
@@ -178,7 +182,7 @@ export default function UserProfile() {
                     <Text style={styles.categoryCardTitle}>{categoria}</Text>
                     <Text style={styles.categoryCardSub}>{meta.sub}</Text>
                     <View style={styles.categoryCardIcon}>
-                      <Ionicons name={meta.icon} size={68} color="#34D399" />
+                      <Ionicons name={meta.icon} size={theme.dimensions.categoryIconSize} color={theme.colors.accent} />
                     </View>
                   </View>
                 );
