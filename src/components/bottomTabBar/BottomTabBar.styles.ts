@@ -3,7 +3,7 @@ import { AppTheme } from "../../theme/desingSystem";
 export const createTabStyles = (theme: AppTheme) => ({
     root: {
       backgroundColor: theme.colors.tabBarBackground,
-      borderTopWidth: 1,
+      borderTopWidth: theme.borders.thin,
       borderTopColor: theme.colors.tabBarBorder,
       overflow: "visible",
     },
@@ -38,7 +38,7 @@ export const createTabStyles = (theme: AppTheme) => ({
       left: 0,
       right: 0,
       alignItems: "center",
-      zIndex: 2,
+      zIndex: theme.zIndex.arc,
     },
     arcBump: {
       width: theme.dimensions.arcBump.width,
@@ -46,10 +46,10 @@ export const createTabStyles = (theme: AppTheme) => ({
       borderTopLeftRadius: theme.radius.full,
       borderTopRightRadius: theme.radius.full,
       backgroundColor: theme.colors.tabBarBackground,
-      borderTopWidth: 1,
-      borderLeftWidth: 1,
-      borderRightWidth: 1,
-      borderBottomWidth: 0,
+      borderTopWidth: theme.borders.thin,
+      borderLeftWidth: theme.borders.thin,
+      borderRightWidth: theme.borders.thin,
+      borderBottomWidth: theme.spacing.s0,
       borderColor: theme.colors.tabBarBorder,
     },
     centerButtonWrapper: {
@@ -58,7 +58,7 @@ export const createTabStyles = (theme: AppTheme) => ({
       left: 0,
       right: 0,
       alignItems: "center",
-      zIndex: 10,
+      zIndex: theme.zIndex.centerButton,
     },
     centerButton: {
       width: theme.dimensions.centerButton.width,
@@ -67,7 +67,7 @@ export const createTabStyles = (theme: AppTheme) => ({
       backgroundColor: theme.colors.tabBarCenterButton,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 0,
+      borderWidth: theme.borders.none,
       shadowColor: theme.shadows.centerButton.color,
       shadowOpacity: theme.shadows.centerButton.opacity,
       shadowRadius: theme.shadows.centerButton.radius,

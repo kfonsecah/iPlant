@@ -36,7 +36,7 @@ export default function BottomTabBar({ activeTab = "plants" }: Props) {
   const renderTab = (tab: TabItem) => {
     const isActive = activeTab === tab.key;
     return (
-      <TouchableOpacity key={tab.key} style={tabStyles.tabItem} activeOpacity={0.7}>
+      <TouchableOpacity key={tab.key} style={tabStyles.tabItem} activeOpacity={theme.opacity.pressableTab}>
         <Ionicons
           name={isActive ? tab.iconActive : tab.icon}
           size={theme.dimensions.tabBarIconSize}
@@ -63,7 +63,7 @@ export default function BottomTabBar({ activeTab = "plants" }: Props) {
       </View>
 
       <View style={tabStyles.centerButtonWrapper} pointerEvents="box-none">
-        <TouchableOpacity style={tabStyles.centerButton} activeOpacity={0.85}>
+        <TouchableOpacity style={tabStyles.centerButton} activeOpacity={theme.opacity.pressableCenterButton}>
           <Ionicons name="camera" size={theme.dimensions.cameraIconSize} color={theme.colors.textOnAccent} />
         </TouchableOpacity>
       </View>

@@ -116,12 +116,30 @@ interface ThemeShadows {
     centerButton: ShadowConfig;
 }
 
+// ─── Borders Interface ───────────────────────────────────────────────────────
+
+interface ThemeBorders {
+    thin: number;
+    avatarRing: number;
+    none: number;
+}
+
+// ─── ZIndex Interface ─────────────────────────────────────────────────────────
+
+interface ThemeZIndex {
+    arc: number;
+    centerButton: number;
+}
+
 // ─── Opacity Interface ────────────────────────────────────────────────────────
 
 interface ThemeOpacity {
     backgroundTexture: number;
     decorativeImage: number;
     categoryCardIcon: number;
+    pressableTab: number;
+    pressableButton: number;
+    pressableCenterButton: number;
 }
 
 // ─── Dimensions Interface ─────────────────────────────────────────────────────
@@ -139,6 +157,8 @@ interface ThemeDimensions {
     tabBarIconSize: number;
     cameraIconSize: number;
     categoryIconSize: number;
+    settingsIconSize: number;
+    shareIconSize: number;
 }
 
 // ─── App Theme ────────────────────────────────────────────────────────────────
@@ -152,6 +172,8 @@ export interface AppTheme {
     shadows: ThemeShadows;
     opacity: ThemeOpacity;
     dimensions: ThemeDimensions;
+    borders: ThemeBorders;
+    zIndex: ThemeZIndex;
 }
 
 // ─── Dark Colors ──────────────────────────────────────────────────────────────
@@ -285,6 +307,20 @@ const sharedOpacity: ThemeOpacity = {
     backgroundTexture: 0.07,
     decorativeImage: 0.35,
     categoryCardIcon: 0.15,
+    pressableTab: 0.7,
+    pressableButton: 0.8,
+    pressableCenterButton: 0.85,
+};
+
+const sharedBorders: ThemeBorders = {
+    thin: 1,
+    avatarRing: 2.5,
+    none: 0,
+};
+
+const sharedZIndex: ThemeZIndex = {
+    arc: 2,
+    centerButton: 10,
 };
 
 const sharedDimensions: ThemeDimensions = {
@@ -300,6 +336,8 @@ const sharedDimensions: ThemeDimensions = {
     tabBarIconSize: 23,
     cameraIconSize: 28,
     categoryIconSize: 68,
+    settingsIconSize: 20,
+    shareIconSize: 20,
 };
 
 // ─── Themes ───────────────────────────────────────────────────────────────────
@@ -314,6 +352,8 @@ const themes: Record<ThemeMode, AppTheme> = {
         shadows: sharedShadows,
         opacity: sharedOpacity,
         dimensions: sharedDimensions,
+        borders: sharedBorders,
+        zIndex: sharedZIndex,
     },
     dark: {
         mode: "dark",
@@ -324,6 +364,8 @@ const themes: Record<ThemeMode, AppTheme> = {
         shadows: sharedShadows,
         opacity: sharedOpacity,
         dimensions: sharedDimensions,
+        borders: sharedBorders,
+        zIndex: sharedZIndex,
     },
 };
 

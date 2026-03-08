@@ -69,12 +69,12 @@ export default function UserProfile() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Mi perfil</Text>
           <View style={styles.settingsBtn}>
-            <Ionicons name="settings-outline" size={20} color={theme.colors.textPrimary} />
+            <Ionicons name="settings-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
           </View>
         </View>
 
         <ScrollView
-          style={{ flex: 1 }}
+          style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -107,11 +107,11 @@ export default function UserProfile() {
 
             {/* Acciones */}
             <View style={styles.profileActionRow}>
-              <TouchableOpacity style={styles.editBtn} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.editBtn} activeOpacity={theme.opacity.pressableTab}>
                 <Text style={styles.editBtnText}>Editar perfil</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.shareBtn} activeOpacity={0.8}>
-                <Ionicons name="share-social-outline" size={20} color={theme.colors.textOnAccent} />
+              <TouchableOpacity style={styles.shareBtn} activeOpacity={theme.opacity.pressableButton}>
+                <Ionicons name="share-social-outline" size={theme.dimensions.shareIconSize} color={theme.colors.textOnAccent} />
               </TouchableOpacity>
             </View>
           </View>
