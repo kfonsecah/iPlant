@@ -5,27 +5,53 @@ type ThemeMode = "light" | "dark";
 // ─── Color Interfaces ─────────────────────────────────────────────────────────
 
 interface ThemeColors {
-    // Backgrounds
+    // ── Backgrounds ───────────────────────────────────────────────────────────
     background: string;
     backgroundCard: string;
     backgroundChip: string;
-    // Border
+    // ── Semantic Surfaces ─────────────────────────────────────────────────────
+    surface: string;
+    surfaceElevated: string;
+    // ── Border ────────────────────────────────────────────────────────────────
     border: string;
-    // Accent
+    // ── Brand – Primary ───────────────────────────────────────────────────────
+    primary: string;
+    primaryPressed: string;
+    primaryDisabled: string;
+    // ── Brand – Secondary ─────────────────────────────────────────────────────
+    secondary: string;
+    secondaryPressed: string;
+    secondaryDisabled: string;
+    // ── Accent (legacy alias of primary) ──────────────────────────────────────
     accent: string;
     accentDim: string;
     accentWithAlpha: string;
-    // Text
+    // ── Feedback – Error ──────────────────────────────────────────────────────
+    error: string;
+    errorPressed: string;
+    errorDisabled: string;
+    errorDim: string;
+    // ── Feedback – Success ────────────────────────────────────────────────────
+    success: string;
+    successPressed: string;
+    successDisabled: string;
+    successDim: string;
+    // ── Interaction States ────────────────────────────────────────────────────
+    disabled: string;
+    disabledText: string;
+    hover: string;
+    overlay: string;
+    // ── Text ──────────────────────────────────────────────────────────────────
     textPrimary: string;
     textSecondary: string;
     textOnAccent: string;
-    // Tab Bar
+    // ── Tab Bar ───────────────────────────────────────────────────────────────
     tabBarBackground: string;
     tabBarBorder: string;
     tabBarActive: string;
     tabBarInactive: string;
     tabBarCenterButton: string;
-    // Backward-compatible alias
+    // ── Backward-compatible alias ─────────────────────────────────────────────
     chip: string;
 }
 
@@ -64,9 +90,34 @@ interface ThemeSpacing {
     s44: number;
 }
 
+// ─── Text Style Token ─────────────────────────────────────────────────────────
+
+interface TextStyleToken {
+    fontSize: number;
+    fontWeight: "400" | "500" | "600" | "700";
+    lineHeight: number;
+    letterSpacing: number;
+}
+
 // ─── Typography Interface ─────────────────────────────────────────────────────
 
 interface ThemeTypography {
+    // Semantic font family tokens – load via expo-google-fonts or expo-font
+    fontFamily: {
+        regular: string;
+        medium: string;
+        semibold: string;
+        bold: string;
+    };
+    // Semantic text styles (Material Design / Apple HIG inspired scale)
+    textStyles: {
+        title: TextStyleToken;    // 24 – screen titles, hero text
+        subtitle: TextStyleToken; // 18 – section headers
+        body: TextStyleToken;     // 16 – main readable content
+        caption: TextStyleToken;  // 12 – metadata, helper text
+        button: TextStyleToken;   // 14 – CTA labels
+        overline: TextStyleToken; // 11 – category labels, tags
+    };
     fontSizes: {
         xs: number;
         sm: number;
@@ -82,6 +133,7 @@ interface ThemeTypography {
         "7xl": number;
     };
     fontWeights: {
+        regular: "400";
         medium: "500";
         semibold: "600";
         bold: "700";
@@ -131,6 +183,19 @@ interface ThemeZIndex {
     centerButton: number;
 }
 
+// ─── Scale Interface ──────────────────────────────────────────────────────────
+//  Semantic spacing scale following 4pt grid (Material Design / Apple HIG)
+
+interface ThemeScale {
+    xs: number;   // 4  – micro gaps, icon nudges
+    sm: number;   // 8  – tight spacing between related elements
+    md: number;   // 12 – compact padding inside chips / badges
+    base: number; // 16 – default content padding
+    lg: number;   // 24 – section separation
+    xl: number;   // 32 – large section breathing room
+    "2xl": number; // 40 – hero / screen-level spacing
+}
+
 // ─── Opacity Interface ────────────────────────────────────────────────────────
 
 interface ThemeOpacity {
@@ -168,6 +233,7 @@ export interface AppTheme {
     colors: ThemeColors;
     radius: ThemeRadius;
     spacing: ThemeSpacing;
+    scale: ThemeScale;
     typography: ThemeTypography;
     shadows: ThemeShadows;
     opacity: ThemeOpacity;
@@ -179,16 +245,47 @@ export interface AppTheme {
 // ─── Dark Colors ──────────────────────────────────────────────────────────────
 
 const darkColors: ThemeColors = {
+    // Backgrounds
     background: "#0D1117",
     backgroundCard: "#161B22",
     backgroundChip: "#1C2128",
+    // Semantic surfaces
+    surface: "#161B22",
+    surfaceElevated: "#1C2128",
+    // Border
     border: "#21262D",
+    // Brand – Primary (emerald green)
+    primary: "#34D399",
+    primaryPressed: "#059669",
+    primaryDisabled: "#1A3D2F",
+    // Brand – Secondary (mint / lighter green)
+    secondary: "#86EFAC",
+    secondaryPressed: "#4ADE80",
+    secondaryDisabled: "#1E3A28",
+    // Accent (legacy alias)
     accent: "#34D399",
     accentDim: "#163330",
     accentWithAlpha: "#34D39960",
+    // Feedback – Error
+    error: "#F87171",
+    errorPressed: "#DC2626",
+    errorDisabled: "#3D1515",
+    errorDim: "#2D1515",
+    // Feedback – Success
+    success: "#34D399",
+    successPressed: "#059669",
+    successDisabled: "#1A3D2F",
+    successDim: "#163330",
+    // Interaction States
+    disabled: "#21262D",
+    disabledText: "#4B5563",
+    hover: "#1F2937",
+    overlay: "#00000099",
+    // Text
     textPrimary: "#E6EDF3",
     textSecondary: "#8B949E",
     textOnAccent: "#FFFFFF",
+    // Tab Bar
     tabBarBackground: "#161B22",
     tabBarBorder: "#21262D",
     tabBarActive: "#34D399",
@@ -200,16 +297,47 @@ const darkColors: ThemeColors = {
 // ─── Light Colors ─────────────────────────────────────────────────────────────
 
 const lightColors: ThemeColors = {
+    // Backgrounds
     background: "#FFFFFF",
     backgroundCard: "#F9FAFB",
     backgroundChip: "#F3F4F6",
+    // Semantic surfaces
+    surface: "#F9FAFB",
+    surfaceElevated: "#FFFFFF",
+    // Border
     border: "#D1D5DB",
+    // Brand – Primary (deeper emerald for light bg contrast)
+    primary: "#059669",
+    primaryPressed: "#047857",
+    primaryDisabled: "#A7F3D0",
+    // Brand – Secondary
+    secondary: "#10B981",
+    secondaryPressed: "#059669",
+    secondaryDisabled: "#D1FAE5",
+    // Accent (legacy alias)
     accent: "#34D399",
     accentDim: "#ECFDF5",
     accentWithAlpha: "#34D39960",
+    // Feedback – Error
+    error: "#EF4444",
+    errorPressed: "#DC2626",
+    errorDisabled: "#FCA5A5",
+    errorDim: "#FEF2F2",
+    // Feedback – Success
+    success: "#10B981",
+    successPressed: "#059669",
+    successDisabled: "#A7F3D0",
+    successDim: "#ECFDF5",
+    // Interaction States
+    disabled: "#F3F4F6",
+    disabledText: "#9CA3AF",
+    hover: "#F3F4F6",
+    overlay: "#00000066",
+    // Text
     textPrimary: "#111827",
     textSecondary: "#4B5563",
     textOnAccent: "#FFFFFF",
+    // Tab Bar
     tabBarBackground: "#FFFFFF",
     tabBarBorder: "#E5E7EB",
     tabBarActive: "#34D399",
@@ -252,6 +380,23 @@ const sharedSpacing: ThemeSpacing = {
 };
 
 const sharedTypography: ThemeTypography = {
+    // Load fonts in app entry via expo-google-fonts or expo-font.
+    // Example: useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold })
+    fontFamily: {
+        regular:  "Inter_400Regular",
+        medium:   "Inter_500Medium",
+        semibold: "Inter_600SemiBold",
+        bold:     "Inter_700Bold",
+    },
+    textStyles: {
+        //                              size  weight  lineH  letterS
+        title:    { fontSize: 24, fontWeight: "700", lineHeight: 32, letterSpacing: 0.3 },
+        subtitle: { fontSize: 18, fontWeight: "600", lineHeight: 26, letterSpacing: 0.2 },
+        body:     { fontSize: 16, fontWeight: "400", lineHeight: 24, letterSpacing: 0.1 },
+        caption:  { fontSize: 12, fontWeight: "400", lineHeight: 16, letterSpacing: 0.2 },
+        button:   { fontSize: 14, fontWeight: "600", lineHeight: 20, letterSpacing: 0.3 },
+        overline: { fontSize: 11, fontWeight: "500", lineHeight: 16, letterSpacing: 0.8 },
+    },
     fontSizes: {
         xs: 10,
         sm: 11,
@@ -267,9 +412,10 @@ const sharedTypography: ThemeTypography = {
         "7xl": 24,
     },
     fontWeights: {
-        medium: "500",
+        regular:  "400",
+        medium:   "500",
         semibold: "600",
-        bold: "700",
+        bold:     "700",
     },
     lineHeights: {
         tight: 15,
@@ -342,12 +488,24 @@ const sharedDimensions: ThemeDimensions = {
 
 // ─── Themes ───────────────────────────────────────────────────────────────────
 
+// Semantic spacing scale – 4pt grid (Material Design / Apple HIG)
+const sharedScale: ThemeScale = {
+    xs:    4,
+    sm:    8,
+    md:    12,
+    base:  16,
+    lg:    24,
+    xl:    32,
+    "2xl": 40,
+};
+
 const themes: Record<ThemeMode, AppTheme> = {
     light: {
         mode: "light",
         colors: lightColors,
         radius: sharedRadius,
         spacing: sharedSpacing,
+        scale: sharedScale,
         typography: sharedTypography,
         shadows: sharedShadows,
         opacity: sharedOpacity,
@@ -360,6 +518,7 @@ const themes: Record<ThemeMode, AppTheme> = {
         colors: darkColors,
         radius: sharedRadius,
         spacing: sharedSpacing,
+        scale: sharedScale,
         typography: sharedTypography,
         shadows: sharedShadows,
         opacity: sharedOpacity,

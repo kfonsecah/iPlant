@@ -22,6 +22,7 @@ export const createTabStyles = (theme: AppTheme) => ({
     },
     tabLabel: {
       color: theme.colors.tabBarInactive,
+      fontFamily: theme.typography.fontFamily.medium,
       fontSize: theme.typography.fontSizes.xs,
       marginTop: theme.spacing.s3,
       fontWeight: theme.typography.fontWeights.medium,

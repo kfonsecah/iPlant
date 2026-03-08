@@ -11,7 +11,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   bgImage: {
     opacity: theme.opacity.backgroundTexture,
-    tintColor: theme.colors.accent,
+    tintColor: theme.colors.primary,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.s16,
@@ -25,7 +25,7 @@ export const createStyles = (theme: AppTheme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.s18,
     paddingVertical: theme.spacing.s8,
@@ -42,6 +42,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   headerTitle: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["5xl"],
     fontWeight: theme.typography.fontWeights.bold,
     letterSpacing: theme.typography.letterSpacing.md,
@@ -52,12 +53,12 @@ export const createStyles = (theme: AppTheme) => ({
     borderRadius: theme.radius.sm,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.colors.surfaceElevated,
     borderWidth: theme.borders.thin,
     borderColor: theme.colors.border,
   },
   card: {
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.xl,
     padding: theme.spacing.s18,
     borderWidth: theme.borders.thin,
@@ -76,7 +77,7 @@ export const createStyles = (theme: AppTheme) => ({
   avatarWrapper: {
     borderRadius: theme.radius.avatar,
     borderWidth: theme.borders.avatarRing,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     marginRight: theme.spacing.s16,
     padding: theme.spacing.s3,
   },
@@ -90,12 +91,14 @@ export const createStyles = (theme: AppTheme) => ({
   },
   nameText: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["5xl"],
     fontWeight: theme.typography.fontWeights.bold,
     lineHeight: theme.typography.lineHeights.loose,
   },
   handleText: {
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.fontSizes.md,
     marginTop: theme.spacing.s2,
   },
@@ -110,7 +113,8 @@ export const createStyles = (theme: AppTheme) => ({
     borderColor: theme.colors.accentWithAlpha,
   },
   privacyText: {
-    color: theme.colors.accent,
+    color: theme.colors.primary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontWeight: theme.typography.fontWeights.bold,
     fontSize: theme.typography.fontSizes.base,
     letterSpacing: theme.typography.letterSpacing.lg,
@@ -118,6 +122,7 @@ export const createStyles = (theme: AppTheme) => ({
   description: {
     marginTop: theme.spacing.s14,
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     lineHeight: theme.typography.lineHeights.relaxed,
     fontSize: theme.typography.fontSizes.lg,
   },
@@ -154,11 +159,13 @@ export const createStyles = (theme: AppTheme) => ({
   },
   metricLabel: {
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.fontSizes.sm,
     textAlign: "left",
   },
   metricValue: {
-    color: theme.colors.accent,
+    color: theme.colors.primary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["3xl"],
     fontWeight: theme.typography.fontWeights.bold,
     marginTop: theme.spacing.s3,
@@ -166,6 +173,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   sectionTitle: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["2xl"],
     fontWeight: theme.typography.fontWeights.bold,
     marginBottom: theme.spacing.s14,
@@ -182,12 +190,14 @@ export const createStyles = (theme: AppTheme) => ({
   },
   favoriteSubLabel: {
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.fontSizes.base,
     marginBottom: theme.spacing.s3,
     letterSpacing: theme.typography.letterSpacing.sm,
   },
   favoriteName: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["4xl"],
     fontWeight: theme.typography.fontWeights.bold,
     fontStyle: "italic",
@@ -207,6 +217,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   chipText: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.semibold,
     fontSize: theme.typography.fontSizes.md,
     fontWeight: theme.typography.fontWeights.semibold,
   },
@@ -233,6 +244,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   nameCentered: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["6xl"],
     fontWeight: theme.typography.fontWeights.bold,
     textAlign: "center",
@@ -240,6 +252,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   handleCentered: {
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.fontSizes.md,
     marginTop: theme.spacing.s3,
     textAlign: "center",
@@ -257,6 +270,7 @@ export const createStyles = (theme: AppTheme) => ({
   descriptionCentered: {
     marginTop: theme.spacing.s10,
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     lineHeight: theme.typography.lineHeights.normal,
     fontSize: theme.typography.fontSizes.md,
     textAlign: "center",
@@ -286,6 +300,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   editBtnText: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.semibold,
     fontWeight: theme.typography.fontWeights.semibold,
     fontSize: theme.typography.fontSizes.md,
   },
@@ -293,7 +308,7 @@ export const createStyles = (theme: AppTheme) => ({
     width: theme.dimensions.shareButton.width,
     height: theme.dimensions.shareButton.height,
     borderRadius: theme.radius.sm,
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -320,12 +335,14 @@ export const createStyles = (theme: AppTheme) => ({
   },
   categoryCardTitle: {
     color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes.xl,
     fontWeight: theme.typography.fontWeights.bold,
     letterSpacing: theme.typography.letterSpacing.xs,
   },
   categoryCardSub: {
     color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.fontSizes.sm,
     marginTop: theme.spacing.s4,
     lineHeight: theme.typography.lineHeights.tight,
@@ -338,7 +355,7 @@ export const createStyles = (theme: AppTheme) => ({
   },
   // ── Card layout variants ───────────────────────────────
   cardNoPadding: {
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.xl,
     padding: theme.spacing.s0,
     borderWidth: theme.borders.thin,
@@ -351,7 +368,7 @@ export const createStyles = (theme: AppTheme) => ({
     marginBottom: theme.spacing.s14,
   },
   cardMetrics: {
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.xl,
     paddingVertical: theme.spacing.s16,
     paddingHorizontal: theme.spacing.s18,
@@ -367,7 +384,7 @@ export const createStyles = (theme: AppTheme) => ({
   avatarWrapperCenter: {
     borderRadius: theme.radius.avatar,
     borderWidth: theme.borders.avatarRing,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     marginRight: theme.spacing.s0,
     padding: theme.spacing.s3,
   },
