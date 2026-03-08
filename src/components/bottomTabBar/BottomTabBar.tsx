@@ -44,7 +44,7 @@ export default function BottomTabBar() {
 
   const handleTabPress = (key: string) => {
     if (activeTab !== key) {
-      router.replace(ROUTE_MAP[key] as any);
+      router.navigate(ROUTE_MAP[key] as any);
     }
   };
 

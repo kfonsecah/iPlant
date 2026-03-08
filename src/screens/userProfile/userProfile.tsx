@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomTabBar from "../../components/bottomTabBar/BottomTabBar";
 import { useTheme } from "../../theme/desingSystem";
 import { UserInterface } from "../../types-dtos/user.types";
 import { createStyles } from "./UserProfile.styles";
@@ -190,7 +189,6 @@ export default function UserProfile() {
             </View>
           </View>
         </ScrollView>
-        <BottomTabBar />
       </ImageBackground>
     </SafeAreaView>
   );

@@ -10,7 +10,6 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomTabBar from "../../components/bottomTabBar/BottomTabBar";
 import { useTheme } from "../../theme/desingSystem";
 import { createMisPlantasStyles } from "./MisPlants.styles";
 
@@ -157,8 +156,6 @@ export default function MisPlants() {
             ))}
           </View>
         </ScrollView>
-
-        <BottomTabBar />
       </ImageBackground>
     </SafeAreaView>
   );
