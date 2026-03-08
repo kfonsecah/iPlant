@@ -190,7 +190,7 @@ export default function UserProfile() {
             </View>
           </View>
         </ScrollView>
-        <BottomTabBar activeTab="profile" />
+        <BottomTabBar />
       </ImageBackground>
     </SafeAreaView>
   );
