@@ -75,4 +75,11 @@ export const createTabStyles = (theme: AppTheme) => ({
       shadowOffset: theme.shadows.centerButton.offset,
       elevation: theme.shadows.centerButton.elevation,
   },
+  activeIndicator: {
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: theme.colors.tabBarActive,
+    marginTop: theme.spacing.s2,
+  },
 } as const);

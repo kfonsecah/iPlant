@@ -31,6 +31,10 @@ interface ThemeColors {
     errorPressed: string;
     errorDisabled: string;
     errorDim: string;
+    // ── Feedback – Warning ───────────────────────────────────────────────────
+    warning: string;
+    warningDim: string;
+    warningWithAlpha: string;
     // ── Feedback – Success ────────────────────────────────────────────────────
     success: string;
     successPressed: string;
@@ -271,6 +275,10 @@ const darkColors: ThemeColors = {
     errorPressed: "#DC2626",
     errorDisabled: "#3D1515",
     errorDim: "#2D1515",
+    // Feedback – Warning
+    warning: "#F59E0B",
+    warningDim: "#2A1C00",
+    warningWithAlpha: "#F59E0B52",
     // Feedback – Success
     success: "#34D399",
     successPressed: "#059669",
@@ -323,6 +331,10 @@ const lightColors: ThemeColors = {
     errorPressed: "#DC2626",
     errorDisabled: "#FCA5A5",
     errorDim: "#FEF2F2",
+    // Feedback – Warning
+    warning: "#D97706",
+    warningDim: "#FFFBEB",
+    warningWithAlpha: "#D9770652",
     // Feedback – Success
     success: "#10B981",
     successPressed: "#059669",

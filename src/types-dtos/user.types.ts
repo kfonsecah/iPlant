@@ -15,6 +15,7 @@ export interface UserInterface {
   racha: number;
   cantidadPlantas: number;
   cantidadAmigos: number;
+  detecciones: number;
   categoriasPlantas: string[];
   plantaFavorita: PlantaFavorita;
 }

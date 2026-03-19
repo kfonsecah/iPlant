@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown, FadeInUp, ZoomIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
 import { UserInterface } from "../../types-dtos/user.types";
@@ -11,8 +12,8 @@ const IMG_USERS = require("../../../assets/images/icon_users_transparent.png");
 const IMG_FIRE  = require("../../../assets/images/icon_fire_transaprent.png");
 
 const user: UserInterface = {
-  nombre: "Valeria Campos",
-  apodo: "valcam",
+  nombre: "Roberto Emilio",
+  apodo: "ruperto_plantlover",
   image:
     "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=800&q=80",
   descripcion:
@@ -22,6 +23,7 @@ const user: UserInterface = {
   racha: 27,
   cantidadPlantas: 18,
   cantidadAmigos: 142,
+  detecciones: 47,
   categoriasPlantas: ["Interior", "Tropicales", "Suculentas", "Aromáticas", "Cactus"],
   plantaFavorita: {
     nombre: "Canabis Sativa",
@@ -46,6 +48,23 @@ const categoryMeta: Record<string, CategoryMeta> = {
 const BANNER_URI =
   "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80";
 
+type Logro = {
+  id: string;
+  nombre: string;
+  sub: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  unlocked: boolean;
+};
+
+const logros: Logro[] = [
+  { id: "1", nombre: "Primera Detección",  sub: "Identificaste tu primera planta",  icon: "leaf",          unlocked: true },
+  { id: "2", nombre: "Identificador Pro",  sub: "10+ identificaciones",              icon: "scan-outline",   unlocked: user.detecciones >= 10 },
+  { id: "3", nombre: "Coleccionista",      sub: "10+ plantas en colección",          icon: "apps",          unlocked: user.cantidadPlantas >= 10 },
+  { id: "4", nombre: "Racha Constante",    sub: "7 días seguidos cuidando",          icon: "flame",         unlocked: user.racha >= 7 },
+  { id: "5", nombre: "Explorador",         sub: "5 categorías distintas",            icon: "compass-outline",unlocked: user.categoriasPlantas.length >= 5 },
+  { id: "6", nombre: "Social Verde",       sub: "50+ amigos planteros",              icon: "people-outline", unlocked: user.cantidadAmigos >= 50 },
+];
+
 export default function UserProfile() {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -54,7 +73,7 @@ export default function UserProfile() {
     { label: "Plantas",    value: String(user.cantidadPlantas), decor: IMG_GRASS },
     { label: "Amigos",     value: String(user.cantidadAmigos),  decor: IMG_USERS },
     { label: "Racha",      value: `${user.racha}d`,             decor: IMG_FIRE  },
-    { label: "Cumpleaños", value: user.cumpleanos,              decor: null      },
+    { label: "Detectadas", value: String(user.detecciones),     decor: null      },
   ];
 
   return (
@@ -77,18 +96,19 @@ export default function UserProfile() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Profile card */}
-          <View style={styles.cardNoPadding}>
+          {/* Profile card — entra desde arriba */}
+          <Animated.View style={styles.cardNoPadding} entering={FadeInDown.duration(500)}>
             {/* Banner */}
             <View style={styles.bannerContainer}>
               <Image source={{ uri: BANNER_URI }} style={styles.bannerImage} resizeMode="cover" />
+              <View style={styles.bannerOverlay} />
             </View>
 
             {/* Avatar centrado sobre el banner */}
             <View style={styles.avatarOuter}>
-              <View style={styles.avatarWrapperCenter}>
+              <Animated.View style={styles.avatarWrapperCenter} entering={ZoomIn.delay(300).duration(400)}>
                 <Image source={{ uri: user.image }} style={styles.avatar} />
-              </View>
+              </Animated.View>
             </View>
 
             {/* Info centrada */}
@@ -113,10 +133,10 @@ export default function UserProfile() {
                 <Ionicons name="share-social-outline" size={theme.dimensions.shareIconSize} color={theme.colors.textOnAccent} />
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Metrics card */}
-          <View style={styles.cardMetrics}>
+          {/* Metrics card — entra desde abajo con leve retraso */}
+          <Animated.View style={styles.cardMetrics} entering={FadeInUp.delay(150).duration(500)}>
             <View style={styles.metricsRow}>
               {metrics.map((item, index) => (
                 <View
@@ -144,27 +164,37 @@ export default function UserProfile() {
                 </View>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Favorite plant card */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Planta favorita</Text>
-            {user.plantaFavorita.imagen ? (
-              <Image
-                source={{ uri: user.plantaFavorita.imagen }}
-                style={styles.favoriteImageFull}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.favoriteImageFull} />
-            )}
-            <Text style={styles.favoriteSubLabel}>Siempre en el centro de atención</Text>
-            <Text style={styles.favoriteName}>{user.plantaFavorita.nombre}</Text>
-          </View>
+          {/* Favorite plant card — entra desde arriba */}
+          <Animated.View style={styles.card} entering={FadeInDown.delay(250).duration(500)}>
+            <View style={styles.sectionRow}>
+              <View style={styles.sectionAccentBar} />
+              <Text style={styles.sectionTitle}>Planta favorita</Text>
+            </View>
+            <View style={styles.favoriteImageWrapper}>
+              {user.plantaFavorita.imagen ? (
+                <Image
+                  source={{ uri: user.plantaFavorita.imagen }}
+                  style={styles.favoriteImageFull}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.favoriteImageFull} />
+              )}
+              <View style={styles.favoriteOverlay}>
+                <Text style={styles.favoriteSubOnImage}>Siempre en el centro de atención</Text>
+                <Text style={styles.favoriteNameOnImage}>{user.plantaFavorita.nombre}</Text>
+              </View>
+            </View>
+          </Animated.View>
 
-          {/* Categories card */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Categorías</Text>
+          {/* Categories card — entra desde abajo */}
+          <Animated.View style={styles.card} entering={FadeInUp.delay(350).duration(500)}>
+            <View style={styles.sectionRow}>
+              <View style={styles.sectionAccentBar} />
+              <Text style={styles.sectionTitle}>Categorías</Text>
+            </View>
             <View style={styles.categoryGrid}>
               {user.categoriasPlantas.map((categoria, index) => {
                 const meta = categoryMeta[categoria] ?? { sub: "", icon: "leaf" as const };
@@ -187,7 +217,40 @@ export default function UserProfile() {
                 );
               })}
             </View>
-          </View>
+          </Animated.View>
+
+          {/* Logros — entra desde abajo */}
+          <Animated.View style={styles.card} entering={FadeInUp.delay(450).duration(500)}>
+            <View style={styles.sectionRow}>
+              <View style={styles.sectionAccentBar} />
+              <Text style={styles.sectionTitle}>Logros</Text>
+            </View>
+            <View style={styles.badgesRow}>
+              {logros.map((logro) => (
+                <View
+                  key={logro.id}
+                  style={[styles.badgeItem, !logro.unlocked && styles.badgeItemLocked]}
+                >
+                  <View style={[styles.badgeIconWrap, !logro.unlocked && styles.badgeIconWrapLocked]}>
+                    <Ionicons
+                      name={logro.unlocked ? logro.icon : "lock-closed-outline"}
+                      size={16}
+                      color={logro.unlocked ? theme.colors.primary : theme.colors.textSecondary}
+                    />
+                  </View>
+                  <View style={styles.badgeTexts}>
+                    <Text
+                      style={[styles.badgeName, !logro.unlocked && styles.badgeNameLocked]}
+                      numberOfLines={1}
+                    >
+                      {logro.nombre}
+                    </Text>
+                    <Text style={styles.badgeSub} numberOfLines={1}>{logro.sub}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </Animated.View>
         </ScrollView>
       </ImageBackground>
     </SafeAreaView>
