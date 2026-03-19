@@ -71,6 +71,7 @@ interface ThemeRadius {
     avatar: number;
     avatarInner: number;
     centerButton: number;
+    logoCircle: number;
 }
 
 // ─── Spacing Interface ────────────────────────────────────────────────────────
@@ -228,6 +229,8 @@ interface ThemeDimensions {
     categoryIconSize: number;
     settingsIconSize: number;
     shareIconSize: number;
+    logoCircle: { width: number; height: number };
+    inputHeight: number;
 }
 
 // ─── App Theme ────────────────────────────────────────────────────────────────
@@ -370,6 +373,7 @@ const sharedRadius: ThemeRadius = {
     avatar: 46,
     avatarInner: 40,
     centerButton: 32,
+    logoCircle: 36,
 };
 
 const sharedSpacing: ThemeSpacing = {
@@ -496,6 +500,8 @@ const sharedDimensions: ThemeDimensions = {
     categoryIconSize: 68,
     settingsIconSize: 20,
     shareIconSize: 20,
+    logoCircle: { width: 72, height: 72 },
+    inputHeight: 48,
 };
 
 // ─── Themes ───────────────────────────────────────────────────────────────────
