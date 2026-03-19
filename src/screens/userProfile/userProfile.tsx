@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
+import { getUserById } from "../../services/userService";
 import { UserInterface } from "../../types-dtos/user.types";
 import { createStyles } from "./UserProfile.styles";
 
@@ -11,26 +12,8 @@ const IMG_GRASS = require("../../../assets/images/icon_grass_transparent.png");
 const IMG_USERS = require("../../../assets/images/icon_users_transparent.png");
 const IMG_FIRE  = require("../../../assets/images/icon_fire_transaprent.png");
 
-const user: UserInterface = {
-  nombre: "Roberto Emilio",
-  apodo: "ruperto_plantlover",
-  image:
-    "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=800&q=80",
-  descripcion:
-    "Curadora de selva urbana. Me gustan los rincones verdes, las hojas enormes y las macetas con personalidad.",
-  privacidad: "Privado",
-  cumpleanos: "12/04",
-  racha: 27,
-  cantidadPlantas: 18,
-  cantidadAmigos: 142,
-  detecciones: 47,
-  categoriasPlantas: ["Interior", "Tropicales", "Suculentas", "Aromáticas", "Cactus"],
-  plantaFavorita: {
-    nombre: "Canabis Sativa",
-    imagen:
-      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80",
-  },
-};
+// ID del usuario activo — se reemplazará con auth real
+const CURRENT_USER_ID = "user-1";
 
 type CategoryMeta = {
   sub: string;
@@ -38,15 +21,12 @@ type CategoryMeta = {
 };
 
 const categoryMeta: Record<string, CategoryMeta> = {
-  Interior:    { sub: "Plantas de hogar",  icon: "home"         },
-  Tropicales:  { sub: "Climas cálidos",    icon: "leaf"         },
-  Suculentas:  { sub: "Bajo riego",        icon: "sunny"        },
-  "Aromáticas":{ sub: "Sabor y aroma",     icon: "flower"       },
-  Cactus:      { sub: "Alta resistencia",  icon: "leaf-outline" },
+  Interior:     { sub: "Plantas de hogar", icon: "home"         },
+  Tropicales:   { sub: "Climas cálidos",   icon: "leaf"         },
+  Suculentas:   { sub: "Bajo riego",       icon: "sunny"        },
+  "Aromáticas": { sub: "Sabor y aroma",    icon: "flower"       },
+  Cactus:       { sub: "Alta resistencia", icon: "leaf-outline" },
 };
-
-const BANNER_URI =
-  "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80";
 
 type Logro = {
   id: string;
@@ -56,18 +36,48 @@ type Logro = {
   unlocked: boolean;
 };
 
-const logros: Logro[] = [
-  { id: "1", nombre: "Primera Detección",  sub: "Identificaste tu primera planta",  icon: "leaf",          unlocked: true },
-  { id: "2", nombre: "Identificador Pro",  sub: "10+ identificaciones",              icon: "scan-outline",   unlocked: user.detecciones >= 10 },
-  { id: "3", nombre: "Coleccionista",      sub: "10+ plantas en colección",          icon: "apps",          unlocked: user.cantidadPlantas >= 10 },
-  { id: "4", nombre: "Racha Constante",    sub: "7 días seguidos cuidando",          icon: "flame",         unlocked: user.racha >= 7 },
-  { id: "5", nombre: "Explorador",         sub: "5 categorías distintas",            icon: "compass-outline",unlocked: user.categoriasPlantas.length >= 5 },
-  { id: "6", nombre: "Social Verde",       sub: "50+ amigos planteros",              icon: "people-outline", unlocked: user.cantidadAmigos >= 50 },
-];
+function buildLogros(user: UserInterface): Logro[] {
+  return [
+    { id: "1", nombre: "Primera Detección", sub: "Identificaste tu primera planta",  icon: "leaf",           unlocked: true },
+    { id: "2", nombre: "Identificador Pro", sub: "10+ identificaciones",              icon: "scan-outline",   unlocked: user.detecciones >= 10 },
+    { id: "3", nombre: "Coleccionista",     sub: "10+ plantas en colección",          icon: "apps",           unlocked: user.cantidadPlantas >= 10 },
+    { id: "4", nombre: "Racha Constante",   sub: "7 días seguidos cuidando",          icon: "flame",          unlocked: user.racha >= 7 },
+    { id: "5", nombre: "Explorador",        sub: "5 categorías distintas",            icon: "compass-outline",unlocked: user.categoriasPlantas.length >= 5 },
+    { id: "6", nombre: "Social Verde",      sub: "50+ amigos planteros",              icon: "people-outline", unlocked: user.cantidadAmigos >= 50 },
+  ];
+}
 
 export default function UserProfile() {
   const theme = useTheme();
   const styles = createStyles(theme);
+
+  const [user, setUser] = useState<UserInterface | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getUserById(CURRENT_USER_ID)
+      .then((data) => setUser(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]} edges={["top"]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]} edges={["top"]}>
+        <Text style={{ color: theme.colors.error }}>No se pudo cargar el perfil.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const logros = buildLogros(user);
+  const bannerUri = user.bannerImage ?? "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80";
 
   const metrics = [
     { label: "Plantas",    value: String(user.cantidadPlantas), decor: IMG_GRASS },
@@ -96,22 +106,17 @@ export default function UserProfile() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Profile card — entra desde arriba */}
+          {/* Profile card */}
           <Animated.View style={styles.cardNoPadding} entering={FadeInDown.duration(500)}>
-            {/* Banner */}
             <View style={styles.bannerContainer}>
-              <Image source={{ uri: BANNER_URI }} style={styles.bannerImage} resizeMode="cover" />
+              <Image source={{ uri: bannerUri }} style={styles.bannerImage} resizeMode="cover" />
               <View style={styles.bannerOverlay} />
             </View>
-
-            {/* Avatar centrado sobre el banner */}
             <View style={styles.avatarOuter}>
               <Animated.View style={styles.avatarWrapperCenter} entering={ZoomIn.delay(300).duration(400)}>
                 <Image source={{ uri: user.image }} style={styles.avatar} />
               </Animated.View>
             </View>
-
-            {/* Info centrada */}
             <View style={styles.profileInfoCenter}>
               <Text style={styles.nameCentered}>{user.nombre}</Text>
               <Text style={styles.handleCentered}>@{user.apodo}</Text>
@@ -120,11 +125,7 @@ export default function UserProfile() {
               </View>
               <Text style={styles.descriptionCentered}>{user.descripcion}</Text>
             </View>
-
-            {/* Divisor */}
             <View style={styles.profileDivider} />
-
-            {/* Acciones */}
             <View style={styles.profileActionRow}>
               <TouchableOpacity style={styles.editBtn} activeOpacity={theme.opacity.pressableTab}>
                 <Text style={styles.editBtnText}>Editar perfil</Text>
@@ -135,38 +136,27 @@ export default function UserProfile() {
             </View>
           </Animated.View>
 
-          {/* Metrics card — entra desde abajo con leve retraso */}
+          {/* Metrics card */}
           <Animated.View style={styles.cardMetrics} entering={FadeInUp.delay(150).duration(500)}>
             <View style={styles.metricsRow}>
               {metrics.map((item, index) => (
                 <View
                   key={item.label}
-                  style={[
-                    styles.metricCard,
-                    index === metrics.length - 1 ? styles.metricCardLast : undefined,
-                  ]}
+                  style={[styles.metricCard, index === metrics.length - 1 ? styles.metricCardLast : undefined]}
                 >
                   <Text style={styles.metricLabel}>{item.label}</Text>
-                  <Text
-                    style={styles.metricValue}
-                    adjustsFontSizeToFit
-                    numberOfLines={1}
-                  >
+                  <Text style={styles.metricValue} adjustsFontSizeToFit numberOfLines={1}>
                     {item.value}
                   </Text>
                   {item.decor && (
-                    <Image
-                      source={item.decor}
-                      style={styles.metricGrassImage}
-                      resizeMode="contain"
-                    />
+                    <Image source={item.decor} style={styles.metricGrassImage} resizeMode="contain" />
                   )}
                 </View>
               ))}
             </View>
           </Animated.View>
 
-          {/* Favorite plant card — entra desde arriba */}
+          {/* Planta favorita */}
           <Animated.View style={styles.card} entering={FadeInDown.delay(250).duration(500)}>
             <View style={styles.sectionRow}>
               <View style={styles.sectionAccentBar} />
@@ -174,11 +164,7 @@ export default function UserProfile() {
             </View>
             <View style={styles.favoriteImageWrapper}>
               {user.plantaFavorita.imagen ? (
-                <Image
-                  source={{ uri: user.plantaFavorita.imagen }}
-                  style={styles.favoriteImageFull}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: user.plantaFavorita.imagen }} style={styles.favoriteImageFull} resizeMode="cover" />
               ) : (
                 <View style={styles.favoriteImageFull} />
               )}
@@ -189,7 +175,7 @@ export default function UserProfile() {
             </View>
           </Animated.View>
 
-          {/* Categories card — entra desde abajo */}
+          {/* Categorías */}
           <Animated.View style={styles.card} entering={FadeInUp.delay(350).duration(500)}>
             <View style={styles.sectionRow}>
               <View style={styles.sectionAccentBar} />
@@ -203,10 +189,7 @@ export default function UserProfile() {
                 return (
                   <View
                     key={categoria}
-                    style={[
-                      styles.categoryCardItem,
-                      isLast && isOdd && styles.categoryCardItemFull,
-                    ]}
+                    style={[styles.categoryCardItem, isLast && isOdd && styles.categoryCardItemFull]}
                   >
                     <Text style={styles.categoryCardTitle}>{categoria}</Text>
                     <Text style={styles.categoryCardSub}>{meta.sub}</Text>
@@ -219,7 +202,7 @@ export default function UserProfile() {
             </View>
           </Animated.View>
 
-          {/* Logros — entra desde abajo */}
+          {/* Logros */}
           <Animated.View style={styles.card} entering={FadeInUp.delay(450).duration(500)}>
             <View style={styles.sectionRow}>
               <View style={styles.sectionAccentBar} />
@@ -227,10 +210,7 @@ export default function UserProfile() {
             </View>
             <View style={styles.badgesRow}>
               {logros.map((logro) => (
-                <View
-                  key={logro.id}
-                  style={[styles.badgeItem, !logro.unlocked && styles.badgeItemLocked]}
-                >
+                <View key={logro.id} style={[styles.badgeItem, !logro.unlocked && styles.badgeItemLocked]}>
                   <View style={[styles.badgeIconWrap, !logro.unlocked && styles.badgeIconWrapLocked]}>
                     <Ionicons
                       name={logro.unlocked ? logro.icon : "lock-closed-outline"}
@@ -239,10 +219,7 @@ export default function UserProfile() {
                     />
                   </View>
                   <View style={styles.badgeTexts}>
-                    <Text
-                      style={[styles.badgeName, !logro.unlocked && styles.badgeNameLocked]}
-                      numberOfLines={1}
-                    >
+                    <Text style={[styles.badgeName, !logro.unlocked && styles.badgeNameLocked]} numberOfLines={1}>
                       {logro.nombre}
                     </Text>
                     <Text style={styles.badgeSub} numberOfLines={1}>{logro.sub}</Text>

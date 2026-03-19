@@ -41,3 +41,11 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Firebase credentials (NEVER commit)
+scripts/serviceAccountKey.json
+*serviceAccountKey*.json
+.env
+
+# Python virtual environment
+scripts/.venv/

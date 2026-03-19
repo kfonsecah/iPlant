@@ -9,6 +9,7 @@ export interface UserInterface {
   nombre: string;
   apodo: string;
   image: string;
+  bannerImage?: string;
   descripcion: string;
   privacidad: PrivacidadPerfil;
   cumpleanos: string;

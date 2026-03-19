@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python.exe -m pip install --upgrade pip setuptools wheel --quiet)",
+      "Bash(.venv/Scripts/python.exe -m pip install firebase-admin --quiet)",
+      "Bash(.venv/Scripts/python.exe seed_firestore.py --credentials ./serviceAccountKey.json)",
+      "Bash(npx expo:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

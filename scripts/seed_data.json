@@ -1,0 +1,95 @@
+{
+  "collections": {
+    "users": [
+      {
+        "id": "user-1",
+        "email": "roberto@iplant.com",
+        "nombre": "Roberto Emilio",
+        "apodo": "ruperto_plantlover",
+        "image": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=800&q=80",
+        "bannerImage": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80",
+        "descripcion": "Curadora de selva urbana. Me gustan los rincones verdes, las hojas enormes y las macetas con personalidad.",
+        "privacidad": "Privado",
+        "cumpleanos": "12/04",
+        "racha": 27,
+        "cantidadPlantas": 6,
+        "cantidadAmigos": 142,
+        "detecciones": 47,
+        "categoriasPlantas": ["Interior", "Tropicales", "Suculentas", "Aromáticas", "Cactus"],
+        "plantaFavorita": {
+          "nombre": "Canabis Sativa",
+          "imagen": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80"
+        },
+        "createdAt": "2026-01-01T08:00:00.000Z"
+      }
+    ],
+    "plants": [
+      {
+        "id": "plant-1",
+        "userId": "user-1",
+        "nombre": "Monstera Deliciosa",
+        "categoria": "Interior",
+        "imagen": "https://images.unsplash.com/photo-1567173780793-b4f4f43e839c?auto=format&fit=crop&w=500&q=80",
+        "ultimoRiego": "2026-03-18T00:00:00.000Z",
+        "salud": "saludable",
+        "proximoRiego": 3,
+        "createdAt": "2026-01-15T08:00:00.000Z"
+      },
+      {
+        "id": "plant-2",
+        "userId": "user-1",
+        "nombre": "Cactus Barrel",
+        "categoria": "Cactus",
+        "imagen": "https://images.unsplash.com/photo-1525498128493-380d1990a112?auto=format&fit=crop&w=500&q=80",
+        "ultimoRiego": "2026-03-15T00:00:00.000Z",
+        "salud": "atención",
+        "proximoRiego": 0,
+        "createdAt": "2026-01-20T08:00:00.000Z"
+      },
+      {
+        "id": "plant-3",
+        "userId": "user-1",
+        "nombre": "Pothos Dorado",
+        "categoria": "Interior",
+        "imagen": "https://images.unsplash.com/photo-1572688484438-313a6e50c333?w=500&q=80",
+        "ultimoRiego": "2026-03-13T00:00:00.000Z",
+        "salud": "riesgo",
+        "proximoRiego": -2,
+        "createdAt": "2026-02-01T08:00:00.000Z"
+      },
+      {
+        "id": "plant-4",
+        "userId": "user-1",
+        "nombre": "Lavanda",
+        "categoria": "Aromáticas",
+        "imagen": "https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=500&q=80",
+        "ultimoRiego": "2026-03-17T00:00:00.000Z",
+        "salud": "saludable",
+        "proximoRiego": 5,
+        "createdAt": "2026-02-10T08:00:00.000Z"
+      },
+      {
+        "id": "plant-5",
+        "userId": "user-1",
+        "nombre": "Echeveria Rosa",
+        "categoria": "Suculentas",
+        "imagen": "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=500&q=80",
+        "ultimoRiego": "2026-03-12T00:00:00.000Z",
+        "salud": "atención",
+        "proximoRiego": -1,
+        "createdAt": "2026-02-15T08:00:00.000Z"
+      },
+      {
+        "id": "plant-6",
+        "userId": "user-1",
+        "nombre": "Bambú de Suerte",
+        "categoria": "Tropicales",
+        "imagen": "https://images.unsplash.com/photo-1545241047-6083a3684587?w=500&q=80",
+        "ultimoRiego": "2026-03-18T00:00:00.000Z",
+        "salud": "saludable",
+        "proximoRiego": 2,
+        "createdAt": "2026-02-20T08:00:00.000Z"
+      }
+    ]
+  }
+}
