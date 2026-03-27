@@ -213,5 +213,145 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
     fontWeight: theme.typography.fontWeights.semibold,
   },
 
+  // ── FAB ─────────────────────────────────────────────────────────────────────
+  fab: {
+    position: "absolute" as const,
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
+  },
 
+  // ── Modal ────────────────────────────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: theme.colors.overlay,
+    justifyContent: "flex-end" as const,
+  },
+  modalCard: {
+    backgroundColor: theme.colors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: theme.spacing.s20,
+    paddingBottom: theme.spacing.s20,
+    paddingTop: theme.spacing.s12,
+    gap: theme.spacing.s18,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: theme.colors.border,
+    alignSelf: "center" as const,
+    marginBottom: theme.spacing.s4,
+  },
+  modalHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+  },
+  modalTitle: {
+    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: theme.typography.fontSizes["5xl"],
+    fontWeight: theme.typography.fontWeights.bold,
+    color: theme.colors.textPrimary,
+    letterSpacing: theme.typography.letterSpacing.sm,
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.backgroundChip,
+    borderWidth: theme.borders.thin,
+    borderColor: theme.colors.border,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+
+  // ── Inputs dentro del modal ──────────────────────────────────────────────────
+  fieldLabel: {
+    fontFamily: theme.typography.fontFamily.semibold,
+    fontSize: theme.typography.fontSizes["2xl"],
+    fontWeight: theme.typography.fontWeights.semibold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.scale.sm,
+  },
+  textInput: {
+    height: theme.dimensions.inputHeight,
+    borderRadius: theme.radius.md,
+    borderWidth: theme.borders.thin,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.backgroundChip,
+    paddingHorizontal: theme.spacing.s16,
+    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: theme.typography.fontSizes["2xl"],
+    color: theme.colors.textPrimary,
+  },
+  textInputError: {
+    borderColor: theme.colors.error,
+  },
+  fieldError: {
+    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: theme.typography.fontSizes.base,
+    color: theme.colors.error,
+    marginTop: theme.scale.xs,
+  },
+
+  // ── Chips de categoría ───────────────────────────────────────────────────────
+  chipsRow: {
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
+    gap: theme.scale.sm,
+  },
+  chip: {
+    paddingHorizontal: theme.spacing.s12,
+    paddingVertical: theme.spacing.s6,
+    borderRadius: theme.radius.pill,
+    borderWidth: theme.borders.thin,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.backgroundChip,
+  },
+  chipSelected: {
+    backgroundColor: theme.colors.accentDim,
+    borderColor: theme.colors.primary,
+  },
+  chipText: {
+    fontFamily: theme.typography.fontFamily.medium,
+    fontSize: theme.typography.fontSizes.md,
+    fontWeight: theme.typography.fontWeights.medium,
+    color: theme.colors.textSecondary,
+  },
+  chipTextSelected: {
+    color: theme.colors.primary,
+  },
+
+  // ── Botón guardar ────────────────────────────────────────────────────────────
+  saveButton: {
+    height: theme.dimensions.inputHeight,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+  },
+  saveButtonText: {
+    fontFamily: theme.typography.fontFamily.semibold,
+    fontSize: theme.typography.fontSizes["2xl"],
+    fontWeight: theme.typography.fontWeights.semibold,
+    color: theme.colors.textOnAccent,
+    letterSpacing: theme.typography.letterSpacing.md,
+  },
 });

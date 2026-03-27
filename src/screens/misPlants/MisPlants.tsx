@@ -4,10 +4,15 @@ import {
   ActivityIndicator,
   Image,
   ImageBackground,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import Animated, {
@@ -18,6 +23,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import WateringFrequencyPicker from "../../components/ui/wateringFrequencyPicker/WateringFrequencyPicker";
 import { getPlantsByUserId } from "../../services/plantService";
 import { getUserById } from "../../services/userService";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
@@ -26,6 +32,8 @@ import { createMisPlantasStyles } from "./MisPlants.styles";
 
 // ID del usuario activo — se reemplazará con auth real
 const CURRENT_USER_ID = "user-1";
+
+const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 
 function healthColor(salud: PlantaInterface["salud"], theme: AppTheme) {
   if (salud === "riesgo") return theme.colors.error;
@@ -78,6 +86,136 @@ function PlantCard({ planta, styles, theme }: PlantCardProps) {
   );
 }
 
+// ─── AddPlantModal ────────────────────────────────────────────────────────────
+
+type AddPlantModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  onSave: (planta: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => void;
+  styles: ReturnType<typeof createMisPlantasStyles>;
+  theme: AppTheme;
+};
+
+function AddPlantModal({ visible, onClose, onSave, styles, theme }: AddPlantModalProps) {
+  const [nombre, setNombre] = useState("");
+  const [categoria, setCategoria] = useState<string | null>(null);
+  const [frecuencia, setFrecuencia] = useState<number | null>(null);
+  const [hasAttempted, setHasAttempted] = useState(false);
+
+  const nombreError    = hasAttempted && nombre.trim().length < 2;
+  const categoriaError = hasAttempted && !categoria;
+  const frecuenciaError = hasAttempted && !frecuencia;
+
+  const resetForm = () => {
+    setNombre("");
+    setCategoria(null);
+    setFrecuencia(null);
+    setHasAttempted(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSave = () => {
+    setHasAttempted(true);
+    if (nombre.trim().length < 2 || !categoria || !frecuencia) return;
+
+    onSave({
+      nombre: nombre.trim(),
+      categoria,
+      proximoRiego: frecuencia,
+    });
+    resetForm();
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={handleClose}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={handleClose}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={styles.modalCard}>
+              {/* Handle */}
+              <View style={styles.modalHandle} />
+
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Nueva Planta</Text>
+                <TouchableOpacity style={styles.modalCloseBtn} onPress={handleClose}>
+                  <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Nombre */}
+              <View>
+                <Text style={styles.fieldLabel}>Nombre</Text>
+                <TextInput
+                  style={[styles.textInput, nombreError && styles.textInputError]}
+                  placeholder="Ej. Monstera, Cactus..."
+                  placeholderTextColor={theme.colors.textSecondary}
+                  value={nombre}
+                  onChangeText={setNombre}
+                  maxLength={40}
+                />
+                {nombreError && (
+                  <Text style={styles.fieldError}>Ingresa al menos 2 caracteres</Text>
+                )}
+              </View>
+
+              {/* Categoría */}
+              <View>
+                <Text style={styles.fieldLabel}>Categoría</Text>
+                <View style={[styles.chipsRow, categoriaError && { opacity: 1 }]}>
+                  {CATEGORIAS.map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      style={[styles.chip, categoria === cat && styles.chipSelected]}
+                      onPress={() => setCategoria(cat)}
+                    >
+                      <Text style={[styles.chipText, categoria === cat && styles.chipTextSelected]}>
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                {categoriaError && (
+                  <Text style={styles.fieldError}>Selecciona una categoría</Text>
+                )}
+              </View>
+
+              {/* WateringFrequencyPicker — componente principal de la tarea */}
+              <WateringFrequencyPicker
+                value={frecuencia}
+                onChange={setFrecuencia}
+                error={frecuenciaError}
+              />
+
+              {/* Botón guardar */}
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Guardar planta</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 // ─── MisPlants ────────────────────────────────────────────────────────────────
 
 export default function MisPlants() {
@@ -87,6 +225,7 @@ export default function MisPlants() {
   const [plantas, setPlantas] = useState<PlantaInterface[]>([]);
   const [racha, setRacha] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -97,6 +236,20 @@ export default function MisPlants() {
       if (userData) setRacha(userData.racha);
     }).finally(() => setLoading(false));
   }, []);
+
+  const handleAddPlanta = (data: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
+    const nueva: PlantaInterface = {
+      id: `local-${Date.now()}`,
+      userId: CURRENT_USER_ID,
+      nombre: data.nombre,
+      categoria: data.categoria,
+      imagen: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
+      ultimoRiego: "Hoy",
+      salud: "saludable",
+      proximoRiego: data.proximoRiego,
+    };
+    setPlantas((prev) => [...prev, nueva]);
+  };
 
   if (loading) {
     return (
@@ -195,6 +348,20 @@ export default function MisPlants() {
           </Animated.View>
         </ScrollView>
       </ImageBackground>
+
+      {/* FAB — Agregar planta */}
+      <TouchableOpacity style={styles.fab} onPress={() => setShowModal(true)}>
+        <Ionicons name="add" size={28} color={theme.colors.textOnAccent} />
+      </TouchableOpacity>
+
+      {/* Modal con el formulario */}
+      <AddPlantModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleAddPlanta}
+        styles={styles}
+        theme={theme}
+      />
     </SafeAreaView>
   );
 }
