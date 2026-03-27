@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, query, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { PlantaInterface, SaludPlanta } from "../types-dtos/plant.types";
 import { withTimeout } from "../utils/withTimeout";
@@ -34,6 +34,31 @@ export async function getPlantsByUserId(userId: string): Promise<PlantaInterface
       proximoRiego: data.proximoRiego,
     } as PlantaInterface;
   });
+}
+
+export async function addPlant(
+  data: Pick<PlantaInterface, "userId" | "nombre" | "categoria" | "proximoRiego">
+): Promise<PlantaInterface> {
+  const newPlant = {
+    userId:       data.userId,
+    nombre:       data.nombre,
+    categoria:    data.categoria,
+    proximoRiego: data.proximoRiego,
+    salud:        "saludable" as const,
+    imagen:       "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
+    ultimoRiego:  Timestamp.now(),
+  };
+  const ref = await withTimeout(addDoc(collection(db, "plants"), newPlant));
+  return {
+    id:          ref.id,
+    userId:      newPlant.userId,
+    nombre:      newPlant.nombre,
+    categoria:   newPlant.categoria,
+    proximoRiego:newPlant.proximoRiego,
+    salud:       newPlant.salud,
+    imagen:      newPlant.imagen,
+    ultimoRiego: "Hoy",
+  };
 }
 
 export async function updatePlant(

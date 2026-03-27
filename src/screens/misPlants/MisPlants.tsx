@@ -28,7 +28,7 @@ import { z } from "zod";
 import AppInput from "../../components/ui/appInput/AppInput";
 import Toast, { ToastType } from "../../components/ui/toast/Toast";
 import WateringFrequencyPicker from "../../components/ui/wateringFrequencyPicker/WateringFrequencyPicker";
-import { getPlantsByUserId, updatePlant } from "../../services/plantService";
+import { addPlant, getPlantsByUserId, updatePlant } from "../../services/plantService";
 import { getUserById } from "../../services/userService";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
 import { PlantaInterface, SaludPlanta } from "../../types-dtos/plant.types";
@@ -154,7 +154,7 @@ function EditPlantModal({
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "height" : "height"}
       >
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
@@ -168,7 +168,11 @@ function EditPlantModal({
                 </TouchableOpacity>
               </View>
 
-              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 460 }}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{ maxHeight: 340 }}
+                keyboardShouldPersistTaps="handled"
+              >
                 <View style={{ gap: theme.scale.lg }}>
                   {/* Nombre */}
                   <Controller
@@ -299,7 +303,7 @@ function AddPlantModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={handleClose}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
             <View style={styles.modalCard}>
@@ -374,13 +378,14 @@ export default function MisPlants() {
 
   const showToast = (type: ToastType, message: string) => setToast({ visible: true, type, message });
 
-  const handleAddPlanta = (data: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
-    setPlantas((prev) => [...prev, {
-      id: `local-${Date.now()}`, userId: CURRENT_USER_ID,
-      nombre: data.nombre, categoria: data.categoria,
-      imagen: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
-      ultimoRiego: "Hoy", salud: "saludable", proximoRiego: data.proximoRiego,
-    }]);
+  const handleAddPlanta = async (data: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
+    try {
+      const nueva = await addPlant({ userId: CURRENT_USER_ID, ...data });
+      setPlantas((prev) => [...prev, nueva]);
+      showToast("success", "Planta agregada correctamente");
+    } catch {
+      showToast("error", "No se pudo guardar. Verifica tu conexión.");
+    }
   };
 
   const handlePlantSaved = (id: string, data: Partial<PlantaInterface>) => {
