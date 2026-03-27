@@ -1,6 +1,7 @@
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { PlantaInterface } from "../types-dtos/plant.types";
+import { PlantaInterface, SaludPlanta } from "../types-dtos/plant.types";
+import { withTimeout } from "../utils/withTimeout";
 
 function formatUltimoRiego(value: unknown): string {
   if (value instanceof Timestamp) {
@@ -18,7 +19,7 @@ function formatUltimoRiego(value: unknown): string {
 
 export async function getPlantsByUserId(userId: string): Promise<PlantaInterface[]> {
   const q = query(collection(db, "plants"), where("userId", "==", userId));
-  const snap = await getDocs(q);
+  const snap = await withTimeout(getDocs(q));
 
   return snap.docs.map((d) => {
     const data = d.data();
@@ -33,4 +34,11 @@ export async function getPlantsByUserId(userId: string): Promise<PlantaInterface
       proximoRiego: data.proximoRiego,
     } as PlantaInterface;
   });
+}
+
+export async function updatePlant(
+  plantId: string,
+  data: Partial<Pick<PlantaInterface, "nombre" | "categoria" | "salud" | "proximoRiego">>
+): Promise<void> {
+  await withTimeout(updateDoc(doc(db, "plants", plantId), data));
 }

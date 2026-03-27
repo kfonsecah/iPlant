@@ -1,19 +1,48 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ImageBackground, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Controller, useForm } from "react-hook-form";
+import {
+  ActivityIndicator,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
+import AppInput from "../../components/ui/appInput/AppInput";
+import Toast, { ToastType } from "../../components/ui/toast/Toast";
+import { getUserById, updateUser } from "../../services/userService";
 import { useTheme } from "../../theme/desingSystem";
-import { getUserById } from "../../services/userService";
-import { UserInterface } from "../../types-dtos/user.types";
+import { PrivacidadPerfil, UserInterface } from "../../types-dtos/user.types";
 import { createStyles } from "./UserProfile.styles";
 
 const IMG_GRASS = require("../../../assets/images/icon_grass_transparent.png");
 const IMG_USERS = require("../../../assets/images/icon_users_transparent.png");
 const IMG_FIRE  = require("../../../assets/images/icon_fire_transaprent.png");
 
-// ID del usuario activo — se reemplazará con auth real
 const CURRENT_USER_ID = "user-1";
+
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
+
+const editUserSchema = z.object({
+  nombre:      z.string().min(2, "Mínimo 2 caracteres").max(50, "Máximo 50 caracteres"),
+  apodo:       z.string().min(2, "Mínimo 2 caracteres").max(30, "Máximo 30 caracteres"),
+  descripcion: z.string().max(200, "Máximo 200 caracteres"),
+  privacidad:  z.enum(["Público", "Privado"]),
+});
+
+type EditUserForm = z.infer<typeof editUserSchema>;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 type CategoryMeta = {
   sub: string;
@@ -47,18 +76,200 @@ function buildLogros(user: UserInterface): Logro[] {
   ];
 }
 
+// ─── EditProfileModal ─────────────────────────────────────────────────────────
+
+function EditProfileModal({
+  visible,
+  user,
+  onClose,
+  onSaved,
+  onError,
+}: {
+  visible: boolean;
+  user: UserInterface;
+  onClose: () => void;
+  onSaved: (updated: Partial<UserInterface>) => void;
+  onError: (msg: string) => void;
+}) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+
+  const { control, handleSubmit, formState: { errors }, reset, watch, setValue } =
+    useForm<EditUserForm>({
+      resolver: zodResolver(editUserSchema),
+      defaultValues: {
+        nombre:      user.nombre,
+        apodo:       user.apodo,
+        descripcion: user.descripcion,
+        privacidad:  user.privacidad,
+      },
+    });
+
+  const privacidad = watch("privacidad");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      reset({
+        nombre:      user.nombre,
+        apodo:       user.apodo,
+        descripcion: user.descripcion,
+        privacidad:  user.privacidad,
+      });
+    }
+  }, [visible]);
+
+  const onSubmit = async (data: EditUserForm) => {
+    setSaving(true);
+    try {
+      await updateUser(CURRENT_USER_ID, data);
+      onSaved(data);
+      onClose();
+    } catch {
+      onError("No se pudo guardar. Verifica tu conexión.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHandle} />
+
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Editar perfil</Text>
+                <TouchableOpacity style={styles.modalCloseBtn} onPress={onClose}>
+                  <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+                <View style={{ gap: theme.scale.lg }}>
+                  <Controller
+                    control={control}
+                    name="nombre"
+                    render={({ field: { onChange, value, onBlur } }) => (
+                      <AppInput
+                        label="Nombre"
+                        leftIcon="person-outline"
+                        onChangeText={onChange}
+                        value={value}
+                        onBlur={onBlur}
+                        error={errors.nombre?.message}
+                        autoCapitalize="words"
+                      />
+                    )}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="apodo"
+                    render={({ field: { onChange, value, onBlur } }) => (
+                      <AppInput
+                        label="Apodo"
+                        leftIcon="at-outline"
+                        onChangeText={onChange}
+                        value={value}
+                        onBlur={onBlur}
+                        error={errors.apodo?.message}
+                        autoCapitalize="none"
+                      />
+                    )}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="descripcion"
+                    render={({ field: { onChange, value, onBlur } }) => (
+                      <AppInput
+                        label="Descripción"
+                        leftIcon="pencil-outline"
+                        onChangeText={onChange}
+                        value={value}
+                        onBlur={onBlur}
+                        error={errors.descripcion?.message}
+                        multiline
+                        numberOfLines={3}
+                      />
+                    )}
+                  />
+
+                  {/* Privacidad — chips */}
+                  <View>
+                    <Text style={styles.fieldLabel}>Privacidad</Text>
+                    <View style={styles.chipsRow}>
+                      {(["Público", "Privado"] as PrivacidadPerfil[]).map((op) => (
+                        <TouchableOpacity
+                          key={op}
+                          style={[styles.chip, privacidad === op && styles.chipSelected]}
+                          onPress={() => setValue("privacidad", op)}
+                        >
+                          <Ionicons
+                            name={op === "Público" ? "globe-outline" : "lock-closed-outline"}
+                            size={13}
+                            color={privacidad === op ? theme.colors.primary : theme.colors.textSecondary}
+                          />
+                          <Text style={[styles.chipText, privacidad === op && styles.chipTextSelected]}>
+                            {op}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              </ScrollView>
+
+              <TouchableOpacity
+                style={[styles.saveButton, saving && { opacity: 0.7 }]}
+                onPress={handleSubmit(onSubmit)}
+                disabled={saving}
+              >
+                <Text style={styles.saveButtonText}>
+                  {saving ? "Guardando..." : "Guardar cambios"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ─── UserProfile ──────────────────────────────────────────────────────────────
+
 export default function UserProfile() {
   const theme = useTheme();
   const styles = createStyles(theme);
 
   const [user, setUser] = useState<UserInterface | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showEdit, setShowEdit] = useState(false);
+  const [toast, setToast] = useState<{ visible: boolean; type: ToastType; message: string }>({
+    visible: false, type: "success", message: "",
+  });
 
   useEffect(() => {
     getUserById(CURRENT_USER_ID)
       .then((data) => setUser(data))
       .finally(() => setLoading(false));
   }, []);
+
+  const showToast = (type: ToastType, message: string) => {
+    setToast({ visible: true, type, message });
+  };
+
+  const handleSaved = (updated: Partial<UserInterface>) => {
+    setUser((prev) => prev ? { ...prev, ...updated } : prev);
+    showToast("success", "Perfil actualizado correctamente");
+  };
 
   if (loading) {
     return (
@@ -89,6 +300,15 @@ export default function UserProfile() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+
+      {/* Toast — parte superior, fuera del scroll */}
+      <Toast
+        visible={toast.visible}
+        type={toast.type}
+        message={toast.message}
+        onDismiss={() => setToast((t) => ({ ...t, visible: false }))}
+      />
+
       <ImageBackground
         source={require("../../../assets/images/LogInBackground.png")}
         style={styles.container}
@@ -127,7 +347,11 @@ export default function UserProfile() {
             </View>
             <View style={styles.profileDivider} />
             <View style={styles.profileActionRow}>
-              <TouchableOpacity style={styles.editBtn} activeOpacity={theme.opacity.pressableTab}>
+              <TouchableOpacity
+                style={styles.editBtn}
+                activeOpacity={theme.opacity.pressableTab}
+                onPress={() => setShowEdit(true)}
+              >
                 <Text style={styles.editBtnText}>Editar perfil</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.shareBtn} activeOpacity={theme.opacity.pressableButton}>
@@ -136,7 +360,7 @@ export default function UserProfile() {
             </View>
           </Animated.View>
 
-          {/* Metrics card */}
+          {/* Metrics */}
           <Animated.View style={styles.cardMetrics} entering={FadeInUp.delay(150).duration(500)}>
             <View style={styles.metricsRow}>
               {metrics.map((item, index) => (
@@ -230,6 +454,17 @@ export default function UserProfile() {
           </Animated.View>
         </ScrollView>
       </ImageBackground>
+
+      {/* Modal editar perfil */}
+      {user && (
+        <EditProfileModal
+          visible={showEdit}
+          user={user}
+          onClose={() => setShowEdit(false)}
+          onSaved={handleSaved}
+          onError={(msg) => showToast("error", msg)}
+        />
+      )}
     </SafeAreaView>
   );
 }

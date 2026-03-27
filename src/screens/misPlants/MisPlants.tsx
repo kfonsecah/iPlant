@@ -1,5 +1,7 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Image,
@@ -11,7 +13,6 @@ import {
   ScrollView,
   StatusBar,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -23,17 +24,36 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
+import AppInput from "../../components/ui/appInput/AppInput";
+import Toast, { ToastType } from "../../components/ui/toast/Toast";
 import WateringFrequencyPicker from "../../components/ui/wateringFrequencyPicker/WateringFrequencyPicker";
-import { getPlantsByUserId } from "../../services/plantService";
+import { getPlantsByUserId, updatePlant } from "../../services/plantService";
 import { getUserById } from "../../services/userService";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
-import { PlantaInterface } from "../../types-dtos/plant.types";
+import { PlantaInterface, SaludPlanta } from "../../types-dtos/plant.types";
 import { createMisPlantasStyles } from "./MisPlants.styles";
 
-// ID del usuario activo — se reemplazará con auth real
 const CURRENT_USER_ID = "user-1";
-
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
+const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
+  { value: "saludable", label: "Saludable" },
+  { value: "atención",  label: "Atención"  },
+  { value: "riesgo",    label: "Riesgo"    },
+];
+
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
+
+const editPlantSchema = z.object({
+  nombre:       z.string().min(2, "Mínimo 2 caracteres").max(50, "Máximo 50 caracteres"),
+  categoria:    z.string().min(1, "Selecciona una categoría"),
+  salud:        z.enum(["saludable", "atención", "riesgo"]),
+  proximoRiego: z.number({ invalid_type_error: "Selecciona la frecuencia" }).min(1),
+});
+
+type EditPlantForm = z.infer<typeof editPlantSchema>;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function healthColor(salud: PlantaInterface["salud"], theme: AppTheme) {
   if (salud === "riesgo") return theme.colors.error;
@@ -47,21 +67,20 @@ type PlantCardProps = {
   planta: PlantaInterface;
   styles: ReturnType<typeof createMisPlantasStyles>;
   theme: AppTheme;
+  onPress: () => void;
 };
 
-function PlantCard({ planta, styles, theme }: PlantCardProps) {
+function PlantCard({ planta, styles, theme, onPress }: PlantCardProps) {
   const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
     <Animated.View style={[styles.plantCard, animStyle]}>
       <Pressable
         className="flex-1"
+        onPress={onPress}
         onPressIn={() => { scale.value = withSpring(0.95, { damping: 15, stiffness: 300 }); }}
-        onPressOut={() => { scale.value = withSpring(1.0, { damping: 15, stiffness: 300 }); }}
+        onPressOut={() => { scale.value = withSpring(1.0,  { damping: 15, stiffness: 300 }); }}
       >
         <Image source={{ uri: planta.imagen }} style={styles.plantImage} resizeMode="cover" />
         <View className="absolute top-2 left-2 rounded-full flex-row items-center" style={styles.plantChip}>
@@ -86,17 +105,176 @@ function PlantCard({ planta, styles, theme }: PlantCardProps) {
   );
 }
 
+// ─── EditPlantModal ───────────────────────────────────────────────────────────
+
+function EditPlantModal({
+  planta,
+  onClose,
+  onSaved,
+  onError,
+}: {
+  planta: PlantaInterface;
+  onClose: () => void;
+  onSaved: (id: string, data: Partial<PlantaInterface>) => void;
+  onError: (msg: string) => void;
+}) {
+  const theme = useTheme();
+  const styles = createMisPlantasStyles(theme);
+
+  const { control, handleSubmit, formState: { errors }, watch, setValue } =
+    useForm<EditPlantForm>({
+      resolver: zodResolver(editPlantSchema),
+      defaultValues: {
+        nombre:       planta.nombre,
+        categoria:    planta.categoria,
+        salud:        planta.salud,
+        proximoRiego: planta.proximoRiego,
+      },
+    });
+
+  const categoria    = watch("categoria");
+  const salud        = watch("salud");
+  const proximoRiego = watch("proximoRiego");
+  const [saving, setSaving] = useState(false);
+
+  const onSubmit = async (data: EditPlantForm) => {
+    setSaving(true);
+    try {
+      await updatePlant(planta.id, data);
+      onSaved(planta.id, data);
+      onClose();
+    } catch {
+      onError("No se pudo guardar. Verifica tu conexión.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHandle} />
+
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Editar planta</Text>
+                <TouchableOpacity style={styles.modalCloseBtn} onPress={onClose}>
+                  <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 460 }}>
+                <View style={{ gap: theme.scale.lg }}>
+                  {/* Nombre */}
+                  <Controller
+                    control={control}
+                    name="nombre"
+                    render={({ field: { onChange, value, onBlur } }) => (
+                      <AppInput
+                        label="Nombre"
+                        leftIcon="leaf-outline"
+                        onChangeText={onChange}
+                        value={value}
+                        onBlur={onBlur}
+                        error={errors.nombre?.message}
+                        autoCapitalize="words"
+                      />
+                    )}
+                  />
+
+                  {/* Categoría */}
+                  <View>
+                    <Text style={styles.fieldLabel}>Categoría</Text>
+                    <View style={styles.chipsRow}>
+                      {CATEGORIAS.map((cat) => (
+                        <TouchableOpacity
+                          key={cat}
+                          style={[styles.chip, categoria === cat && styles.chipSelected]}
+                          onPress={() => setValue("categoria", cat)}
+                        >
+                          <Text style={[styles.chipText, categoria === cat && styles.chipTextSelected]}>
+                            {cat}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    {errors.categoria && (
+                      <Text style={styles.fieldError}>{errors.categoria.message}</Text>
+                    )}
+                  </View>
+
+                  {/* Salud */}
+                  <View>
+                    <Text style={styles.fieldLabel}>Estado de salud</Text>
+                    <View style={styles.chipsRow}>
+                      {SALUD_OPTS.map((op) => (
+                        <TouchableOpacity
+                          key={op.value}
+                          style={[styles.chip, salud === op.value && styles.chipSelected]}
+                          onPress={() => setValue("salud", op.value)}
+                        >
+                          <View
+                            style={{
+                              width: 8, height: 8, borderRadius: 4,
+                              backgroundColor: salud === op.value
+                                ? healthColor(op.value, theme)
+                                : theme.colors.border,
+                            }}
+                          />
+                          <Text style={[styles.chipText, salud === op.value && styles.chipTextSelected]}>
+                            {op.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Frecuencia de riego — WateringFrequencyPicker */}
+                  <WateringFrequencyPicker
+                    value={proximoRiego}
+                    onChange={(days) => setValue("proximoRiego", days)}
+                    error={!!errors.proximoRiego}
+                  />
+                </View>
+              </ScrollView>
+
+              <TouchableOpacity
+                style={[styles.saveButton, saving && { opacity: 0.7 }]}
+                onPress={handleSubmit(onSubmit)}
+                disabled={saving}
+              >
+                <Text style={styles.saveButtonText}>
+                  {saving ? "Guardando..." : "Guardar cambios"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 // ─── AddPlantModal ────────────────────────────────────────────────────────────
 
-type AddPlantModalProps = {
+function AddPlantModal({
+  visible,
+  onClose,
+  onSave,
+  styles,
+  theme,
+}: {
   visible: boolean;
   onClose: () => void;
   onSave: (planta: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => void;
   styles: ReturnType<typeof createMisPlantasStyles>;
   theme: AppTheme;
-};
-
-function AddPlantModal({ visible, onClose, onSave, styles, theme }: AddPlantModalProps) {
+}) {
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState<string | null>(null);
   const [frecuencia, setFrecuencia] = useState<number | null>(null);
@@ -107,104 +285,57 @@ function AddPlantModal({ visible, onClose, onSave, styles, theme }: AddPlantModa
   const frecuenciaError = hasAttempted && !frecuencia;
 
   const resetForm = () => {
-    setNombre("");
-    setCategoria(null);
-    setFrecuencia(null);
-    setHasAttempted(false);
+    setNombre(""); setCategoria(null); setFrecuencia(null); setHasAttempted(false);
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+  const handleClose = () => { resetForm(); onClose(); };
 
   const handleSave = () => {
     setHasAttempted(true);
     if (nombre.trim().length < 2 || !categoria || !frecuencia) return;
-
-    onSave({
-      nombre: nombre.trim(),
-      categoria,
-      proximoRiego: frecuencia,
-    });
-    resetForm();
-    onClose();
+    onSave({ nombre: nombre.trim(), categoria, proximoRiego: frecuencia });
+    resetForm(); onClose();
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={handleClose}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={handleClose}
-        >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={handleClose}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
             <View style={styles.modalCard}>
-              {/* Handle */}
               <View style={styles.modalHandle} />
-
-              {/* Header */}
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Nueva Planta</Text>
                 <TouchableOpacity style={styles.modalCloseBtn} onPress={handleClose}>
                   <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
                 </TouchableOpacity>
               </View>
-
-              {/* Nombre */}
               <View>
-                <Text style={styles.fieldLabel}>Nombre</Text>
-                <TextInput
-                  style={[styles.textInput, nombreError && styles.textInputError]}
+                <AppInput
+                  label="Nombre"
+                  leftIcon="leaf-outline"
                   placeholder="Ej. Monstera, Cactus..."
-                  placeholderTextColor={theme.colors.textSecondary}
                   value={nombre}
                   onChangeText={setNombre}
-                  maxLength={40}
+                  error={nombreError ? "Ingresa al menos 2 caracteres" : undefined}
                 />
-                {nombreError && (
-                  <Text style={styles.fieldError}>Ingresa al menos 2 caracteres</Text>
-                )}
               </View>
-
-              {/* Categoría */}
               <View>
                 <Text style={styles.fieldLabel}>Categoría</Text>
-                <View style={[styles.chipsRow, categoriaError && { opacity: 1 }]}>
+                <View style={styles.chipsRow}>
                   {CATEGORIAS.map((cat) => (
                     <TouchableOpacity
                       key={cat}
                       style={[styles.chip, categoria === cat && styles.chipSelected]}
                       onPress={() => setCategoria(cat)}
                     >
-                      <Text style={[styles.chipText, categoria === cat && styles.chipTextSelected]}>
-                        {cat}
-                      </Text>
+                      <Text style={[styles.chipText, categoria === cat && styles.chipTextSelected]}>{cat}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
-                {categoriaError && (
-                  <Text style={styles.fieldError}>Selecciona una categoría</Text>
-                )}
+                {categoriaError && <Text style={styles.fieldError}>Selecciona una categoría</Text>}
               </View>
-
-              {/* WateringFrequencyPicker — componente principal de la tarea */}
-              <WateringFrequencyPicker
-                value={frecuencia}
-                onChange={setFrecuencia}
-                error={frecuenciaError}
-              />
-
-              {/* Botón guardar */}
+              <WateringFrequencyPicker value={frecuencia} onChange={setFrecuencia} error={frecuenciaError} />
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>Guardar planta</Text>
               </TouchableOpacity>
@@ -225,7 +356,11 @@ export default function MisPlants() {
   const [plantas, setPlantas] = useState<PlantaInterface[]>([]);
   const [racha, setRacha] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editingPlanta, setEditingPlanta] = useState<PlantaInterface | null>(null);
+  const [toast, setToast] = useState<{ visible: boolean; type: ToastType; message: string }>({
+    visible: false, type: "success", message: "",
+  });
 
   useEffect(() => {
     Promise.all([
@@ -237,18 +372,20 @@ export default function MisPlants() {
     }).finally(() => setLoading(false));
   }, []);
 
+  const showToast = (type: ToastType, message: string) => setToast({ visible: true, type, message });
+
   const handleAddPlanta = (data: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
-    const nueva: PlantaInterface = {
-      id: `local-${Date.now()}`,
-      userId: CURRENT_USER_ID,
-      nombre: data.nombre,
-      categoria: data.categoria,
+    setPlantas((prev) => [...prev, {
+      id: `local-${Date.now()}`, userId: CURRENT_USER_ID,
+      nombre: data.nombre, categoria: data.categoria,
       imagen: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
-      ultimoRiego: "Hoy",
-      salud: "saludable",
-      proximoRiego: data.proximoRiego,
-    };
-    setPlantas((prev) => [...prev, nueva]);
+      ultimoRiego: "Hoy", salud: "saludable", proximoRiego: data.proximoRiego,
+    }]);
+  };
+
+  const handlePlantSaved = (id: string, data: Partial<PlantaInterface>) => {
+    setPlantas((prev) => prev.map((p) => p.id === id ? { ...p, ...data } : p));
+    showToast("success", "Planta actualizada correctamente");
   };
 
   if (loading) {
@@ -265,6 +402,14 @@ export default function MisPlants() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+
+      <Toast
+        visible={toast.visible}
+        type={toast.type}
+        message={toast.message}
+        onDismiss={() => setToast((t) => ({ ...t, visible: false }))}
+      />
+
       <ImageBackground
         source={require("../../../assets/images/LogInBackground.png")}
         style={styles.container}
@@ -274,42 +419,28 @@ export default function MisPlants() {
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Mis Plantas</Text>
             <View style={styles.filterBtn}>
-              <Ionicons
-                name="options-outline"
-                size={theme.dimensions.settingsIconSize}
-                color={theme.colors.textPrimary}
-              />
+              <Ionicons name="options-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
             </View>
           </View>
         </Animated.View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Summary */}
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInUp.delay(120).duration(400)}>
             <View style={styles.summaryCard}>
-              <View style={styles.summaryItem}>
-                <Ionicons name="leaf" size={18} color={theme.colors.primary} />
-                <Text style={styles.summaryValue}>{plantas.length}</Text>
-                <Text style={styles.summaryLabel}>Plantas</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Ionicons name="apps" size={18} color={theme.colors.primary} />
-                <Text style={styles.summaryValue}>{categorias.length}</Text>
-                <Text style={styles.summaryLabel}>Categorías</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Ionicons name="flame" size={18} color={theme.colors.primary} />
-                <Text style={styles.summaryValue}>{racha}d</Text>
-                <Text style={styles.summaryLabel}>Racha</Text>
-              </View>
+              {[
+                { icon: "leaf",  value: plantas.length,    label: "Plantas"    },
+                { icon: "apps",  value: categorias.length, label: "Categorías" },
+                { icon: "flame", value: `${racha}d`,       label: "Racha"      },
+              ].map((item) => (
+                <View key={item.label} style={styles.summaryItem}>
+                  <Ionicons name={item.icon as any} size={18} color={theme.colors.primary} />
+                  <Text style={styles.summaryValue}>{item.value}</Text>
+                  <Text style={styles.summaryLabel}>{item.label}</Text>
+                </View>
+              ))}
             </View>
           </Animated.View>
 
-          {/* Alertas */}
           {alertPlantas.length > 0 && (
             <Animated.View entering={FadeInDown.delay(170).duration(400)}>
               <View style={styles.alertBanner}>
@@ -332,7 +463,6 @@ export default function MisPlants() {
             </Animated.View>
           )}
 
-          {/* Título sección */}
           <Animated.View entering={FadeInDown.delay(220).duration(400)}>
             <View style={styles.sectionRow}>
               <View style={styles.sectionAccentBar} />
@@ -340,28 +470,43 @@ export default function MisPlants() {
             </View>
           </Animated.View>
 
-          {/* Grilla */}
           <Animated.View style={styles.grid} entering={FadeInUp.delay(300).duration(500)}>
             {plantas.map((planta) => (
-              <PlantCard key={planta.id} planta={planta} styles={styles} theme={theme} />
+              <PlantCard
+                key={planta.id}
+                planta={planta}
+                styles={styles}
+                theme={theme}
+                onPress={() => setEditingPlanta(planta)}
+              />
             ))}
           </Animated.View>
         </ScrollView>
       </ImageBackground>
 
-      {/* FAB — Agregar planta */}
-      <TouchableOpacity style={styles.fab} onPress={() => setShowModal(true)}>
+      <TouchableOpacity style={styles.fab} onPress={() => setShowAdd(true)}>
         <Ionicons name="add" size={28} color={theme.colors.textOnAccent} />
       </TouchableOpacity>
 
-      {/* Modal con el formulario */}
       <AddPlantModal
-        visible={showModal}
-        onClose={() => setShowModal(false)}
+        visible={showAdd}
+        onClose={() => setShowAdd(false)}
         onSave={handleAddPlanta}
         styles={styles}
         theme={theme}
       />
+
+      {editingPlanta && (
+        <EditPlantModal
+          planta={editingPlanta}
+          onClose={() => setEditingPlanta(null)}
+          onSaved={(id, data) => {
+            handlePlantSaved(id, data);
+            setEditingPlanta(null);
+          }}
+          onError={(msg) => showToast("error", msg)}
+        />
+      )}
     </SafeAreaView>
   );
 }
