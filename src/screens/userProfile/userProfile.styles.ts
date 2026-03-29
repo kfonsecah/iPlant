@@ -546,7 +546,7 @@ export const createStyles = (theme: AppTheme) => ({
     flexDirection: "row" as const,
     gap: theme.scale.sm,
   },
-  chip: {
+  modalChip: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: theme.scale.xs,
@@ -557,16 +557,16 @@ export const createStyles = (theme: AppTheme) => ({
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.backgroundChip,
   },
-  chipSelected: {
+  modalChipSelected: {
     backgroundColor: theme.colors.accentDim,
     borderColor: theme.colors.primary,
   },
-  chipText: {
+  modalChipText: {
     fontFamily: theme.typography.fontFamily.medium,
     fontSize: theme.typography.fontSizes.md,
     color: theme.colors.textSecondary,
   },
-  chipTextSelected: {
+  modalChipTextSelected: {
     color: theme.colors.primary,
   },
   saveButton: {

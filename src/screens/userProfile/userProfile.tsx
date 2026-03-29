@@ -24,12 +24,12 @@ import { getUserById, updateUser } from "../../services/userService";
 import { useTheme } from "../../theme/desingSystem";
 import { PrivacidadPerfil, UserInterface } from "../../types-dtos/user.types";
 import { createStyles } from "./UserProfile.styles";
+import { useAuth } from "../../context/AuthContext";
+import { logOut } from "../../services/authService";
 
 const IMG_GRASS = require("../../../assets/images/icon_grass_transparent.png");
 const IMG_USERS = require("../../../assets/images/icon_users_transparent.png");
 const IMG_FIRE  = require("../../../assets/images/icon_fire_transaprent.png");
-
-const CURRENT_USER_ID = "user-1";
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
@@ -81,15 +81,17 @@ function buildLogros(user: UserInterface): Logro[] {
 function EditProfileModal({
   visible,
   user,
+  userId,
   onClose,
   onSaved,
   onError,
 }: {
-  visible: boolean;
-  user: UserInterface;
-  onClose: () => void;
-  onSaved: (updated: Partial<UserInterface>) => void;
-  onError: (msg: string) => void;
+  visible:  boolean;
+  user:     UserInterface;
+  userId:   string;
+  onClose:  () => void;
+  onSaved:  (updated: Partial<UserInterface>) => void;
+  onError:  (msg: string) => void;
 }) {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -122,7 +124,7 @@ function EditProfileModal({
   const onSubmit = async (data: EditUserForm) => {
     setSaving(true);
     try {
-      await updateUser(CURRENT_USER_ID, data);
+      await updateUser(userId, data);
       onSaved(data);
       onClose();
     } catch {
@@ -208,7 +210,7 @@ function EditProfileModal({
                       {(["Público", "Privado"] as PrivacidadPerfil[]).map((op) => (
                         <TouchableOpacity
                           key={op}
-                          style={[styles.chip, privacidad === op && styles.chipSelected]}
+                          style={[styles.modalChip, privacidad === op && styles.modalChipSelected]}
                           onPress={() => setValue("privacidad", op)}
                         >
                           <Ionicons
@@ -216,7 +218,7 @@ function EditProfileModal({
                             size={13}
                             color={privacidad === op ? theme.colors.primary : theme.colors.textSecondary}
                           />
-                          <Text style={[styles.chipText, privacidad === op && styles.chipTextSelected]}>
+                          <Text style={[styles.modalChipText, privacidad === op && styles.modalChipTextSelected]}>
                             {op}
                           </Text>
                         </TouchableOpacity>
@@ -246,8 +248,10 @@ function EditProfileModal({
 // ─── UserProfile ──────────────────────────────────────────────────────────────
 
 export default function UserProfile() {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const theme    = useTheme();
+  const styles   = createStyles(theme);
+  const { user: authUser } = useAuth();
+  const userId = authUser?.uid ?? "";
 
   const [user, setUser] = useState<UserInterface | null>(null);
   const [loading, setLoading] = useState(true);
@@ -257,10 +261,11 @@ export default function UserProfile() {
   });
 
   useEffect(() => {
-    getUserById(CURRENT_USER_ID)
+    if (!userId) return;
+    getUserById(userId)
       .then((data) => setUser(data))
       .finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   const showToast = (type: ToastType, message: string) => {
     setToast({ visible: true, type, message });
@@ -316,9 +321,13 @@ export default function UserProfile() {
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Mi perfil</Text>
-          <View style={styles.settingsBtn}>
-            <Ionicons name="settings-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
-          </View>
+          <TouchableOpacity
+            style={styles.settingsBtn}
+            activeOpacity={theme.opacity.pressableTab}
+            onPress={() => logOut()}
+          >
+            <Ionicons name="log-out-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -460,6 +469,7 @@ export default function UserProfile() {
         <EditProfileModal
           visible={showEdit}
           user={user}
+          userId={userId}
           onClose={() => setShowEdit(false)}
           onSaved={handleSaved}
           onError={(msg) => showToast("error", msg)}

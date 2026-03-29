@@ -33,8 +33,7 @@ import { getUserById } from "../../services/userService";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
 import { PlantaInterface, SaludPlanta } from "../../types-dtos/plant.types";
 import { createMisPlantasStyles } from "./MisPlants.styles";
-
-const CURRENT_USER_ID = "user-1";
+import { useAuth } from "../../context/AuthContext";
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
   { value: "saludable", label: "Saludable" },
@@ -48,7 +47,7 @@ const editPlantSchema = z.object({
   nombre:       z.string().min(2, "Mínimo 2 caracteres").max(50, "Máximo 50 caracteres"),
   categoria:    z.string().min(1, "Selecciona una categoría"),
   salud:        z.enum(["saludable", "atención", "riesgo"]),
-  proximoRiego: z.number({ invalid_type_error: "Selecciona la frecuencia" }).min(1),
+  proximoRiego: z.number().min(1, "Selecciona la frecuencia"),
 });
 
 type EditPlantForm = z.infer<typeof editPlantSchema>;
@@ -354,8 +353,10 @@ function AddPlantModal({
 // ─── MisPlants ────────────────────────────────────────────────────────────────
 
 export default function MisPlants() {
-  const theme = useTheme();
+  const theme  = useTheme();
   const styles = createMisPlantasStyles(theme);
+  const { user: authUser } = useAuth();
+  const userId = authUser?.uid ?? "";
 
   const [plantas, setPlantas] = useState<PlantaInterface[]>([]);
   const [racha, setRacha] = useState(0);
@@ -367,20 +368,21 @@ export default function MisPlants() {
   });
 
   useEffect(() => {
+    if (!userId) return;
     Promise.all([
-      getPlantsByUserId(CURRENT_USER_ID),
-      getUserById(CURRENT_USER_ID),
+      getPlantsByUserId(userId),
+      getUserById(userId),
     ]).then(([plantasData, userData]) => {
       setPlantas(plantasData);
       if (userData) setRacha(userData.racha);
     }).finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   const showToast = (type: ToastType, message: string) => setToast({ visible: true, type, message });
 
   const handleAddPlanta = async (data: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
     try {
-      const nueva = await addPlant({ userId: CURRENT_USER_ID, ...data });
+      const nueva = await addPlant({ userId, ...data });
       setPlantas((prev) => [...prev, nueva]);
       showToast("success", "Planta agregada correctamente");
     } catch {

@@ -210,6 +210,7 @@ interface ThemeOpacity {
     pressableTab: number;
     pressableButton: number;
     pressableCenterButton: number;
+    disabled: number;
 }
 
 // ─── Dimensions Interface ─────────────────────────────────────────────────────
@@ -229,6 +230,8 @@ interface ThemeDimensions {
     categoryIconSize: number;
     settingsIconSize: number;
     shareIconSize: number;
+    buttonIconSize: number;
+    logoIconSize: number;
     logoCircle: { width: number; height: number };
     inputHeight: number;
 }
@@ -472,6 +475,7 @@ const sharedOpacity: ThemeOpacity = {
     pressableTab: 0.7,
     pressableButton: 0.8,
     pressableCenterButton: 0.85,
+    disabled: 0.5,
 };
 
 const sharedBorders: ThemeBorders = {
@@ -500,6 +504,8 @@ const sharedDimensions: ThemeDimensions = {
     categoryIconSize: 68,
     settingsIconSize: 20,
     shareIconSize: 20,
+    buttonIconSize: 18,
+    logoIconSize: 32,
     logoCircle: { width: 72, height: 72 },
     inputHeight: 48,
 };
