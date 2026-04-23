@@ -1,6 +1,6 @@
 # Project State — iPlant Actividad 3
 
-**Status:** Phase 2 Context Gathered | Ready to Plan Phase 2
+**Status:** Phase 2 Planned | Ready to Execute
 **Date:** 2026-04-23
 **Deadline:** 2026-04-24 23:59 UTC (~1 day remaining)
 
@@ -21,7 +21,7 @@ El usuario puede tomar una foto de una planta, identificarla con IA (con feedbac
 **Key Features:**
 1. AI Plant Identification (Plant.id API v3) ✓
 2. Immersive UI (HUD Scan + Parallax Profile) ✓
-3. Camera Permission Handling (graceful deny + re-request) [READY TO PLAN]
+3. Camera Permission Handling (graceful deny + re-request) [READY TO EXECUTE]
 4. Offline Mode & Local Storage (AsyncStorage, netinfo, sync queue)
 5. Backend Deploy to Render
 
@@ -29,7 +29,7 @@ El usuario puede tomar una foto de una planta, identificarla con IA (con feedbac
 
 ## Current Position
 
-**Roadmap:** 25% Complete (Phase 1 done, Phase 2 context gathered)
+**Roadmap:** 25% Complete (Phase 1 done, Phase 2 planned)
 **Current Phase:** Phase 2: Camera Permissions
 
 **Progress:**
@@ -38,6 +38,8 @@ El usuario puede tomar una foto de una planta, identificarla con IA (con feedbac
 ```
 
 **Recent Achievements:**
+- ✓ Plan de ejecución de Fase 2 (02-01-PLAN.md) creado y verificado.
+- ✓ Artefacto de validación (02-VALIDATION.md) definido con casos UAT.
 - ✓ Contexto de Fase 2 (Permisos) definido y consensuado.
 - ✓ Integración completa con Plant.id v3 (Taxonomía, Riego, Cuidados detallados).
 - ✓ Animación de escaneo HUD de alta tecnología con Animated API.
@@ -45,7 +47,7 @@ El usuario puede tomar una foto de una planta, identificarla con IA (con feedbac
 - ✓ Gestión segura de API Keys mediante archivos .env.
 
 **Next Steps:**
-1. Planificar y Ejecutar Fase 2: Manejo de permisos de cámara.
+1. Ejecutar Fase 2: `/gsd-execute-phase 2`.
 2. Implementar redirección a ajustes del sistema para denegaciones permanentes.
 3. Asegurar que el flujo de UI sea consistente con el resto de la app.
 
