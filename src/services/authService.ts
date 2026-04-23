@@ -15,7 +15,7 @@ import { auth, db } from "../config/firebase";
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/user-not-found":        "No existe una cuenta con este correo",
   "auth/wrong-password":        "Contraseña incorrecta",
-  "auth/invalid-credential":    "Correo o contraseña incorrectos",
+  "auth/invalid-credential":    "Credenciales inválidas (correo, contraseña o sesión de Google)",
   "auth/email-already-in-use":  "Ya existe una cuenta con este correo",
   "auth/weak-password":         "La contraseña debe tener al menos 6 caracteres",
   "auth/invalid-email":         "Correo electrónico no válido",
@@ -75,8 +75,8 @@ export async function sendPasswordReset(email: string) {
 
 // ─── Google Sign In ───────────────────────────────────────────────────────────
 export async function signInWithGoogle(idToken: string | null, accessToken?: string | null) {
-  // Firebase acepta access_token solo (sin id_token) para Google Sign-In en flujos web/proxy
-  const credential = GoogleAuthProvider.credential(null, accessToken ?? null);
+  // Para Google Sign-In, es más robusto pasar tanto el id_token como el access_token si están disponibles
+  const credential = GoogleAuthProvider.credential(idToken, accessToken ?? null);
   const result     = await signInWithCredential(auth, credential);
   const isNew      = getAdditionalUserInfo(result)?.isNewUser ?? false;
 

@@ -19,6 +19,7 @@ const firebaseConfig = {
   storageBucket:     "iplant-database.firebasestorage.app",
   messagingSenderId: "132450203288",
   appId:             "1:132450203288:web:3633b50c1567740c5ac2ed",
+  measurementId:     "G-J6BVY7KB3Z"
 };
 
 // Evita re-inicializar en hot-reload de Expo

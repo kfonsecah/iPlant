@@ -36,7 +36,7 @@ import { signIn, signInWithGoogle, getAuthErrorMessage } from "../../services/au
 // Necesario para cerrar el browser de OAuth al volver a la app
 WebBrowser.maybeCompleteAuthSession();
 
-const GOOGLE_WEB_CLIENT_ID = "812808127843-uph6s3j4bkhm4vemvjsaognr4osa5vh9.apps.googleusercontent.com";
+const GOOGLE_WEB_CLIENT_ID = "132450203288-po37fbc43s2aacirfjmpqtg5cbdhla3p.apps.googleusercontent.com";
 
 // Color de marca de Google — constante externa, no pertenece al design system
 const GOOGLE_BRAND_COLOR = "#4285F4";

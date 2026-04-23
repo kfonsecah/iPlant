@@ -90,9 +90,10 @@ function TabButton({ tab, isActive, onPress, tabStyles, theme }: TabButtonProps)
 type CenterButtonProps = {
   tabStyles: ReturnType<typeof createTabStyles>;
   theme: AppTheme;
+  onPress: () => void;
 };
 
-function CenterButton({ tabStyles, theme }: CenterButtonProps) {
+function CenterButton({ tabStyles, theme, onPress }: CenterButtonProps) {
   const pulse = useSharedValue(1);
 
   useEffect(() => {
@@ -116,6 +117,7 @@ function CenterButton({ tabStyles, theme }: CenterButtonProps) {
         <TouchableOpacity
           style={tabStyles.centerButton}
           activeOpacity={theme.opacity.pressableCenterButton}
+          onPress={onPress}
         >
           <Ionicons
             name="camera"
@@ -143,6 +145,10 @@ export default function BottomTabBar() {
     if (activeTab !== key) {
       router.navigate(ROUTE_MAP[key] as any);
     }
+  };
+
+  const handleCameraPress = () => {
+    router.push("/camera" as any);
   };
 
   return (
@@ -176,7 +182,7 @@ export default function BottomTabBar() {
         <View style={tabStyles.arcBump} />
       </View>
 
-      <CenterButton tabStyles={tabStyles} theme={theme} />
+      <CenterButton tabStyles={tabStyles} theme={theme} onPress={handleCameraPress} />
     </View>
   );
 }

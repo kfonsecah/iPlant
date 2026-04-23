@@ -39,7 +39,7 @@ Un poco más de setup. Requiere Google Cloud Console y el proxy de Expo para fun
 ### Cuentas y proyectos
 
 - **Expo account:** `kenexpo777`
-- **Google Cloud Project:** el mismo que usa Firebase (`812808127843`)
+- **Google Cloud Project:** el mismo que usa Firebase (`132450203288`)
 
 ### Clientes OAuth en Google Cloud Console
 
@@ -47,7 +47,7 @@ Hay dos clientes creados en APIs & Services → Credentials:
 
 | Nombre | Tipo | Client ID |
 |--------|------|-----------|
-| iplant-web | Web application | `812808127843-uph6s3j4bkhm4vemvjsaognr4osa5vh9.apps.googleusercontent.com` |
+| iplant-web | Web application | `132450203288-po37fbc43s2aacirfjmpqtg5cbdhla3p.apps.googleusercontent.com` |
 | iPlant | iOS | `812808127843-hu0rsol6lps0v4nkgdaqpfs5l820fiv5.apps.googleusercontent.com` |
 
 El que se usa en el código es **iplant-web**.
@@ -101,7 +101,7 @@ Firebase recibe el `access_token` de Google y autentica al usuario. Si es la pri
 `src/screens/login/Login.tsx`:
 
 ```ts
-const GOOGLE_WEB_CLIENT_ID = "812808127843-uph6s3j4bkhm4vemvjsaognr4osa5vh9.apps.googleusercontent.com";
+const GOOGLE_WEB_CLIENT_ID = "132450203288-po37fbc43s2aacirfjmpqtg5cbdhla3p.apps.googleusercontent.com";
 
 redirectUri: "https://auth.expo.io/@kenexpo777/iPlant"
 ```
