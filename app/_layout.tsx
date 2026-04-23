@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import "../global.css";
 
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
+import { ConnectivityProvider } from "../src/context/ConnectivityContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -53,8 +54,10 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <ConnectivityProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </ConnectivityProvider>
   );
 }
