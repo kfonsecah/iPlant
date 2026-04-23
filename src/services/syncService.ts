@@ -11,6 +11,25 @@ export interface SyncAction {
 const getQueueKey = (userId: string) => `SYNC_QUEUE_${userId}`;
 
 let isSyncing = false;
+const listeners: (() => void)[] = [];
+
+/**
+ * Notifies all listeners that the queue has changed.
+ */
+function notifyListeners() {
+  listeners.forEach((l) => l());
+}
+
+/**
+ * Subscribes to queue changes.
+ */
+export function subscribeToQueueChanges(listener: () => void) {
+  listeners.push(listener);
+  return () => {
+    const index = listeners.indexOf(listener);
+    if (index > -1) listeners.splice(index, 1);
+  };
+}
 
 /**
  * Adds an action to the persistent sync queue.
@@ -19,6 +38,7 @@ export async function addToQueue(action: SyncAction): Promise<void> {
   const queue = await getQueue(action.userId);
   queue.push(action);
   await saveItem(getQueueKey(action.userId), queue);
+  notifyListeners();
 }
 
 /**
@@ -35,6 +55,7 @@ export async function removeFromQueue(userId: string, actionId: string): Promise
   const queue = await getQueue(userId);
   const updatedQueue = queue.filter((a) => a.id !== actionId);
   await saveItem(getQueueKey(userId), updatedQueue);
+  notifyListeners();
 }
 
 /**
@@ -50,21 +71,25 @@ export async function processQueue(
   isSyncing = true;
 
   try {
-    const queue = await getQueue(userId);
-    for (const action of queue) {
+    let queue = await getQueue(userId);
+    
+    // Process actions one by one
+    while (queue.length > 0) {
+      const action = queue[0];
       try {
         await onProcess(action);
-        await removeFromQueue(userId, action.id);
+        // Remove from persistent storage after success
+        queue.shift();
+        await saveItem(getQueueKey(userId), queue);
+        notifyListeners();
       } catch (error) {
         console.error(`Sync failed for action ${action.id}:`, error);
-        // Sequential sync logic from RESEARCH.md: Stop on first failure or mark item?
-        // Research says: "Stop sync or mark item as failed to retry later"
-        // I'll stop for now to maintain order and avoid out-of-order execution if dependencies exist.
-        break;
+        break; // Stop on first failure
       }
     }
   } finally {
     isSyncing = false;
+    notifyListeners();
   }
 }
 

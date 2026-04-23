@@ -1,54 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useConnectivity } from "../../../context/ConnectivityContext";
 import { useTheme } from "../../../theme/desingSystem";
 import { createStyles } from "./OfflineBanner.styles";
-import { getQueue } from "../../../services/syncService";
 import { syncPlants } from "../../../services/plantService";
 import { useAuth } from "../../../context/AuthContext";
+import { useSync } from "../../../context/SyncContext";
 
 export default function OfflineBanner() {
   const { isConnected } = useConnectivity();
   const theme = useTheme();
   const styles = createStyles(theme);
   const { user } = useAuth();
+  const { hasPending, isSyncing: globalIsSyncing } = useSync();
   
-  const [hasPending, setHasPending] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  useEffect(() => {
-    const checkQueue = async () => {
-      if (user) {
-        const queue = await getQueue(user.uid);
-        setHasPending(queue.length > 0);
-      }
-    };
-    
-    checkQueue();
-    // Re-check periodically or on connection change
-    const interval = setInterval(checkQueue, 5000);
-    return () => clearInterval(interval);
-  }, [user, isConnected]);
+  const [isLocalSyncing, setIsLocalSyncing] = useState(false);
 
   const handleSync = async () => {
-    if (!user || isSyncing) return;
+    if (!user || isLocalSyncing || globalIsSyncing) return;
     
-    setIsSyncing(true);
+    setIsLocalSyncing(true);
     try {
       await syncPlants(user.uid);
-      setHasPending(false);
     } catch (error) {
       console.error("Manual sync failed:", error);
     } finally {
-      setIsSyncing(false);
+      setIsLocalSyncing(false);
     }
   };
 
   if (isConnected && !hasPending) return null;
 
   const showSyncButton = isConnected && hasPending;
+  const isSyncing = isLocalSyncing || globalIsSyncing;
 
   return (
     <SafeAreaView 

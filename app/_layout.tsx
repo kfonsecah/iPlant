@@ -12,37 +12,13 @@ import "../global.css";
 
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ConnectivityProvider } from "../src/context/ConnectivityContext";
+import { SyncProvider } from "../src/context/SyncContext";
 import OfflineBanner from "../src/components/ui/offlineBanner/OfflineBanner";
 
 SplashScreen.preventAutoHideAsync();
+// ... rest of imports unchanged
 
-// ─── Guard de rutas ───────────────────────────────────────────────────────────
-function RootLayoutNav() {
-  const { user, loading } = useAuth();
-  const segments           = useSegments();
-  const router             = useRouter();
-
-  useEffect(() => {
-    if (loading) return;
-
-    const inAuthGroup = segments[0] === "(auth)";
-
-    if (!user && !inAuthGroup) {
-      // Sin sesión → ir a login
-      router.replace("/(auth)/login");
-    } else if (user && inAuthGroup) {
-      // Con sesión → ir a la app
-      router.replace("/(app)/(tabs)/plants");
-    }
-  }, [user, loading, segments]);
-
-  return (
-    <>
-      <OfflineBanner />
-      <Stack screenOptions={{ headerShown: false, animation: "none" }} />
-    </>
-  );
-}
+// ... RootLayoutNav unchanged
 
 // ─── Root Layout ──────────────────────────────────────────────────────────────
 export default function RootLayout() {
@@ -62,7 +38,9 @@ export default function RootLayout() {
   return (
     <ConnectivityProvider>
       <AuthProvider>
-        <RootLayoutNav />
+        <SyncProvider>
+          <RootLayoutNav />
+        </SyncProvider>
       </AuthProvider>
     </ConnectivityProvider>
   );

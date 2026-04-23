@@ -361,11 +361,14 @@ function AddPlantModal({
 
 // ─── MisPlants ────────────────────────────────────────────────────────────────
 
+import { useSync } from "../../context/SyncContext";
+
 export default function MisPlants() {
   const theme  = useTheme();
   const styles = createMisPlantasStyles(theme);
   const { user: authUser } = useAuth();
   const userId = authUser?.uid ?? "";
+  const { isSyncing, queueLength } = useSync(); // Get sync status and queue length
 
   const [plantas, setPlantas] = useState<PlantaCompletaInterface[]>([]);
   const [racha, setRacha] = useState(0);
@@ -376,37 +379,33 @@ export default function MisPlants() {
     visible: false, type: "success", message: "",
   });
 
+  const fetchData = useCallback(async (showLoading = true) => {
+    if (!userId) return;
+    if (showLoading) setLoading(true);
+    try {
+      const [plantasData, userData] = await Promise.all([
+        getPlantsByUserId(userId),
+        getUserById(userId),
+      ]);
+      setPlantas(plantasData);
+      if (userData) setRacha(userData.racha);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [userId]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!userId) return;
-      
-      let isActive = true;
-
-      const fetchData = async () => {
-        try {
-          const [plantasData, userData] = await Promise.all([
-            getPlantsByUserId(userId),
-            getUserById(userId),
-          ]);
-          
-          if (isActive) {
-            setPlantas(plantasData);
-            if (userData) setRacha(userData.racha);
-            setLoading(false);
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          if (isActive) setLoading(false);
-        }
-      };
-
       fetchData();
-
-      return () => {
-        isActive = false;
-      };
-    }, [userId])
+    }, [fetchData])
   );
+
+  // Re-fetch when sync status or queue length changes
+  useEffect(() => {
+    fetchData(false); // Silent refresh
+  }, [isSyncing, queueLength, fetchData]);
 
   const showToast = (type: ToastType, message: string) => setToast({ visible: true, type, message });
 
