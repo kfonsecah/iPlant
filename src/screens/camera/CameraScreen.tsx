@@ -5,12 +5,14 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Linking,
+  AppState,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
@@ -23,7 +25,7 @@ import PlantDetailView from "../../components/ui/plantDetailView/PlantDetailView
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, requestPermission, getPermission] = useCameraPermissions();
   const [flash, setFlash] = useState<"on" | "off">("off");
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
@@ -34,69 +36,6 @@ export default function CameraScreen() {
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [aiResult, setAiResult] = useState<PlantIdentificationResult | null>(null);
   const [identificationError, setIdentificationError] = useState<string | null>(null);
-
-  if (!permission) {
-    return <View style={{ flex: 1, backgroundColor: theme.colors.background }} />;
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background, justifyContent: "center", alignItems: "center", padding: 20 }]}>
-        <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: theme.colors.surface, justifyContent: "center", alignItems: "center", marginBottom: 32 }}>
-          <Ionicons name="camera-outline" size={56} color={theme.colors.primary} />
-        </View>
-        <Text style={{ 
-          color: theme.colors.textPrimary, 
-          fontSize: 22, 
-          fontFamily: theme.typography.fontFamily.bold, 
-          textAlign: "center",
-          marginBottom: 12
-        }}>
-          Acceso a la cámara
-        </Text>
-        <Text style={{ 
-          color: theme.colors.textSecondary, 
-          fontSize: 16, 
-          fontFamily: theme.typography.fontFamily.regular, 
-          textAlign: "center", 
-          paddingHorizontal: 20,
-          marginBottom: 40,
-          lineHeight: 24
-        }}>
-          iPlant necesita usar la cámara para identificar tus plantas. Toca el botón de abajo para activar el permiso.
-        </Text>
-        <TouchableOpacity 
-           style={{ 
-             width: "100%",
-             padding: 18, 
-             backgroundColor: theme.colors.primary, 
-             borderRadius: theme.radius.xl,
-             alignItems: "center",
-             shadowColor: theme.colors.primary,
-             shadowOffset: { width: 0, height: 4 },
-             shadowOpacity: 0.3,
-             shadowRadius: 8,
-             elevation: 5,
-             marginBottom: 12
-           }}
-           onPress={requestPermission}
-        >
-          <Text style={{ color: "white", fontSize: 16, fontFamily: theme.typography.fontFamily.bold }}>
-            Activar Cámara
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-           style={{ padding: 10 }}
-           onPress={() => router.back()}
-        >
-          <Text style={{ color: theme.colors.textSecondary, fontFamily: theme.typography.fontFamily.medium }}>
-            Ahora no
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   const toggleCameraFacing = () => {
     setFacing((current) => (current === "back" ? "front" : "back"));
@@ -203,6 +142,103 @@ export default function CameraScreen() {
       setIdentificationError("Error al guardar la planta");
     }
   };
+
+  if (!permission) {
+    return <View style={{ flex: 1, backgroundColor: theme.colors.background }} />;
+  }
+
+  if (!permission.granted) {
+    const isPermanentlyDenied = !permission.canAskAgain;
+
+    return (
+      <View 
+        style={{ backgroundColor: theme.colors.background }}
+        className="flex-1 justify-center items-center p-6"
+      >
+        <View 
+          style={{ backgroundColor: theme.colors.surface }}
+          className="w-28 h-28 rounded-full justify-center items-center mb-8"
+        >
+          <Ionicons name="camera-outline" size={56} color={theme.colors.primary} />
+        </View>
+        
+        <Text 
+          style={{ 
+            color: theme.colors.textPrimary, 
+            fontFamily: theme.typography.fontFamily.bold 
+          }}
+          className="text-2xl text-center mb-3"
+        >
+          Acceso a la cámara
+        </Text>
+        
+        <Text 
+          style={{ 
+            color: theme.colors.textSecondary, 
+            fontFamily: theme.typography.fontFamily.regular, 
+          }}
+          className="text-base text-center px-5 mb-10 leading-6"
+        >
+          iPlant necesita usar la cámara para identificar tus plantas. Toca el botón de abajo para activar el permiso.
+        </Text>
+
+        <TouchableOpacity 
+           style={{ 
+             backgroundColor: theme.colors.primary,
+             shadowColor: theme.colors.primary,
+             shadowOffset: { width: 0, height: 4 },
+             shadowOpacity: 0.3,
+             shadowRadius: 8,
+             elevation: 5,
+           }}
+           className="w-full p-5 rounded-2xl items-center mb-4"
+           onPress={isPermanentlyDenied ? Linking.openSettings : requestPermission}
+        >
+          <Text 
+            style={{ fontFamily: theme.typography.fontFamily.bold }}
+            className="text-white text-base"
+          >
+            {isPermanentlyDenied ? "Abrir Ajustes" : "Activar Cámara"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+           style={{ 
+             backgroundColor: theme.colors.surfaceElevated,
+             borderWidth: 1,
+             borderColor: theme.colors.border
+           }}
+           className="w-full p-5 rounded-2xl items-center mb-6 flex-row justify-center gap-2"
+           onPress={pickImage}
+        >
+          <Ionicons name="images-outline" size={20} color={theme.colors.textPrimary} />
+          <Text 
+            style={{ 
+              color: theme.colors.textPrimary,
+              fontFamily: theme.typography.fontFamily.bold 
+            }}
+            className="text-base"
+          >
+            Seleccionar de Galería
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+           onPress={() => router.back()}
+           className="p-2"
+        >
+          <Text 
+            style={{ 
+              color: theme.colors.textSecondary, 
+              fontFamily: theme.typography.fontFamily.medium 
+            }}
+          >
+            Ahora no
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   // ─── Preview UI ─────────────────────────────────────────────────────────────
   if (previewUri) {
