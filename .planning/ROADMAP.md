@@ -10,7 +10,7 @@
 ## Phases
 
 - [x] **Phase 1: AI Plant Identification** - Integrate Plant.id API, display confidence scores, save results ✓
-- [ ] **Phase 2: Camera Permission Handling** - Deny gracefully, enable re-request, redirect to settings
+- [x] **Phase 2: Camera Permission Handling** - Deny gracefully, enable re-request, redirect to settings ✓
 - [ ] **Phase 3: Offline Mode & Local Storage** - Async detection, cache reads, queue writes, sync queue
 - [ ] **Phase 4: Backend Deploy & Documentation** - Render deploy, verify endpoints, share with instructors
 
@@ -40,13 +40,13 @@
 **Requirements:** PERM-01, PERM-02, PERM-03, PERM-04
 
 **Plans:** 1 plans
-- [ ] 02-01-PLAN.md — Enhanced permission guard with settings redirection and gallery fallback.
+- [x] 02-01-PLAN.md — Enhanced permission guard with settings redirection and gallery fallback. ✓
 
 **Success Criteria**:
-1. [ ] App does not crash when user denies camera permission.
-2. [ ] Clear message explains why camera permission is required.
-3. [ ] User can request camera permission again from within the app UI.
-4. [ ] Permanent denial redirects user to system settings.
+1. [x] App does not crash when user denies camera permission.
+2. [x] Clear message explains why camera permission is required.
+3. [x] User can request camera permission again from within the app UI.
+4. [x] Permanent denial redirects user to system settings.
 
 ---
 
@@ -57,6 +57,11 @@
 **Depends on:** Phase 1 (plant data exists to cache)
 
 **Requirements:** OFFL-01, OFFL-02, OFFL-03, OFFL-04, OFFL-05, STOR-01, STOR-02, STOR-03
+
+**Plans:** 3 plans
+- [ ] 03-01-PLAN.md — Connectivity & Storage Foundation
+- [ ] 03-02-PLAN.md — Sync Engine & Repository Refactor
+- [ ] 03-03-PLAN.md — UI Integration & Offline Flow
 
 **Success Criteria**:
 1. App displays banner/indicator when offline, hides when online.
@@ -88,8 +93,8 @@
 | Phase | Status | Completed |
 |-------|--------|-----------|
 | 1. AI Plant Identification | Completed ✓ | 2026-04-23 |
-| 2. Camera Permission Handling | Planning Complete | - |
-| 3. Offline Mode & Local Storage | Not started | - |
+| 2. Camera Permission Handling | Completed ✓ | 2026-04-23 |
+| 3. Offline Mode & Local Storage | Planning | - |
 | 4. Backend Deploy & Documentation | Not started | - |
 
 ---
@@ -106,4 +111,4 @@
 | Backend Host | Render (required by lab) | Phase 4 |
 
 ---
-**Last updated:** 2026-04-23 after planning Phase 2
+**Last updated:** 2026-04-23 after planning Phase 3
