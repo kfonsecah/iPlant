@@ -12,6 +12,7 @@ import "../global.css";
 
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { ConnectivityProvider } from "../src/context/ConnectivityContext";
+import OfflineBanner from "../src/components/ui/offlineBanner/OfflineBanner";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,7 +36,12 @@ function RootLayoutNav() {
     }
   }, [user, loading, segments]);
 
-  return <Stack screenOptions={{ headerShown: false, animation: "none" }} />;
+  return (
+    <>
+      <OfflineBanner />
+      <Stack screenOptions={{ headerShown: false, animation: "none" }} />
+    </>
+  );
 }
 
 // ─── Root Layout ──────────────────────────────────────────────────────────────
