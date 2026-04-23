@@ -1,9 +1,12 @@
 import { addDoc, collection, doc, getDocs, query, Timestamp, updateDoc, where } from "firebase/firestore";
-import Constants from "expo-constants";
+import * as Crypto from 'expo-crypto';
 import { File } from 'expo-file-system';
+import NetInfo from '@react-native-community/netinfo';
 import { db } from "../config/firebase";
-import { PlantAIFields, PlantIdentificationResult, PlantaInterface, SaludPlanta } from "../types-dtos/plant.types";
+import { PlantAIFields, PlantIdentificationResult, PlantaCompletaInterface, PlantaInterface, SaludPlanta } from "../types-dtos/plant.types";
 import { withTimeout } from "../utils/withTimeout";
+import { getItem, persistImage, saveItem } from "./storageService";
+import { addToQueue, getQueue, processQueue } from "./syncService";
 
 const PLANT_ID_API_URL = "https://api.plant.id/v3/identification";
 const getPlantIdApiKey = (): string => {
@@ -35,6 +38,11 @@ async function imageToDataUri(uri: string): Promise<string> {
 }
 
 export async function identifyPlant(imageUri: string): Promise<PlantIdentificationResult> {
+  const isConnected = (await NetInfo.fetch()).isConnected;
+  if (!isConnected) {
+    throw new Error("Sin conexión a internet. La identificación por IA no está disponible sin conexión.");
+  }
+
   const apiKey = getPlantIdApiKey();
   
   if (!apiKey) {
@@ -136,52 +144,139 @@ function formatUltimoRiego(value: unknown): string {
   return String(value ?? "—");
 }
 
-export async function getPlantsByUserId(userId: string): Promise<PlantaInterface[]> {
-  const q = query(collection(db, "plants"), where("userId", "==", userId));
-  const snap = await withTimeout(getDocs(q));
+const getCacheKey = (userId: string) => `PLANTS_CACHE_${userId}`;
 
-  return snap.docs.map((d) => {
-    const data = d.data();
-    return {
-      id: d.id,
-      userId: data.userId,
-      nombre: data.nombre,
-      categoria: data.categoria,
-      imagen: data.imagen,
-      ultimoRiego: formatUltimoRiego(data.ultimoRiego),
-      salud: data.salud,
-      proximoRiego: data.proximoRiego,
-    } as PlantaInterface;
-  });
+export async function getPlantsByUserId(userId: string): Promise<PlantaCompletaInterface[]> {
+  const isConnected = (await NetInfo.fetch()).isConnected;
+  const cacheKey = getCacheKey(userId);
+
+  if (isConnected) {
+    try {
+      const q = query(collection(db, "plants"), where("userId", "==", userId));
+      const snap = await withTimeout(getDocs(q));
+
+      const remotePlants = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          userId: data.userId,
+          nombre: data.nombre,
+          categoria: data.categoria,
+          imagen: data.imagen,
+          ultimoRiego: formatUltimoRiego(data.ultimoRiego),
+          salud: data.salud,
+          proximoRiego: data.proximoRiego,
+          confianza: data.confianza,
+          descripcion: data.descripcion,
+          cuidados: data.cuidados,
+          identificadoConIA: data.identificadoConIA,
+        } as PlantaCompletaInterface;
+      });
+
+      // Merge with pending items from queue to ensure they remain visible in the UI
+      const queue = await getQueue(userId);
+      const pendingPlants = queue.map(action => action.data as PlantaCompletaInterface);
+      
+      const allPlants = [...pendingPlants, ...remotePlants.filter(rp => !pendingPlants.some(pp => pp.id === rp.id))];
+
+      await saveItem(cacheKey, allPlants);
+      return allPlants;
+    } catch (e) {
+      console.error("Error fetching from Firestore, falling back to cache:", e);
+    }
+  }
+
+  return (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
 }
 
 export async function addPlant(
   data: Pick<PlantaInterface, "userId" | "nombre" | "categoria" | "proximoRiego"> & Partial<Pick<PlantaInterface, "imagen">> & Partial<PlantAIFields>
-): Promise<PlantaInterface> {
-  const newPlant = {
-    userId:       data.userId,
-    nombre:      data.nombre,
-    categoria:   data.categoria,
+): Promise<PlantaCompletaInterface> {
+  const localId = Crypto.randomUUID();
+  let finalImagen = data.imagen || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400";
+
+  // If we have a local URI and it's not a remote URL, persist it
+  if (data.imagen && !data.imagen.startsWith('http')) {
+    try {
+      finalImagen = await persistImage(data.imagen);
+    } catch (e) {
+      console.error("Failed to persist image locally:", e);
+    }
+  }
+
+  const newPlant: PlantaCompletaInterface = {
+    id: localId,
+    userId: data.userId,
+    nombre: data.nombre,
+    categoria: data.categoria,
     proximoRiego: data.proximoRiego,
-    salud:       "saludable" as const,
-    imagen:     data.imagen || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
-    ultimoRiego:  Timestamp.now(),
-    ...(data.confianza && { confianza: data.confianza }),
-    ...(data.descripcion && { descripcion: data.descripcion }),
-    ...(data.cuidados && { cuidados: data.cuidados }),
-    ...(data.identificadoConIA !== undefined && { identificadoConIA: data.identificadoConIA }),
-  };
-  const ref = await withTimeout(addDoc(collection(db, "plants"), newPlant));
-  return {
-    id:          ref.id,
-    userId:      newPlant.userId,
-    nombre:      newPlant.nombre,
-    categoria:   newPlant.categoria,
-    proximoRiego:newPlant.proximoRiego,
-    salud:       newPlant.salud,
-    imagen:      newPlant.imagen,
+    salud: "saludable",
+    imagen: finalImagen,
     ultimoRiego: "Hoy",
+    isPending: true,
+    confianza: data.confianza,
+    descripcion: data.descripcion,
+    cuidados: data.cuidados,
+    identificadoConIA: data.identificadoConIA,
   };
+
+  // 1. Save to local cache
+  const cacheKey = getCacheKey(data.userId);
+  const currentCache = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
+  await saveItem(cacheKey, [newPlant, ...currentCache]);
+
+  // 2. Add to sync queue
+  await addToQueue({
+    id: localId,
+    type: 'CREATE',
+    data: newPlant,
+    userId: data.userId,
+    timestamp: Date.now(),
+  });
+
+  return newPlant;
+}
+
+/**
+ * Pushes a plant to Firestore.
+ */
+async function pushPlantToFirestore(plant: PlantaCompletaInterface): Promise<string> {
+  const firestoreData = {
+    userId: plant.userId,
+    nombre: plant.nombre,
+    categoria: plant.categoria,
+    proximoRiego: plant.proximoRiego,
+    salud: plant.salud,
+    imagen: plant.imagen,
+    ultimoRiego: Timestamp.now(),
+    ...(plant.confianza && { confianza: plant.confianza }),
+    ...(plant.descripcion && { descripcion: plant.descripcion }),
+    ...(plant.cuidados && { cuidados: plant.cuidados }),
+    ...(plant.identificadoConIA !== undefined && { identificadoConIA: plant.identificadoConIA }),
+  };
+
+  const ref = await withTimeout(addDoc(collection(db, "plants"), firestoreData));
+  return ref.id;
+}
+
+/**
+ * Synchronizes pending plants with the remote database.
+ */
+export async function syncPlants(userId: string): Promise<void> {
+  await processQueue(userId, async (action) => {
+    if (action.type === 'CREATE') {
+      const plant = action.data as PlantaCompletaInterface;
+      const remoteId = await pushPlantToFirestore(plant);
+      
+      // Update local cache: replace localId with remoteId and remove isPending
+      const cacheKey = getCacheKey(userId);
+      const currentCache = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
+      const updatedCache = currentCache.map(p => 
+        p.id === action.id ? { ...p, id: remoteId, isPending: false } : p
+      );
+      await saveItem(cacheKey, updatedCache);
+    }
+  });
 }
 
 export async function updatePlant(

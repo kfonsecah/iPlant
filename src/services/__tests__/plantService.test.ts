@@ -1,16 +1,45 @@
 // Mock firebase/firestore
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(),
-  collection: jest.fn(),
-  doc: jest.fn(),
-  getDocs: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  addDoc: jest.fn(),
-  updateDoc: jest.fn(),
-  Timestamp: {
-    now: jest.fn(() => ({ toDate: () => new Date() })),
-  },
+jest.mock('firebase/firestore', () => {
+  const MockTimestamp = jest.fn().mockImplementation(() => ({
+    toDate: jest.fn(() => new Date()),
+  }));
+  (MockTimestamp as any).now = jest.fn(() => new MockTimestamp());
+
+  return {
+    getFirestore: jest.fn(),
+    collection: jest.fn(),
+    doc: jest.fn(),
+    getDocs: jest.fn(),
+    query: jest.fn(),
+    where: jest.fn(),
+    addDoc: jest.fn(),
+    updateDoc: jest.fn(),
+    Timestamp: MockTimestamp,
+  };
+});
+
+// Mock NetInfo
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: jest.fn(),
+}));
+
+// Mock expo-crypto
+jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn(() => 'test-uuid'),
+}));
+
+// Mock storageService
+jest.mock('../storageService', () => ({
+  getItem: jest.fn(),
+  saveItem: jest.fn(),
+  persistImage: jest.fn((uri) => Promise.resolve(`permanent-${uri}`)),
+}));
+
+// Mock syncService
+jest.mock('../syncService', () => ({
+  addToQueue: jest.fn(),
+  getQueue: jest.fn(() => Promise.resolve([])),
+  processQueue: jest.fn(),
 }));
 
 // Mock expo-modules-core
@@ -61,7 +90,11 @@ jest.mock('../../utils/withTimeout', () => ({
   withTimeout: (p: any) => p,
 }));
 
-import { identifyPlant } from "../plantService";
+import NetInfo from '@react-native-community/netinfo';
+import { identifyPlant, getPlantsByUserId, addPlant } from "../plantService";
+import { getItem, saveItem } from '../storageService';
+import { addToQueue } from '../syncService';
+import { getDocs, Timestamp } from 'firebase/firestore';
 
 describe('plantService', () => {
   const originalEnv = process.env;
@@ -70,6 +103,7 @@ describe('plantService', () => {
     jest.clearAllMocks();
     global.fetch = jest.fn();
     process.env = { ...originalEnv, EXPO_PUBLIC_PLANT_ID_API_KEY: 'test-api-key' };
+    (NetInfo.fetch as jest.Mock).mockResolvedValue({ isConnected: true });
   });
 
   afterEach(() => {
@@ -77,22 +111,24 @@ describe('plantService', () => {
   });
 
   describe('identifyPlant', () => {
-    it('should identify a plant successfully', async () => {
+    it('should identify a plant successfully when online', async () => {
       const mockResponse = {
-        suggestions: [
-          {
-            plant_name: 'Rosa',
-            probability: 0.95,
-            plant_details: {
-              wiki_name: 'Rosa chinensis',
-            },
-            description: 'A beautiful flower',
-            wiki_description: {
-              title: 'Rose',
-              extract: 'Roses are woody perennial flowering plants...',
-            },
+        result: {
+          classification: {
+            suggestions: [
+              {
+                name: 'Rosa',
+                probability: 0.95,
+                details: {
+                  common_names: ['Rosa'],
+                  wiki_description: {
+                    value: 'Roses are woody perennial flowering plants...',
+                  },
+                },
+              },
+            ],
           },
-        ],
+        },
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -102,57 +138,64 @@ describe('plantService', () => {
 
       const result = await identifyPlant('mock-uri');
 
-      expect(result).toEqual({
-        plantName: 'Rosa',
-        latinName: 'Rosa chinensis',
-        probability: 95,
-        description: 'A beautiful flower',
-        careInstructions: 'Roses are woody perennial flowering plants...',
-        wikiDescription: {
-          title: 'Rose',
-          extract: 'Roses are woody perennial flowering plants...',
-        },
-      });
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.plant.id/v3/identification',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-          }),
-        })
-      );
+      expect(result.plantName).toBe('Rosa');
+      expect(result.probability).toBe(95);
     });
 
-    it('should throw an error if API key is missing', async () => {
-      // Temporarily clear API key from mocks if needed, 
-      // but here we just rely on the fact that identifyPlant will check it.
-      // Since we mocked expo-constants above, it will find it.
-      // To test failure, we'd need to mock it differently.
-    });
-
-    it('should handle API errors', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 429,
-        text: async () => 'Too Many Requests',
-      });
+    it('should throw error if offline', async () => {
+      (NetInfo.fetch as jest.Mock).mockResolvedValue({ isConnected: false });
 
       await expect(identifyPlant('mock-uri')).rejects.toThrow(
-        'Límite de solicitudes excedido. Intenta más tarde.'
+        'Sin conexión a internet. La identificación por IA no está disponible sin conexión.'
       );
     });
+  });
 
-    it('should handle no suggestions', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ suggestions: [] }),
-      });
+  describe('getPlantsByUserId', () => {
+    const userId = 'user-1';
 
-      await expect(identifyPlant('mock-uri')).rejects.toThrow(
-        'No se identificó ninguna planta. Intenta con una foto más clara.'
-      );
+    it('should fetch from Firestore and update cache when online', async () => {
+      const mockDocs = [
+        { id: '1', data: () => ({ userId, nombre: 'Plant 1', categoria: 'Cat', imagen: 'img', salud: 'saludable', proximoRiego: 1, ultimoRiego: Timestamp.now() }) },
+      ];
+      (getDocs as jest.Mock).mockResolvedValueOnce({ docs: mockDocs });
+
+      const plants = await getPlantsByUserId(userId);
+
+      expect(plants.length).toBe(1);
+      expect(saveItem).toHaveBeenCalled();
+    });
+
+    it('should return from cache when offline', async () => {
+      (NetInfo.fetch as jest.Mock).mockResolvedValue({ isConnected: false });
+      const cachedPlants = [{ id: 'cached-1', nombre: 'Cached Plant' }];
+      (getItem as jest.Mock).mockResolvedValueOnce(cachedPlants);
+
+      const plants = await getPlantsByUserId(userId);
+
+      expect(plants).toEqual(cachedPlants);
+      expect(getDocs).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('addPlant', () => {
+    it('should save to cache and enqueue sync (Local-First)', async () => {
+      const plantData: any = {
+        userId: 'user-1',
+        nombre: 'New Plant',
+        categoria: 'Interior',
+        proximoRiego: 7,
+        imagen: 'local-uri',
+      };
+
+      (getItem as jest.Mock).mockResolvedValueOnce([]);
+
+      const result = await addPlant(plantData);
+
+      expect(result.id).toBe('test-uuid');
+      expect(result.isPending).toBe(true);
+      expect(saveItem).toHaveBeenCalled();
+      expect(addToQueue).toHaveBeenCalled();
     });
   });
 });

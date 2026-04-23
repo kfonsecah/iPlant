@@ -41,6 +41,8 @@ export interface PlantAIFields {
   descripcion?: string;
   cuidados?: string;
   identificadoConIA?: boolean;
+  isPending?: boolean;
+  syncError?: string;
 }
 
 export type PlantaCompletaInterface = PlantaInterface & PlantAIFields;

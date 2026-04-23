@@ -32,7 +32,7 @@ import WateringFrequencyPicker from "../../components/ui/wateringFrequencyPicker
 import { addPlant, getPlantsByUserId, updatePlant } from "../../services/plantService";
 import { getUserById } from "../../services/userService";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
-import { PlantaInterface, SaludPlanta } from "../../types-dtos/plant.types";
+import { PlantaCompletaInterface, SaludPlanta } from "../../types-dtos/plant.types";
 import { createMisPlantasStyles } from "./MisPlants.styles";
 import { useAuth } from "../../context/AuthContext";
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
@@ -55,7 +55,7 @@ type EditPlantForm = z.infer<typeof editPlantSchema>;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function healthColor(salud: PlantaInterface["salud"], theme: AppTheme) {
+function healthColor(salud: SaludPlanta, theme: AppTheme) {
   if (salud === "riesgo") return theme.colors.error;
   if (salud === "atención") return theme.colors.warning;
   return theme.colors.primary;
@@ -64,7 +64,7 @@ function healthColor(salud: PlantaInterface["salud"], theme: AppTheme) {
 // ─── PlantCard ────────────────────────────────────────────────────────────────
 
 type PlantCardProps = {
-  planta: PlantaInterface;
+  planta: PlantaCompletaInterface;
   styles: ReturnType<typeof createMisPlantasStyles>;
   theme: AppTheme;
   onPress: () => void;
@@ -86,6 +86,14 @@ function PlantCard({ planta, styles, theme, onPress }: PlantCardProps) {
         <View className="absolute top-2 left-2 rounded-full flex-row items-center" style={styles.plantChip}>
           <Text style={styles.plantChipText}>{planta.categoria}</Text>
         </View>
+
+        {planta.isPending && (
+          <View style={styles.pendingBadge}>
+            <Ionicons name="cloud-upload-outline" size={10} color={theme.colors.textOnAccent} />
+            <Text style={styles.pendingText}>Pendiente</Text>
+          </View>
+        )}
+
         <View className="absolute bottom-0 left-0 right-0" style={styles.plantCardOverlay}>
           <Text style={styles.plantName} numberOfLines={1}>{planta.nombre}</Text>
           <View style={styles.waterRow}>
@@ -113,9 +121,9 @@ function EditPlantModal({
   onSaved,
   onError,
 }: {
-  planta: PlantaInterface;
+  planta: PlantaCompletaInterface;
   onClose: () => void;
-  onSaved: (id: string, data: Partial<PlantaInterface>) => void;
+  onSaved: (id: string, data: Partial<PlantaCompletaInterface>) => void;
   onError: (msg: string) => void;
 }) {
   const theme = useTheme();
@@ -275,7 +283,7 @@ function AddPlantModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onSave: (planta: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => void;
+  onSave: (planta: Omit<PlantaCompletaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => void;
   styles: ReturnType<typeof createMisPlantasStyles>;
   theme: AppTheme;
 }) {
@@ -359,11 +367,11 @@ export default function MisPlants() {
   const { user: authUser } = useAuth();
   const userId = authUser?.uid ?? "";
 
-  const [plantas, setPlantas] = useState<PlantaInterface[]>([]);
+  const [plantas, setPlantas] = useState<PlantaCompletaInterface[]>([]);
   const [racha, setRacha] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [editingPlanta, setEditingPlanta] = useState<PlantaInterface | null>(null);
+  const [editingPlanta, setEditingPlanta] = useState<PlantaCompletaInterface | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; type: ToastType; message: string }>({
     visible: false, type: "success", message: "",
   });
@@ -402,7 +410,7 @@ export default function MisPlants() {
 
   const showToast = (type: ToastType, message: string) => setToast({ visible: true, type, message });
 
-  const handleAddPlanta = async (data: Omit<PlantaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
+  const handleAddPlanta = async (data: Omit<PlantaCompletaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
     try {
       const nueva = await addPlant({ userId, ...data });
       setPlantas((prev) => [...prev, nueva]);
@@ -412,7 +420,7 @@ export default function MisPlants() {
     }
   };
 
-  const handlePlantSaved = (id: string, data: Partial<PlantaInterface>) => {
+  const handlePlantSaved = (id: string, data: Partial<PlantaCompletaInterface>) => {
     setPlantas((prev) => prev.map((p) => p.id === id ? { ...p, ...data } : p));
     showToast("success", "Planta actualizada correctamente");
   };

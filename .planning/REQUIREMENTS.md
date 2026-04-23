@@ -29,9 +29,12 @@
 
 ### Offline & Sync
 
-- [ ] **OFFL-01**: La app detecta cuando no hay conexión a internet y muestra un banner/indicador visual
-- [ ] **OFFL-02**: Los módulos de solo lectura (lista de mis plantas, perfil) funcionan sin internet usando datos cacheados
-- [ ] **OFFL-03**: Las operaciones de escritura (agregar planta) se encolan localmente cuando no hay conexión
+- [x] **OFFL-01
+**: La app detecta cuando no hay conexión a internet y muestra un banner/indicador visual
+- [x] **OFFL-02
+**: Los módulos de solo lectura (lista de mis plantas, perfil) funcionan sin internet usando datos cacheados
+- [x] **OFFL-03
+**: Las operaciones de escritura (agregar planta) se encolan localmente cuando no hay conexión
 - [ ] **OFFL-04**: Al recuperar la conexión, las operaciones encoladas se sincronizan automáticamente
 - [ ] **OFFL-05**: Las plantas pendientes de sincronización se muestran con un indicador visual diferenciado
 
@@ -44,9 +47,12 @@
 
 ### Local Storage
 
-- [ ] **STOR-01**: Se implementa almacenamiento local con la tecnología justificada (AsyncStorage/MMKV/SQLite)
-- [ ] **STOR-02**: Las plantas del usuario se cachean localmente para acceso offline
-- [ ] **STOR-03**: La cola de sincronización pendiente persiste entre sesiones (no se pierde al cerrar la app)
+- [x] **STOR-01
+**: Se implementa almacenamiento local con la tecnología justificada (AsyncStorage/MMKV/SQLite)
+- [x] **STOR-02
+**: Las plantas del usuario se cachean localmente para acceso offline
+- [x] **STOR-03
+**: La cola de sincronización pendiente persiste entre sesiones (no se pierde al cerrar la app)
 
 ## v2 Requirements
 

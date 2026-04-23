@@ -168,6 +168,29 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
     fontWeight: theme.typography.fontWeights.semibold,
   },
 
+  // ── Pending sync ─────────────────────────────────────────────────────────────
+  pendingBadge: {
+    position: "absolute" as const,
+    top: theme.spacing.s8,
+    right: theme.spacing.s8,
+    backgroundColor: "rgba(0,0,0,0.6)" as const,
+    paddingHorizontal: theme.spacing.s8,
+    paddingVertical: theme.spacing.s4,
+    borderRadius: theme.radius.full,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: theme.spacing.s4,
+    borderWidth: theme.borders.thin,
+    borderColor: "rgba(255,255,255,0.2)" as const,
+  },
+  pendingText: {
+    color: theme.colors.textOnAccent,
+    fontFamily: theme.typography.fontFamily.semibold,
+    fontSize: 10,
+    fontWeight: theme.typography.fontWeights.semibold,
+    textTransform: "uppercase" as const,
+  },
+
   // ── Health & alert ──────────────────────────────────────────────────────────────────
   healthDot: {
     width: 8,

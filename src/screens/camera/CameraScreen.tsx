@@ -19,6 +19,7 @@ import { useTheme } from "../../theme/desingSystem";
 import { identifyPlant, addPlant } from "../../services/plantService";
 import { PlantIdentificationResult, PlantAIFields } from "../../types-dtos/plant.types";
 import { useAuth } from "../../context/AuthContext";
+import { useConnectivity } from "../../context/ConnectivityContext";
 import { PlantEditData } from "../../components/ui/aiResultCard/AiResultCard";
 import IdentificationAnimation from "../../components/ui/identificationAnimation/IdentificationAnimation";
 import PlantDetailView from "../../components/ui/plantDetailView/PlantDetailView";
@@ -32,10 +33,12 @@ export default function CameraScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { user } = useAuth();
+  const { isConnected } = useConnectivity();
   
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [aiResult, setAiResult] = useState<PlantIdentificationResult | null>(null);
   const [identificationError, setIdentificationError] = useState<string | null>(null);
+  const [showManualSave, setShowManualSave] = useState(false);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -112,9 +115,16 @@ export default function CameraScreen() {
       console.log("DEBUG: Missing previewUri or user!", { hasUri: !!previewUri, hasUser: !!user });
       return;
     }
+
+    if (!isConnected) {
+      setIdentificationError("Modo offline. La identificación por IA requiere internet.");
+      setShowManualSave(true);
+      return;
+    }
     
     setIsIdentifying(true);
     setIdentificationError(null);
+    setShowManualSave(false);
     
     try {
       const result = await identifyPlant(previewUri);
@@ -142,7 +152,7 @@ export default function CameraScreen() {
         confianza: editData.confidence,
         descripcion: editData.descripcion,
         cuidados: editData.cuidados,
-        identificadoConIA: true,
+        identificadoConIA: !!aiResult && (aiResult.probability > 0),
       });
       
       router.back();
@@ -150,6 +160,14 @@ export default function CameraScreen() {
       console.error("Save failed:", error);
       setIdentificationError("Error al guardar la planta");
     }
+  };
+
+  const handleManualSave = () => {
+    // Show a basic result object for manual editing
+    setAiResult({
+      plantName: "Nueva Planta",
+      probability: 0,
+    });
   };
 
   if (!permission) {
@@ -317,21 +335,33 @@ export default function CameraScreen() {
               <Ionicons name="alert-circle" size={24} color={theme.colors.error} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.errorText, { color: theme.colors.textPrimary, fontWeight: '600' }]}>
-                  Error de Identificación
+                  {showManualSave ? "Modo Offline" : "Error de Identificación"}
                 </Text>
                 <Text style={[styles.errorText, { color: theme.colors.textSecondary, fontSize: 13 }]}>
                   {identificationError}
                 </Text>
               </View>
-              <TouchableOpacity 
-                style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
-                onPress={handleIdentify}
-              >
-                <Text style={{ color: "white", fontSize: 12, fontWeight: '700' }}>Reintentar</Text>
-              </TouchableOpacity>
+              {showManualSave ? (
+                <TouchableOpacity 
+                  style={{ backgroundColor: theme.colors.secondary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
+                  onPress={handleManualSave}
+                >
+                  <Text style={{ color: "white", fontSize: 12, fontWeight: '700' }}>Guardar Manual</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
+                  onPress={handleIdentify}
+                >
+                  <Text style={{ color: "white", fontSize: 12, fontWeight: '700' }}>Reintentar</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity 
                 style={{ marginLeft: 8 }}
-                onPress={() => setIdentificationError(null)}
+                onPress={() => {
+                  setIdentificationError(null);
+                  setShowManualSave(false);
+                }}
               >
                 <Ionicons name="close-circle" size={24} color={theme.colors.textSecondary} />
               </TouchableOpacity>
