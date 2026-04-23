@@ -37,6 +37,15 @@ export default function CameraScreen() {
   const [aiResult, setAiResult] = useState<PlantIdentificationResult | null>(null);
   const [identificationError, setIdentificationError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        getPermission();
+      }
+    });
+    return () => subscription.remove();
+  }, [getPermission]);
+
   const toggleCameraFacing = () => {
     setFacing((current) => (current === "back" ? "front" : "back"));
   };
