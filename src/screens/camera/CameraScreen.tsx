@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import { File, Directory, Paths } from "expo-file-system";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useRef, useState } from "react";
@@ -104,6 +105,22 @@ export default function CameraScreen() {
         } catch (error) {
             console.error("Failed to take picture:", error);
         }
+    }
+  };
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setPreviewUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Failed to pick image:", error);
     }
   };
 
@@ -226,7 +243,12 @@ export default function CameraScreen() {
               <View style={[styles.captureButtonInner, { backgroundColor: "white" }]} />
             </TouchableOpacity>
 
-            <View style={{ width: 50 }} /> 
+            <TouchableOpacity 
+              style={[styles.glassButton, { backgroundColor: theme.colors.overlay }]} 
+              onPress={pickImage}
+            >
+              <Ionicons name="images-outline" size={26} color="white" />
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </CameraView>
