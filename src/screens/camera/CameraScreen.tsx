@@ -14,6 +14,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
+import { identifyPlant, addPlant } from "../../services/plantService";
+import { PlantIdentificationResult, PlantAIFields } from "../../types-dtos/plant.types";
+import { useAuth } from "../../context/AuthContext";
+import AiResultCard, { PlantEditData } from "../../components/ui/aiResultCard/AiResultCard";
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
@@ -23,6 +27,11 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
   const theme = useTheme();
+  const { user } = useAuth();
+  
+  const [isIdentifying, setIsIdentifying] = useState(false);
+  const [aiResult, setAiResult] = useState<PlantIdentificationResult | null>(null);
+  const [identificationError, setIdentificationError] = useState<string | null>(null);
 
   if (!permission) {
     return <View style={{ flex: 1, backgroundColor: theme.colors.background }} />;
@@ -143,6 +152,54 @@ export default function CameraScreen() {
 
   const handleRetake = () => {
     setPreviewUri(null);
+    setAiResult(null);
+    setIdentificationError(null);
+  };
+
+  const handleIdentify = async () => {
+    console.log("DEBUG: handleIdentify button pressed!");
+    if (!previewUri || !user) {
+      console.log("DEBUG: Missing previewUri or user!", { hasUri: !!previewUri, hasUser: !!user });
+      return;
+    }
+    
+    setIsIdentifying(true);
+    setIdentificationError(null);
+    
+    try {
+      const result = await identifyPlant(previewUri);
+      setAiResult(result);
+    } catch (error) {
+      console.error("Identification failed:", error);
+      setIdentificationError(
+        error instanceof Error ? error.message : "Error al identificar la planta"
+      );
+    } finally {
+      setIsIdentifying(false);
+    }
+  };
+
+  const handleSavePlant = async (editData: PlantEditData) => {
+    if (!user || !previewUri) return;
+    
+    try {
+      await addPlant({
+        userId: user.uid,
+        nombre: editData.nombre,
+        categoria: editData.categoria || "Sin categoría",
+        proximoRiego: parseInt(editData.frecuenciaRiego, 10) || 7,
+        imagen: previewUri,
+        confianza: editData.confidence,
+        descripcion: editData.descripcion,
+        cuidados: editData.cuidados,
+        identificadoConIA: true,
+      });
+      
+      router.back();
+    } catch (error) {
+      console.error("Save failed:", error);
+      setIdentificationError("Error al guardar la planta");
+    }
   };
 
   // ─── Preview UI ─────────────────────────────────────────────────────────────
@@ -166,29 +223,70 @@ export default function CameraScreen() {
           </View>
           
           {/* Footer con botones del sistema */}
-          <View style={styles.previewFooter}>
-            <TouchableOpacity 
-              style={[styles.systemButtonSecondary, { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border }]} 
-              onPress={handleRetake}
-              activeOpacity={theme.opacity.pressableButton}
-            >
-              <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
-              <Text style={[styles.systemButtonText, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.semibold }]}>
-                Descartar
-              </Text>
-            </TouchableOpacity>
+          {(!aiResult && !identificationError) && (
+            <View style={styles.previewFooter}>
+              <TouchableOpacity 
+                style={[styles.systemButtonSecondary, { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border }]} 
+                onPress={handleRetake}
+                activeOpacity={theme.opacity.pressableButton}
+              >
+                <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+                <Text style={[styles.systemButtonText, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.semibold }]}>
+                  Descartar
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.systemButtonPrimary, { backgroundColor: theme.colors.primary }]} 
-              onPress={savePhoto}
-              activeOpacity={theme.opacity.pressableButton}
-            >
-              <Ionicons name="checkmark-circle" size={20} color={theme.colors.textOnAccent} />
-              <Text style={[styles.systemButtonText, { color: theme.colors.textOnAccent, fontFamily: theme.typography.fontFamily.bold }]}>
-                Confirmar
-              </Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity 
+                style={[styles.identifyButton, { backgroundColor: theme.colors.secondary }]} 
+                onPress={handleIdentify}
+                disabled={isIdentifying}
+                activeOpacity={theme.opacity.pressableButton}
+              >
+                <Ionicons name="leaf" size={20} color="white" />
+                <Text style={[styles.systemButtonText, { color: "white", fontFamily: theme.typography.fontFamily.bold }]}>
+                  {isIdentifying ? "Identificando..." : "Identificar"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          {/* AI Results Display - AiResultCard handles edit/confirm */}
+          {aiResult && (
+            <View style={styles.aiResultContainer}>
+              <AiResultCard 
+                result={aiResult}
+                onEdit={() => {}}
+                onConfirm={handleSavePlant}
+                onCancel={() => setAiResult(null)}
+              />
+            </View>
+          )}
+
+          {identificationError && !aiResult && (
+            <View style={[styles.errorContainer, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.error }]}>
+              <Ionicons name="alert-circle" size={24} color={theme.colors.error} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.errorText, { color: theme.colors.textPrimary, fontWeight: '600' }]}>
+                  Error de Identificación
+                </Text>
+                <Text style={[styles.errorText, { color: theme.colors.textSecondary, fontSize: 13 }]}>
+                  {identificationError}
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
+                onPress={handleIdentify}
+              >
+                <Text style={{ color: "white", fontSize: 12, fontWeight: '700' }}>Reintentar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ marginLeft: 8 }}
+                onPress={() => setIdentificationError(null)}
+              >
+                <Ionicons name="close-circle" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          )}
         </SafeAreaView>
       </View>
     );
@@ -354,5 +452,41 @@ const styles = StyleSheet.create({
   },
   systemButtonText: {
     fontSize: 16,
+  },
+  identifyButton: {
+    flexDirection: "row",
+    height: 60,
+    borderRadius: 100,
+    backgroundColor: "#10B981",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    flex: 1,
+  },
+  aiResultContainer: {
+    position: "absolute",
+    bottom: 40,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  errorContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 16,
+    right: 16,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 14,
+  },
+  errorRetry: {
+    fontSize: 14,
+    fontWeight: "700",
   },
 });

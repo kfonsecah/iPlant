@@ -33,7 +33,13 @@
 4. User can accept AI result or manually edit plant info before saving
 5. Edited/accepted plant data persists in backend database
 
-**Plans:** TBD
+**Plans:** 5 plans
+
+- [ ] 01-01-PLAN.md — API integration & types (identifyPlant method, AI fields)
+- [ ] 01-02-PLAN.md — Confidence badge component
+- [ ] 01-03-PLAN.md — AI result card with inline editing
+- [ ] 01-04-PLAN.md — CameraScreen integration
+- [ ] 01-05-PLAN.md — Environment configuration
 
 **UI hint:** yes
 

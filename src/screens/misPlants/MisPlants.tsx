@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -367,16 +368,37 @@ export default function MisPlants() {
     visible: false, type: "success", message: "",
   });
 
-  useEffect(() => {
-    if (!userId) return;
-    Promise.all([
-      getPlantsByUserId(userId),
-      getUserById(userId),
-    ]).then(([plantasData, userData]) => {
-      setPlantas(plantasData);
-      if (userData) setRacha(userData.racha);
-    }).finally(() => setLoading(false));
-  }, [userId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      
+      let isActive = true;
+
+      const fetchData = async () => {
+        try {
+          const [plantasData, userData] = await Promise.all([
+            getPlantsByUserId(userId),
+            getUserById(userId),
+          ]);
+          
+          if (isActive) {
+            setPlantas(plantasData);
+            if (userData) setRacha(userData.racha);
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          if (isActive) setLoading(false);
+        }
+      };
+
+      fetchData();
+
+      return () => {
+        isActive = false;
+      };
+    }, [userId])
+  );
 
   const showToast = (type: ToastType, message: string) => setToast({ visible: true, type, message });
 

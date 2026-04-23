@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "updated_at": "2026-04-23T19:08:36.514Z",
+    "version": 2
+  },
+  "entries": {
+    "Route /": {
+      "method": "GET",
+      "path": "/",
+      "file": "app/index.tsx",
+      "description": "Initial entry point"
+    },
+    "Route /(auth)/login": {
+      "method": "GET",
+      "path": "/(auth)/login",
+      "file": "app/(auth)/login.tsx",
+      "description": "User login screen"
+    },
+    "Route /(auth)/register": {
+      "method": "GET",
+      "path": "/(auth)/register",
+      "file": "app/(auth)/register.tsx",
+      "description": "User registration screen"
+    },
+    "Route /(app)/camera": {
+      "method": "GET",
+      "path": "/(app)/camera",
+      "file": "app/(app)/camera.tsx",
+      "description": "Plant identification camera screen"
+    },
+    "Route /(app)/(tabs)/profile": {
+      "method": "GET",
+      "path": "/(app)/(tabs)/profile",
+      "file": "app/(app)/(tabs)/profile.tsx",
+      "description": "User profile screen"
+    },
+    "Route /(app)/(tabs)/plants": {
+      "method": "GET",
+      "path": "/(app)/(tabs)/plants",
+      "file": "app/(app)/(tabs)/plants.tsx",
+      "description": "User's plant list screen"
+    },
+    "POST /v3/identification": {
+      "method": "POST",
+      "path": "https://api.plant.id/v3/identification",
+      "params": [
+        "images",
+        "latitude",
+        "longitude",
+        "similar_images"
+      ],
+      "file": "src/services/plantService.ts",
+      "description": "External API for plant identification"
+    }
+  }
+}

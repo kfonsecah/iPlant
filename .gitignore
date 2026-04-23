@@ -49,3 +49,7 @@ scripts/serviceAccountKey.json
 
 # Python virtual environment
 scripts/.venv/
+
+.claude
+.opencode
+.gemini

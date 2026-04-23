@@ -49,6 +49,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "plantIdApiKey": "YOUR_PLANT_ID_API_KEY_HERE"
     }
   }
 }

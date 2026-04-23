@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "updated_at": "2026-04-23T19:08:36.931Z",
+    "version": 2
+  },
+  "entries": {
+    "app/_layout.tsx": {
+      "exports": [
+        "RootLayout"
+      ],
+      "imports": [
+        "expo-router",
+        "src/context/AuthContext"
+      ],
+      "type": "entry-point"
+    },
+    "src/config/firebase.ts": {
+      "exports": [
+        "db",
+        "auth"
+      ],
+      "imports": [
+        "firebase/app",
+        "firebase/auth",
+        "firebase/firestore"
+      ],
+      "type": "config"
+    },
+    "src/services/authService.ts": {
+      "exports": [
+        "getAuthErrorMessage",
+        "signIn",
+        "signUp",
+        "logOut",
+        "sendPasswordReset",
+        "signInWithGoogle"
+      ],
+      "imports": [
+        "firebase/auth",
+        "firebase/firestore",
+        "src/config/firebase"
+      ],
+      "type": "module"
+    },
+    "src/services/plantService.ts": {
+      "exports": [
+        "identifyPlant",
+        "getPlantsByUserId",
+        "addPlant",
+        "updatePlant"
+      ],
+      "imports": [
+        "firebase/firestore",
+        "expo-constants",
+        "src/config/firebase"
+      ],
+      "type": "module"
+    },
+    "src/context/AuthContext.tsx": {
+      "exports": [
+        "AuthProvider",
+        "useAuth"
+      ],
+      "imports": [
+        "react",
+        "firebase/auth",
+        "src/config/firebase"
+      ],
+      "type": "module"
+    },
+    "src/services/userService.ts": {
+      "exports": [
+        "getUserProfile",
+        "updateUserProfile"
+      ],
+      "imports": [
+        "firebase/firestore",
+        "src/config/firebase"
+      ],
+      "type": "module"
+    }
+  }
+}
