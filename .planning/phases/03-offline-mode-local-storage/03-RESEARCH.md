@@ -233,12 +233,13 @@ async function syncQueue() {
 | A2 | AsyncStorage is sufficient for < 500 plants. | Storage Tech | Performance degradation if collection grows extremely large. |
 | A3 | Manual sync trigger is acceptable for UAT. | Summary | User might find it less "modern" than auto-sync. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Conflict Resolution:** If the user deletes a plant offline that was updated online, what happens?
-   - *Recommendation:* Follow "Last Write Wins" — if the delete syncs last, it's deleted.
+   - **RESOLVED:** Follow "Last Write Wins" policy. If the delete operation is in the sync queue and processed after an online update, the plant will be deleted. This maintains simplicity and user intent.
+
 2. **Sync Failures:** What if an item fails sync repeatedly (e.g., invalid data)?
-   - *Recommendation:* Keep in queue, mark as "Error", allow user to delete the pending item.
+   - **RESOLVED:** The item remains in the queue. A retry limit (e.g., 3 attempts) will be implemented. If it fails beyond the limit, it's marked as "Sync Error" in the UI, and the user is given the option to "Retry" or "Delete" the pending change.
 
 ## Environment Availability
 
