@@ -17,12 +17,14 @@ El usuario puede tomar una foto de una planta, obtener su identificación y cuid
 - ✓ Pantalla de creación de planta con formulario — existente
 - ✓ Navegación principal y guardas de ruta — existente
 - ✓ Sistema de diseño con NativeWind/Tailwind — existente
+- ✓ Identificación de planta con IA v3 (Plant.id) — Phase 1
+- ✓ Feedback visual de confianza (ConfidenceBadge) — Phase 1
+- ✓ Manejo de permisos de cámara y re-solicitud — Phase 2
+- ✓ Interfaz inmersiva con animaciones HUD y Parallax — Phase 1+
+- ✓ Metadatos botánicos extendidos (Riego, Poda, Suelo, Taxonomía) — Phase 1+
 
 ### Active
 
-- [ ] Identificación de planta con IA a partir de foto tomada con la cámara
-- [ ] Feedback al usuario sobre la veracidad/confianza de la identificación
-- [ ] Manejo de permisos de cámara denegados con opción de re-solicitar
 - [ ] Indicadores visuales de contenido pendiente de sincronización
 - [ ] Módulos que funcionen sin internet (offline-first)
 - [ ] Sincronización de cambios cuando vuelve la conexión
@@ -72,12 +74,13 @@ El usuario puede tomar una foto de una planta, obtener su identificación y cuid
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| IA API para identificación | Por definir: Plant.id (especializada) vs OpenAI Vision (general) vs Google Vision | — Pending |
+| IA API para identificación | Plant.id v3: Especializada, ofrece metadatos botánicos extensos y confianza nativa. | Plant.id |
+| UI Strategy | Inmersiva: Animaciones HUD para escaneo y vista Parallax para perfil para mayor engagement. | Immersive UI |
 | Almacenamiento local | Por definir: AsyncStorage (simple) vs MMKV (performance) vs SQLite (relacional) | — Pending |
 | Estrategia offline | Queue de operaciones pendientes vs cache de solo lectura | — Pending |
 
 ---
-*Last updated: 2026-04-23 after initialization — Actividad 3 laboratorio*
+*Last updated: 2026-04-23 after completing Phase 1 & 2*
 
 ## Evolution
 

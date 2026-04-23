@@ -7,11 +7,18 @@
 
 ### IA Identification
 
-- [ ] **AI-01**: El usuario puede tomar una foto de la planta desde la pantalla de creación y enviársela a la API de IA
-- [ ] **AI-02**: La app muestra el nombre de la planta, descripción y cuidados identificados por la IA
-- [ ] **AI-03**: La app muestra un indicador de confianza/veracidad de la identificación (porcentaje o nivel)
-- [ ] **AI-04**: El usuario puede aceptar o editar la información identificada antes de guardarla
-- [ ] **AI-05**: La información identificada se guarda en la base de datos del backend al confirmar
+- [x] **AI-01**: El usuario puede tomar una foto de la planta desde la pantalla de creación y enviársela a la API de IA
+- [x] **AI-02**: La app muestra el nombre de la planta, descripción y cuidados identificados por la IA
+- [x] **AI-03**: La app muestra un indicador de confianza/veracidad de la identificación (porcentaje o nivel)
+- [x] **AI-04**: El usuario puede aceptar o editar la información identificada antes de guardarla
+- [x] **AI-05**: La información identificada se guarda en la base de datos del backend al confirmar
+
+### Immersive UI & UX
+
+- [x] **UI-01**: Animación de escaneo de alta tecnología (HUD) durante la identificación
+- [x] **UI-02**: Vista de detalle inmersiva con cabecera Parallax y zoom al hacer scroll
+- [x] **UI-03**: Metadatos botánicos extendidos (Taxonomía, Riego, Luz Solar, Poda, Suelo, Propagación)
+- [x] **UI-04**: Manejo de variables de entorno (.env) para claves de API sensibles
 
 ### Camera Permissions
 
@@ -48,11 +55,6 @@
 - **NOTF-01**: Notificación push cuando la sincronización completa exitosamente
 - **NOTF-02**: Notificación si la sincronización falla después de varios intentos
 
-### Analytics
-
-- **ANLX-01**: Tracking de qué plantas se identifican con mayor frecuencia
-- **ANLX-02**: Tasa de aceptación vs edición de identificaciones de IA
-
 ## Out of Scope
 
 | Feature | Reason |
@@ -60,22 +62,24 @@
 | Notificaciones push | No requerido por el lab, alta complejidad |
 | Chat entre usuarios | Fuera del alcance del proyecto actual |
 | Autenticación biométrica | Ya existe Google Auth |
-| Video de plantas | No requerido, alto costo de almacenamiento |
-| Mapa de plantas | No requerido por el lab |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AI-01 | Phase 1 | Pending |
-| AI-02 | Phase 1 | Pending |
-| AI-03 | Phase 1 | Pending |
-| AI-04 | Phase 1 | Pending |
-| AI-05 | Phase 1 | Pending |
-| PERM-01 | Phase 2 | Pending |
-| PERM-02 | Phase 2 | Pending |
-| PERM-03 | Phase 2 | Pending |
-| PERM-04 | Phase 2 | Pending |
+| AI-01 | Phase 1 | Completed ✓ |
+| AI-02 | Phase 1 | Completed ✓ |
+| AI-03 | Phase 1 | Completed ✓ |
+| AI-04 | Phase 1 | Completed ✓ |
+| AI-05 | Phase 1 | Completed ✓ |
+| UI-01 | Phase 1+ | Completed ✓ |
+| UI-02 | Phase 1+ | Completed ✓ |
+| UI-03 | Phase 1+ | Completed ✓ |
+| UI-04 | Phase 1+ | Completed ✓ |
+| PERM-01 | Phase 2 | Completed ✓ |
+| PERM-02 | Phase 2 | Completed ✓ |
+| PERM-03 | Phase 2 | Completed ✓ |
+| PERM-04 | Phase 2 | Completed ✓ |
 | OFFL-01 | Phase 3 | Pending |
 | OFFL-02 | Phase 3 | Pending |
 | OFFL-03 | Phase 3 | Pending |
@@ -90,10 +94,9 @@
 | STOR-03 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 21 total
-- Mapped to phases: 21
+- v1 requirements: 25 total
+- Mapped to phases: 25
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-04-23*
-*Last updated: 2026-04-23 after initial definition*
+*Last updated: 2026-04-23 after completing Phase 1 & 2*
