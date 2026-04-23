@@ -39,6 +39,9 @@
 
 **Requirements:** PERM-01, PERM-02, PERM-03, PERM-04
 
+**Plans:** 1 plans
+- [ ] 02-01-PLAN.md — Enhanced permission guard with settings redirection and gallery fallback.
+
 **Success Criteria**:
 1. [ ] App does not crash when user denies camera permission.
 2. [ ] Clear message explains why camera permission is required.
@@ -85,7 +88,7 @@
 | Phase | Status | Completed |
 |-------|--------|-----------|
 | 1. AI Plant Identification | Completed ✓ | 2026-04-23 |
-| 2. Camera Permission Handling | Not started | - |
+| 2. Camera Permission Handling | Planning Complete | - |
 | 3. Offline Mode & Local Storage | Not started | - |
 | 4. Backend Deploy & Documentation | Not started | - |
 
@@ -103,4 +106,4 @@
 | Backend Host | Render (required by lab) | Phase 4 |
 
 ---
-**Last updated:** 2026-04-23 after completing Phase 1 & 2
+**Last updated:** 2026-04-23 after planning Phase 2
