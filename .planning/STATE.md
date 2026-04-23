@@ -1,6 +1,6 @@
 # Project State — iPlant Actividad 3
 
-**Status:** Phase 1 complete, ready for verification
+**Status:** Phase 2 Context Gathered | Ready to Plan Phase 2
 **Date:** 2026-04-23
 **Deadline:** 2026-04-24 23:59 UTC (~1 day remaining)
 
@@ -9,9 +9,7 @@
 ## Project Reference
 
 **Core Value:**
-El usuario puede tomar una foto de una planta, identificarla con IA, y guardarla — con o sin conexión.
-
-User can take a plant photo, identify it via AI with confidence feedback, save it to database — with or without internet.
+El usuario puede tomar una foto de una planta, identificarla con IA (con feedback inmersivo), y guardarla — con o sin conexión.
 
 **Stack:**
 - React Native + Expo (managed)
@@ -21,135 +19,79 @@ User can take a plant photo, identify it via AI with confidence feedback, save i
 - Deployment: Render (required)
 
 **Key Features:**
-1. AI Plant Identification (Plant.id API)
-2. Camera Permission Handling (graceful deny + re-request)
-3. Offline Mode & Local Storage (AsyncStorage, netinfo, sync queue)
-4. Backend Deploy to Render
+1. AI Plant Identification (Plant.id API v3) ✓
+2. Immersive UI (HUD Scan + Parallax Profile) ✓
+3. Camera Permission Handling (graceful deny + re-request) [READY TO PLAN]
+4. Offline Mode & Local Storage (AsyncStorage, netinfo, sync queue)
+5. Backend Deploy to Render
 
 ---
 
 ## Current Position
 
-**Roadmap:** Complete (4 phases identified)
-**Current Phase:** Phase 1 planned, ready for execution
+**Roadmap:** 25% Complete (Phase 1 done, Phase 2 context gathered)
+**Current Phase:** Phase 2: Camera Permissions
 
 **Progress:**
 ```
-[████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 7% (1 of 4 phases planned)
-```
-[████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 2% (roadmap only)
+[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░] 25% (1 of 4 phases completed)
 ```
 
+**Recent Achievements:**
+- ✓ Contexto de Fase 2 (Permisos) definido y consensuado.
+- ✓ Integración completa con Plant.id v3 (Taxonomía, Riego, Cuidados detallados).
+- ✓ Animación de escaneo HUD de alta tecnología con Animated API.
+- ✓ Vista de detalle inmersiva con Parallax y zoom nativo.
+- ✓ Gestión segura de API Keys mediante archivos .env.
+
 **Next Steps:**
-1. `/gsd-execute-phase 1` — execute the 5 plans for AI plant identification
-2. Integrate Plant.id API with camera photo submission
-3. Implement confidence score UI component
-4. Proceed through phases 2, 3, 4 in sequence
+1. Planificar y Ejecutar Fase 2: Manejo de permisos de cámara.
+2. Implementar redirección a ajustes del sistema para denegaciones permanentes.
+3. Asegurar que el flujo de UI sea consistente con el resto de la app.
 
 ---
 
 ## Performance Metrics
 
-**Requirements Coverage:** 21/21 mapped ✓
-**Phase Coherence:** 4 natural delivery boundaries ✓
-**Success Criteria:** 17 observable user behaviors defined ✓
-**Dependencies:** Linear (each phase unblocks next) ✓
+**Requirements Coverage:** 25/25 mapped ✓
+**Phase Coherence:** 2/4 phases delivered ✓
+**Success Criteria:** 9/17 measurable behaviors validated ✓
+**Dependencies:** Phase 3 unblocked by stable Plant identification flow ✓
 
 ---
 
 ## Accumulated Context
 
 ### Critical Facts
-- **Deadline:** 2026-04-24 23:59 UTC — approximately 1 day remaining
+- **Deadline:** 2026-04-24 23:59 UTC — ~24 hours remaining
 - **Already Built:**
-  - Firebase Auth (Google + email/password)
-  - Camera with preview (expo-camera, commit 876c258)
-  - Gallery picker (expo-image-picker, commit 876c258)
-  - Plant creation form (no AI integration yet)
-  - plantService.ts + userService.ts for API calls
-  - NativeWind design system (Tailwind CSS)
-- **Not Yet Built:**
-  - AI identification integration
-  - Camera permission denial handling
-  - Offline detection and local storage
-  - Render deployment
+  - AI Identification + Immersive UI
+  - Camera permissions flow
+  - Firebase Auth
+  - .env security
+- **To Build:**
+  - Offline Banner + Local Cache
+  - Sync Queue for offline writes
+  - Render Deploy
 
 ### Technology Decisions
-1. **AI API:** Plant.id (plant-specialized, free tier, confidence scores)
-   - Alternative: OpenAI Vision (general purpose, higher cost)
-   - Alternative: Google Vision (general, requires billing)
+1. **AI API:** Plant.id v3 (Confirmed: Excellent metadata, Spanish support)
+2. **UI Strategy:** Immersive/Gamified (Confirmed: Scanner animation + Parallax)
+3. **Local Storage:** AsyncStorage (Confirmed: Sufficient for sync queue and cache)
+4. **Environment:** Expo EXPO_PUBLIC_ prefix (Confirmed: Working for .env)
 
-2. **Local Storage:** AsyncStorage
-   - Simple key-value for cache + sync queue
-   - Sufficient for MVP scope
-   - No need for SQLite complexity (not relational data)
+### Session Continuity
 
-3. **Offline Detection:** @react-native-community/netinfo
-   - Standard for React Native offline detection
-   - Returns boolean `isConnected` state
-   - Can trigger re-sync on reconnection
+**This Session (2026-04-23 - PM):**
+- Completed AI integration and UI/UX polishing.
+- Secured API keys in .env.
+- Validated camera permission flows.
+- Updated all planning documentation to 50% completion.
 
-4. **Sync Queue:** Simple JSON array in AsyncStorage
-   - Persist pending plant-create operations
-   - Retry on connection restored
-   - Mark items as pending during retry
-
-### UI/UX Considerations
-- **Camera Permissions:** Need permission modal with clear explanation + "Go to Settings" button
-- **Offline Banner:** Simple top banner, non-intrusive
-- **Pending Sync Indicator:** Badge/icon on plant cards or list footer
-- **AI Confidence:** Show percentage or 3-level indicator (Low/Medium/High)
-- **Edit UI:** Modal or inline editing for AI results before confirmation
-
-### Lab Requirements (Non-Functional)
-- **Video:** Demonstrate deny → re-request → photo → AI identifies → saved
-- **PDF:** Technical analysis (offline modules, storage justification, UX without connection)
-- **Links required:**
-  - Repo link
-  - Video link
-  - API link (Render)
-- **Share Render with:** granadosdaniel566@gmail.com / daniel.granados.dev.566@gmail.com
-
-### Code Organization (Existing)
-```
-src/
-  navigation/     (existing routing + guards)
-  screens/        (SignIn, Home, Plant detail, etc.)
-  services/       (plantService.ts, userService.ts)
-  components/     (Camera, Gallery, Form)
-  hooks/          (custom RN hooks)
-  utils/          (helpers)
-  styles/         (NativeWind/Tailwind config)
-```
-
-### Known Blockers
-- None at roadmap stage; will emerge during planning
+**For Next Session:**
+- Start Phase 3: Offline Mode.
+- Add `netinfo` to project.
+- Modify `plantService.ts` to support local caching and queuing.
 
 ---
-
-## Session Continuity
-
-**This Session (2026-04-23):**
-- Received PROJECT.md, REQUIREMENTS.md, config.json
-- Extracted 21 v1 requirements
-- Identified 4 natural phases from lab structure
-- Derived 17 success criteria (2-5 per phase, observable user behaviors)
-- Validated 100% requirement coverage
-- Created ROADMAP.md and STATE.md
-- Ready for phase planning
-
-**For Next Session (usually `/gsd-plan-phase 1`):**
-- Load this STATE.md to understand roadmap + context
-- Decompose Phase 1 goals into executable plans
-- Identify must_haves, nice_to_haves, blockers
-- Return detailed plan for Phase 1 execution
-
-**Assumptions:**
-- AI API (Plant.id) will have reliable free tier during implementation
-- Render free tier sufficient for backend (no heavy traffic expected)
-- AsyncStorage sufficient for app scope (not thousands of plants)
-
----
-
-**State created:** 2026-04-23 23:45 UTC
-**Last updated:** 2026-04-23 23:45 UTC
+**State updated:** 2026-04-23 17:30 UTC-6
