@@ -17,7 +17,9 @@ import { useTheme } from "../../theme/desingSystem";
 import { identifyPlant, addPlant } from "../../services/plantService";
 import { PlantIdentificationResult, PlantAIFields } from "../../types-dtos/plant.types";
 import { useAuth } from "../../context/AuthContext";
-import AiResultCard, { PlantEditData } from "../../components/ui/aiResultCard/AiResultCard";
+import { PlantEditData } from "../../components/ui/aiResultCard/AiResultCard";
+import IdentificationAnimation from "../../components/ui/identificationAnimation/IdentificationAnimation";
+import PlantDetailView from "../../components/ui/plantDetailView/PlantDetailView";
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
@@ -204,6 +206,17 @@ export default function CameraScreen() {
 
   // ─── Preview UI ─────────────────────────────────────────────────────────────
   if (previewUri) {
+    if (aiResult) {
+      return (
+        <PlantDetailView 
+          result={aiResult}
+          imageUri={previewUri}
+          onConfirm={handleSavePlant}
+          onCancel={() => setAiResult(null)}
+        />
+      );
+    }
+
     return (
       <View style={styles.container}>
         <StatusBar style="light" hidden />
@@ -213,17 +226,21 @@ export default function CameraScreen() {
           contentFit="cover"
         />
         
+        {isIdentifying && <IdentificationAnimation />}
+
         {/* Overlay con gradiente visual (falso gradiente con fondo semi-transparente) */}
         <SafeAreaView style={styles.previewOverlay}>
           {/* Header de la vista previa */}
           <View style={styles.previewHeader}>
-             <Text style={[styles.previewTitle, { fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textOnAccent }]}>
-                ¿Te gusta esta foto?
-             </Text>
+             {!isIdentifying && (
+               <Text style={[styles.previewTitle, { fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textOnAccent }]}>
+                  ¿Te gusta esta foto?
+               </Text>
+             )}
           </View>
           
           {/* Footer con botones del sistema */}
-          {(!aiResult && !identificationError) && (
+          {(!aiResult && !identificationError && !isIdentifying) && (
             <View style={styles.previewFooter}>
               <TouchableOpacity 
                 style={[styles.systemButtonSecondary, { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border }]} 
@@ -244,25 +261,13 @@ export default function CameraScreen() {
               >
                 <Ionicons name="leaf" size={20} color="white" />
                 <Text style={[styles.systemButtonText, { color: "white", fontFamily: theme.typography.fontFamily.bold }]}>
-                  {isIdentifying ? "Identificando..." : "Identificar"}
+                  Identificar
                 </Text>
               </TouchableOpacity>
             </View>
           )}
-          
-          {/* AI Results Display - AiResultCard handles edit/confirm */}
-          {aiResult && (
-            <View style={styles.aiResultContainer}>
-              <AiResultCard 
-                result={aiResult}
-                onEdit={() => {}}
-                onConfirm={handleSavePlant}
-                onCancel={() => setAiResult(null)}
-              />
-            </View>
-          )}
 
-          {identificationError && !aiResult && (
+          {identificationError && !aiResult && !isIdentifying && (
             <View style={[styles.errorContainer, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.error }]}>
               <Ionicons name="alert-circle" size={24} color={theme.colors.error} />
               <View style={{ flex: 1 }}>

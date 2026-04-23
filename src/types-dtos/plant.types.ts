@@ -17,6 +17,19 @@ export interface PlantIdentificationResult {
   probability: number;
   description?: string;
   careInstructions?: string;
+  sunlight?: string;
+  pruning?: string;
+  soil?: string;
+  taxonomy?: {
+    class?: string;
+    family?: string;
+    genus?: string;
+  };
+  watering?: {
+    max?: string;
+    min?: string;
+  };
+  propagationMethods?: string[];
   wikiDescription?: {
     title: string;
     extract: string;

@@ -7,7 +7,7 @@ export const useAiResultCardStyles = () => {
   return StyleSheet.create({
     container: {
       backgroundColor: theme.colors.surface,
-      borderRadius: theme.radius.xxl,
+      borderRadius: theme.radius.xl,
       padding: 24, // Slightly more padding
       width: "100%",
       maxHeight: 500, // Increased slightly for better text fit

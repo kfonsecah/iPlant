@@ -7,9 +7,7 @@ import { withTimeout } from "../utils/withTimeout";
 
 const PLANT_ID_API_URL = "https://api.plant.id/v3/identification";
 const getPlantIdApiKey = (): string => {
-  const envKey = process.env.EXPO_PUBLIC_PLANT_ID_API_KEY;
-  const appJsonKey = Constants.expoConfig?.extra?.plantIdApiKey;
-  return envKey || appJsonKey || "";
+  return process.env.EXPO_PUBLIC_PLANT_ID_API_KEY || "";
 };
 
 async function imageToDataUri(uri: string): Promise<string> {
@@ -38,6 +36,7 @@ async function imageToDataUri(uri: string): Promise<string> {
 
 export async function identifyPlant(imageUri: string): Promise<PlantIdentificationResult> {
   const apiKey = getPlantIdApiKey();
+  
   if (!apiKey) {
     throw new Error("PLANT_ID_API_KEY no configurada. Añade tu clave en app.json extra.plantIdApiKey");
   }
@@ -45,7 +44,7 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
   const dataUri = await imageToDataUri(imageUri);
 
   // API v3 requires details and language as query parameters
-  // Using the comprehensive list of details to maximize info retrieval
+  // Added sunlight, pruning, soil explicitly just in case they are needed at top level
   const detailsList = "common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,watering,propagation_methods,wiki_description,care_instructions";
   const urlWithParams = `${PLANT_ID_API_URL}?details=${detailsList}&language=es`;
 
@@ -58,7 +57,6 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
     body: JSON.stringify({
       images: [dataUri],
       similar_images: true,
-      health: "all",
     }),
   });
 
@@ -79,7 +77,6 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
     throw new Error("No se identificó ninguna planta. Intenta con una foto más clara.");
   }
 
-  // Use common name if available, fallback to first synonym, then scientific name
   const details = suggestion.details;
   const commonName = details?.common_names?.[0];
   const synonym = details?.synonyms?.[0];
@@ -88,12 +85,34 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
     ? commonName.charAt(0).toUpperCase() + commonName.slice(1) 
     : (synonym || suggestion.name);
 
+  // Robustly extract care sub-fields (v3 can return objects or strings)
+  const extractText = (field: any) => {
+    if (!field) return undefined;
+    if (typeof field === "string") return field;
+    return field.description || field.text || field.value || undefined;
+  };
+
+  const care = details?.care_instructions;
+
   return {
     plantName: plantName || "Planta desconocida",
     latinName: suggestion.name,
     probability: Math.round((suggestion.probability || 0) * 100),
-    description: details?.description?.value || details?.wiki_description?.value,
-    careInstructions: details?.care_instructions?.text || details?.wiki_description?.extract,
+    description: details?.description?.value || details?.wiki_description?.value || details?.wiki_description?.extract,
+    careInstructions: extractText(care?.watering) || extractText(care?.sunlight) || details?.wiki_description?.extract,
+    sunlight: extractText(care?.sunlight),
+    pruning: extractText(care?.pruning),
+    soil: extractText(care?.soil),
+    taxonomy: details?.taxonomy ? {
+      class: details.taxonomy.class,
+      family: details.taxonomy.family,
+      genus: details.taxonomy.genus,
+    } : undefined,
+    watering: details?.watering ? {
+      max: details.watering.max,
+      min: details.watering.min,
+    } : undefined,
+    propagationMethods: details?.propagation_methods || [],
     wikiDescription: details?.wiki_description
       ? {
           title: plantName,
