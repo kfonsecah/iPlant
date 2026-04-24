@@ -80,10 +80,12 @@
 **Requirements:** BACK-01, BACK-02, BACK-03, BACK-04
 
 **Success Criteria**:
-1. Render deployment is live and accessible via public URL.
-2. Plant creation endpoint works end-to-end from production app.
-3. Render logs show successful requests and error traces.
-4. Render project is shared with instructor emails.
+1. Micro-backend (Node.js/Express) created to proxy AI requests and secure keys.
+2. Render deployment is live and accessible via public URL.
+3. Plant creation endpoint works end-to-end from production app.
+4. Render logs show successful requests and error traces.
+5. Render project and GitHub repository shared with instructor (granadosdaniel566@gmail.com).
+6. Final PDF analysis submitted based on ANALISIS_TECNICO.md.
 
 ---
 

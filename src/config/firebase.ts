@@ -13,13 +13,13 @@ const { getReactNativePersistence } = require("@firebase/auth") as {
 };
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyBDKwMWqKnlwyZBOAG_IXXN6WLXSOojsk4",
-  authDomain:        "iplant-database.firebaseapp.com",
-  projectId:         "iplant-database",
-  storageBucket:     "iplant-database.firebasestorage.app",
-  messagingSenderId: "132450203288",
-  appId:             "1:132450203288:web:3633b50c1567740c5ac2ed",
-  measurementId:     "G-J6BVY7KB3Z"
+  apiKey:            process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain:        process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId:         process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket:     process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId:     process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Evita re-inicializar en hot-reload de Expo
