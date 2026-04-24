@@ -45,7 +45,7 @@ Para cumplir con el requerimiento de informar al usuario sobre el estado de sus 
 2.  **Badge de "Pendiente":**
     *   Las plantas guardadas offline muestran una etiqueta visual de "Pendiente" en la lista principal.
 3.  **Feedback de Sincronización:**
-    *   Uso de indicadores de carga (`ActivityIndicator`) y mensajes de "Sincronizando cambios..." en el banner para confirmar que el proceso de subida está activo.
+    *   Uso de indicadores de carga (`ActivityIndicator`) y mensajes de "Sincronizcando cambios..." en el banner para confirmar que el proceso de subida está activo.
 
 ---
 
@@ -65,6 +65,5 @@ Para esta fase, se implementó una arquitectura de **Micro-Servicios Proxy** par
 ---
 
 **Repositorio GitHub:** https://github.com/kfonsecah/iPlant.git
-**Video Demostrativo:** [LINK_AQUI]
+**Video Demostrativo:** https://drive.google.com/file/d/1BgprKlJ2LqJIlJ1ZKhTSys9SL8UEsPmY/view?usp=sharing
 **Backend (Render API):** https://iplant.onrender.com
-**Instructor Compartido:** granadosdaniel566@gmail.com
