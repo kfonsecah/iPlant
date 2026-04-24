@@ -1,69 +1,65 @@
 # Análisis Técnico y Justificación de Decisiones - iPlant
 
-## 1. Identificación de Módulos Offline
-Se han identificado y adaptado los siguientes módulos para funcionar sin conexión a internet, garantizando la continuidad operativa de la aplicación:
+Este documento detalla la arquitectura de persistencia, sincronización y manejo de IA para el proyecto iPlant, cumpliendo con los requerimientos de la Actividad 3 del Laboratorio a cargo de **Kendall Fonseca Hidalgo**.
 
-| Módulo | Funcionalidad Offline | Justificación |
+---
+
+
+## 1. Identificación y Priorización de Módulos Offline
+Se han adaptado los módulos críticos para garantizar que la App sea funcional en entornos sin cobertura (jardines, senderos, invernaderos), permitiendo que el usuario no pierda información valiosa.
+
+| Módulo | Estado Offline | Justificación de Prioridad (UX/Negocio) |
 | :--- | :--- | :--- |
-| **Mis Plantas (Listado)** | Visualización completa de la colección. | **Prioridad Alta:** El usuario debe poder consultar su jardín y los cuidados de sus plantas en cualquier momento y lugar. |
-| **Registro de Plantas** | Captura de fotos y guardado de metadatos. | **Prioridad Alta:** Permite al usuario documentar hallazgos en zonas sin cobertura (jardines, senderos) sin perder la información. |
-| **Gestión de Permisos** | Manejo de estados de cámara y galería. | **Resiliencia:** El sistema de permisos es local al SO; la app debe ser capaz de re-solicitarlos y explicar su necesidad sin depender de un servidor. |
+| **Mis Plantas (Listado)** | **Disponible** | **Crítico:** El usuario debe poder consultar los cuidados de su planta (riego, luz) en el sitio exacto donde se encuentra la planta, sin depender de internet. |
+| **Registro de Plantas** | **Disponible** | **Alta:** Permite documentar hallazgos en zonas rurales o jardines profundos. Los datos se encolan localmente y se sincronizan automáticamente al recuperar señal. |
+| **Perfil de Usuario** | **Disponible** | **Media:** Mantiene la identidad del usuario y sus estadísticas (racha de cuidado) visibles, reforzando la conexión emocional con su jardín. |
+| **Identificación por IA** | **No Disponible** | **Limitación Técnica:** El procesamiento de visión computacional requiere la infraestructura en la nube de Plant.id v3. Se ofrece "Guardado Manual" como alternativa para no bloquear el flujo. |
 
-**Módulos que requieren Internet:**
-*   **Identificación IA:** La complejidad del modelo de visión computacional de Plant.id requiere procesamiento en la nube. Se maneja mediante un estado de error controlado que permite el "Guardado Manual" como alternativa.
+--- 
 
----
+## 2. Justificación de Almacenamiento Local (Decisiones Técnicas)
+Se implementó una **Estrategia Híbrida** para optimizar el rendimiento del dispositivo y la integridad de los datos.
 
-## 2. Justificación de Almacenamiento Local (Comparativa)
-Se analizó el uso de diversas tecnologías para la persistencia de datos, decidiendo implementar una **Estrategia Híbrida** tras evaluar los siguientes puntos:
-
-### A. Imágenes: FileSystem vs. SQLite/AsyncStorage
-*   **Decisión:** `expo-file-system`.
-*   **Justificación (El "vs"):** 
-    *   Guardar imágenes como strings Base64 en **AsyncStorage** o **SQLite** aumentaría el tamaño de la base de datos exponencialmente, superando el límite de 6MB-10MB y degradando el rendimiento de la app (lentitud al arrancar).
-    *   **FileSystem** permite manejar archivos binarios de gran tamaño de forma nativa, consumiendo menos memoria RAM y permitiendo una carga de imagen casi instantánea mediante URIs locales.
-
-### B. Metadatos: AsyncStorage vs. Raw Files
+### A. Metadatos: AsyncStorage vs SQLite
 *   **Decisión:** `@react-native-async-storage/async-storage`.
-*   **Justificación (El "vs"):**
-    *   Aunque los archivos de texto planos serían una opción, **AsyncStorage** ofrece un motor de llave-valor optimizado para React Native que facilita la serialización de objetos JSON (nuestras plantas).
-    *   Permite marcar estados de sincronización (`isPending: true/false`) de forma más ágil que sobrescribir archivos completos cada vez que un registro cambia.
+*   **Justificación:** Dado que nuestra estructura de datos de plantas es un esquema JSON simple y no requiere consultas relacionales complejas (JOINs), AsyncStorage ofrece el mejor balance entre velocidad de desarrollo y rendimiento en lectura/escritura para objetos serializados.
 
-### C. Estrategia: Local-First vs. Network-Only
-*   **Decisión:** Arquitectura *Local-First* con **Sync Queue**.
-*   **Justificación (El "vs"):**
-    *   En un modelo **Network-Only**, la app fallaría o mostraría pantallas vacías ante la mínima inestabilidad de red.
-    *   Al priorizar el guardado local, el usuario percibe una app "siempre disponible". La sincronización ocurre en segundo plano de forma transparente, cumpliendo con la resiliencia exigida en la Parte 1 de la actividad.
+### B. Imágenes: FileSystem vs Base64
+*   **Decisión:** `expo-file-system`.
+*   **Justificación:** Guardar imágenes como strings Base64 en la base de datos saturaría la memoria RAM y aumentaría el tiempo de carga de la App. Al usar el FileSystem, manejamos archivos binarios de forma nativa, permitiendo que la App cargue las fotos casi instantáneamente usando URIs locales.
 
----
-
-## 3. Estrategias de UX y Mensajería
-Para cumplir con el requerimiento de informar al usuario sobre el estado de sus datos, se implementaron las siguientes soluciones:
-
-1.  **Banner de Conectividad (Global):**
-    *   Un banner persistente con posicionamiento absoluto que indica "Sin conexión" (en color naranja) o "Conexión restaurada" (en color verde/azul).
-2.  **Badge de "Pendiente":**
-    *   Las plantas guardadas offline muestran una etiqueta visual de "Pendiente" en la lista principal.
-3.  **Feedback de Sincronización:**
-    *   Uso de indicadores de carga (`ActivityIndicator`) y mensajes de "Sincronizcando cambios..." en el banner para confirmar que el proceso de subida está activo.
+### C. Sincronización: Sync Queue (Cola de Sincronización)
+*   Se implementó una arquitectura **Local-First**. Cada cambio se guarda primero en el dispositivo y luego se añade a una cola persistente. Esto asegura que, incluso si la App se cierra antes de sincronizar, los datos se subirán al servidor en la próxima oportunidad.
 
 ---
 
-## 4. Gestión de Errores y Resiliencia
-*   **Timeout Controlado:** Se implementó una utilidad `withTimeout` para las llamadas a Firebase. Si la red es inestable, la app deja de esperar a los 8 segundos y activa automáticamente el modo offline, evitando que la interfaz se congele.
-*   **Silenciamiento de Errores de Red:** Las excepciones de red se capturan y se transforman en `console.warn` internos, cargando el caché local de forma silenciosa para que el usuario no vea pantallas de error (RedBoxes) disruptivas.
+## 3. Lista de Pantallas y Uso de Almacenamiento
+A continuación se listan las pantallas que utilizan activamente el almacenamiento local:
+
+1.  **Pantalla "Mis Plantas" (Home):** Recupera y cachea el listado completo desde `AsyncStorage`.
+2.  **Pantalla "Cámara / Captura":** Utiliza el `FileSystem` para mover las fotos temporales a una carpeta permanente de la App.
+3.  **Pantalla "Detalle de Planta":** Almacena los resultados detallados de la IA y guías de cuidado localmente.
+4.  **Pantalla "Perfil":** Persiste la racha (streak) y datos de personalización del usuario.
 
 ---
 
-## 5. Arquitectura de Seguridad y Despliegue (Render)
-Para esta fase, se implementó una arquitectura de **Micro-Servicios Proxy** para balancear seguridad y rendimiento:
+## 4. Estrategias de UX sin Conexión
+Para cumplir con los estándares de usabilidad, la App informa proactivamente al usuario sobre su estado:
 
-*   **Seguridad de API Keys (Proxy en Render):** Se desplegó un servidor Node.js/Express en Render para actuar como puente hacia la API de Plant.id. Esto garantiza que las llaves de pago (IA) nunca estén expuestas en el código fuente del cliente (móvil), cumpliendo con los estándares de seguridad de la industria.
-*   **Autenticación y Datos (Firebase SDK):** Se mantuvo el uso directo del SDK de Firebase en el móvil para aprovechar la latencia mínima y la persistencia nativa. La seguridad de estos datos no depende de la ocultación de la API Key (pública por diseño), sino de las **Reglas de Seguridad de Firestore**, que validan que cada usuario solo acceda a su propio `UID`.
-*   **Verificación End-to-End:** El backend en Render incluye endpoints de verificación (`/health` y `POST /api/plants`) que validan la correcta comunicación entre el dispositivo físico y la infraestructura cloud.
+*   **Offline Banner:** Un indicador visual en la parte superior que cambia dinámicamente según el estado de la red (detectado vía `@react-native-community/netinfo`).
+*   **Indicator de Pendiente (Cloud icon):** Las plantas guardadas sin internet muestran una etiqueta de "Pendiente" y un icono de nube, indicando que el dato aún no está en la nube.
+*   **Toasts de Sincronización:** Mensajes flotantes que confirman al usuario cuando sus plantas locales han sido subidas exitosamente al servidor.
 
 ---
 
-**Repositorio GitHub:** https://github.com/kfonsecah/iPlant.git
-**Video Demostrativo:** https://drive.google.com/file/d/1BgprKlJ2LqJIlJ1ZKhTSys9SL8UEsPmY/view?usp=sharing
-**Backend (Render API):** https://iplant.onrender.com
+## 5. Veracidad de la Información (IA)
+Para asegurar que el usuario confíe en los resultados de la identificación:
+*   **Confidence Badge:** Se muestra un "Índice de Confianza" (probabilidad %) obtenido de la IA.
+*   **Filtro de Sugerencias:** Solo se presentan los resultados con mayor probabilidad, advirtiendo al usuario si la calidad de la foto no permite una identificación certera.
+*   **Feedback Botánico:** Se entregan nombres científicos y descripciones detalladas para que el usuario pueda validar visualmente la información.
+
+---
+
+**Link del Repositorio:** https://github.com/kfonsecah/iPlant.git  
+**Link del Video Demostrativo:** https://drive.google.com/file/d/1BgprKlJ2LqJIlJ1ZKhTSys9SL8UEsPmY/view?usp=sharing  
+**Backend en Render:** https://iplant.onrender.com
