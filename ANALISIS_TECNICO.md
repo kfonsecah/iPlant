@@ -42,10 +42,8 @@ Para cumplir con el requerimiento de informar al usuario sobre el estado de sus 
 
 1.  **Banner de Conectividad (Global):**
     *   Un banner persistente con posicionamiento absoluto que indica "Sin conexión" (en color naranja) o "Conexión restaurada" (en color verde/azul).
-    *   **Justificación:** No interrumpe la navegación pero mantiene al usuario consciente del estado de sus datos.
 2.  **Badge de "Pendiente":**
     *   Las plantas guardadas offline muestran una etiqueta visual de "Pendiente" en la lista principal.
-    *   **Justificación:** Transmite transparencia sobre qué contenido está solo en el dispositivo y qué contenido ya está respaldado en la nube.
 3.  **Feedback de Sincronización:**
     *   Uso de indicadores de carga (`ActivityIndicator`) y mensajes de "Sincronizando cambios..." en el banner para confirmar que el proceso de subida está activo.
 
@@ -57,6 +55,16 @@ Para cumplir con el requerimiento de informar al usuario sobre el estado de sus 
 
 ---
 
-**Repositorio:** [Link al repositorio aquí]
-**Video Demostrativo:** [Link al video aquí]
-**Backend (Render):** [Link al API aquí]
+## 5. Arquitectura de Seguridad y Despliegue (Render)
+Para esta fase, se implementó una arquitectura de **Micro-Servicios Proxy** para balancear seguridad y rendimiento:
+
+*   **Seguridad de API Keys (Proxy en Render):** Se desplegó un servidor Node.js/Express en Render para actuar como puente hacia la API de Plant.id. Esto garantiza que las llaves de pago (IA) nunca estén expuestas en el código fuente del cliente (móvil), cumpliendo con los estándares de seguridad de la industria.
+*   **Autenticación y Datos (Firebase SDK):** Se mantuvo el uso directo del SDK de Firebase en el móvil para aprovechar la latencia mínima y la persistencia nativa. La seguridad de estos datos no depende de la ocultación de la API Key (pública por diseño), sino de las **Reglas de Seguridad de Firestore**, que validan que cada usuario solo acceda a su propio `UID`.
+*   **Verificación End-to-End:** El backend en Render incluye endpoints de verificación (`/health` y `POST /api/plants`) que validan la correcta comunicación entre el dispositivo físico y la infraestructura cloud.
+
+---
+
+**Repositorio GitHub:** https://github.com/kfonsecah/iPlant.git
+**Video Demostrativo:** [LINK_AQUI]
+**Backend (Render API):** https://iplant.onrender.com
+**Instructor Compartido:** granadosdaniel566@gmail.com
