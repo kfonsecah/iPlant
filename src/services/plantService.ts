@@ -8,9 +8,8 @@ import { withTimeout } from "../utils/withTimeout";
 import { getItem, persistImage, saveItem } from "./storageService";
 import { addToQueue, getQueue, processQueue } from "./syncService";
 
-const PLANT_ID_API_URL = "https://api.plant.id/v3/identification";
-const getPlantIdApiKey = (): string => {
-  return process.env.EXPO_PUBLIC_PLANT_ID_API_KEY || "";
+const getBackendUrl = (): string => {
+  return process.env.EXPO_PUBLIC_BACKEND_URL || "http://localhost:3000";
 };
 
 async function imageToDataUri(uri: string): Promise<string> {
@@ -43,23 +42,12 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
     throw new Error("Sin conexión a internet. La identificación por IA no está disponible sin conexión.");
   }
 
-  const apiKey = getPlantIdApiKey();
-  
-  if (!apiKey) {
-    throw new Error("PLANT_ID_API_KEY no configurada. Añade tu clave en app.json extra.plantIdApiKey");
-  }
-
+  const backendUrl = getBackendUrl();
   const dataUri = await imageToDataUri(imageUri);
 
-  // API v3 requires details and language as query parameters
-  // Added sunlight, pruning, soil explicitly just in case they are needed at top level
-  const detailsList = "common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,watering,propagation_methods,wiki_description,care_instructions";
-  const urlWithParams = `${PLANT_ID_API_URL}?details=${detailsList}&language=es`;
-
-  const response = await fetch(urlWithParams, {
+  const response = await fetch(`${backendUrl}/api/identify`, {
     method: "POST",
     headers: {
-      "Api-Key": apiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -73,7 +61,7 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
     if (response.status === 429) {
       throw new Error("Límite de solicitudes excedido. Intenta más tarde.");
     }
-    throw new Error(`Error de Plant.id: ${response.status} - ${errorText}`);
+    throw new Error(`Error de Servidor: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
@@ -244,9 +232,10 @@ export async function addPlant(
 }
 
 /**
- * Pushes a plant to Firestore.
+ * Pushes a plant to the backend API.
  */
 async function pushPlantToFirestore(plant: PlantaCompletaInterface): Promise<string> {
+  const backendUrl = getBackendUrl();
   const firestoreData = {
     userId: plant.userId,
     nombre: plant.nombre,
@@ -254,15 +243,28 @@ async function pushPlantToFirestore(plant: PlantaCompletaInterface): Promise<str
     proximoRiego: plant.proximoRiego,
     salud: plant.salud,
     imagen: plant.imagen,
-    ultimoRiego: Timestamp.now(),
     ...(plant.confianza && { confianza: plant.confianza }),
     ...(plant.descripcion && { descripcion: plant.descripcion }),
     ...(plant.cuidados && { cuidados: plant.cuidados }),
     ...(plant.identificadoConIA !== undefined && { identificadoConIA: plant.identificadoConIA }),
   };
 
-  const ref = await withTimeout(addDoc(collection(db, "plants"), firestoreData));
-  return ref.id;
+  const response = await fetch(`${backendUrl}/api/plants`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(firestoreData),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error al sincronizar con el servidor: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  // We expect the backend to return the newly created ID
+  return data.id || data.receivedData?.id || plant.id;
 }
 
 /**
