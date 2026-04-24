@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
-import { File, Directory, Paths } from "expo-file-system";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -17,12 +16,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
 import { identifyPlant, addPlant } from "../../services/plantService";
-import { PlantIdentificationResult, PlantAIFields } from "../../types-dtos/plant.types";
+import { PlantIdentificationResult } from "../../types-dtos/plant.types";
 import { useAuth } from "../../context/AuthContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
-import { PlantEditData } from "../../components/ui/aiResultCard/AiResultCard";
 import IdentificationAnimation from "../../components/ui/identificationAnimation/IdentificationAnimation";
-import PlantDetailView from "../../components/ui/plantDetailView/PlantDetailView";
+import PlantDetailView, { PlantEditData } from "../../components/ui/plantDetailView/PlantDetailView";
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
@@ -83,23 +81,6 @@ export default function CameraScreen() {
       }
     } catch (error) {
       console.error("Failed to pick image:", error);
-    }
-  };
-
-  const savePhoto = async () => {
-    if (!previewUri) return;
-    try {
-        const photosDir = new Directory(Paths.document, 'photos');
-        if (!photosDir.exists) {
-            await photosDir.create();
-        }
-        const tempFile = new File(previewUri);
-        const newFile = new File(photosDir, `${Date.now()}.jpg`);
-        await tempFile.move(newFile);
-        console.log("Photo saved to:", newFile.uri);
-        router.back();
-    } catch (error) {
-        console.error("Failed to save photo:", error);
     }
   };
 
@@ -292,82 +273,87 @@ export default function CameraScreen() {
         {isIdentifying && <IdentificationAnimation />}
 
         {/* Overlay con gradiente visual (falso gradiente con fondo semi-transparente) */}
-        <SafeAreaView style={styles.previewOverlay}>
-          {/* Header de la vista previa */}
-          <View style={styles.previewHeader}>
-             {!isIdentifying && (
-               <Text style={[styles.previewTitle, { fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textOnAccent }]}>
-                  ¿Te gusta esta foto?
-               </Text>
-             )}
-          </View>
-          
-          {/* Footer con botones del sistema */}
-          {(!aiResult && !identificationError && !isIdentifying) && (
-            <View style={styles.previewFooter}>
-              <TouchableOpacity 
-                style={[styles.systemButtonSecondary, { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border }]} 
-                onPress={handleRetake}
-                activeOpacity={theme.opacity.pressableButton}
-              >
-                <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
-                <Text style={[styles.systemButtonText, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.semibold }]}>
-                  Descartar
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.identifyButton, { backgroundColor: theme.colors.secondary }]} 
-                onPress={handleIdentify}
-                disabled={isIdentifying}
-                activeOpacity={theme.opacity.pressableButton}
-              >
-                <Ionicons name="leaf" size={20} color="white" />
-                <Text style={[styles.systemButtonText, { color: "white", fontFamily: theme.typography.fontFamily.bold }]}>
-                  Identificar
-                </Text>
-              </TouchableOpacity>
+        <View style={styles.previewOverlay}>
+          <SafeAreaView style={{ flex: 1, justifyContent: "space-between" }}>
+            {/* Header de la vista previa */}
+            <View style={styles.previewHeader}>
+               {!isIdentifying && (
+                 <Text style={[styles.previewTitle, { fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textOnAccent }]}>
+                    ¿Te gusta esta foto?
+                 </Text>
+               )}
             </View>
-          )}
+            
+            {identificationError && !aiResult && !isIdentifying ? (
+              <View style={[styles.errorContainer, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.error, flexDirection: 'column', alignItems: 'stretch' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: showManualSave ? 12 : 0 }}>
+                  <Ionicons name="alert-circle" size={24} color={theme.colors.error} style={{ marginRight: 12 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.errorText, { color: theme.colors.textPrimary, fontWeight: '700', fontSize: 14 }]}>
+                      {showManualSave ? "Modo Offline" : "Error de Identificación"}
+                    </Text>
+                    <Text style={[styles.errorText, { color: theme.colors.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                      {identificationError}
+                    </Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={{ marginLeft: 8, padding: 4 }}
+                    onPress={() => {
+                      setIdentificationError(null);
+                      setShowManualSave(false);
+                    }}
+                  >
+                    <Ionicons name="close-circle" size={22} color={theme.colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
 
-          {identificationError && !aiResult && !isIdentifying && (
-            <View style={[styles.errorContainer, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.error }]}>
-              <Ionicons name="alert-circle" size={24} color={theme.colors.error} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.errorText, { color: theme.colors.textPrimary, fontWeight: '600' }]}>
-                  {showManualSave ? "Modo Offline" : "Error de Identificación"}
-                </Text>
-                <Text style={[styles.errorText, { color: theme.colors.textSecondary, fontSize: 13 }]}>
-                  {identificationError}
-                </Text>
+                {showManualSave ? (
+                  <TouchableOpacity 
+                    style={{ backgroundColor: theme.colors.secondary, padding: 12, borderRadius: 10, alignItems: 'center', width: '100%' }}
+                    onPress={handleManualSave}
+                  >
+                    <Text style={{ color: "white", fontSize: 14, fontWeight: '700' }}>Guardar Manualmente</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity 
+                    style={{ backgroundColor: theme.colors.primary, padding: 12, borderRadius: 10, alignItems: 'center', marginTop: 10 }}
+                    onPress={handleIdentify}
+                  >
+                    <Text style={{ color: "white", fontSize: 14, fontWeight: '700' }}>Reintentar Identificación</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-              {showManualSave ? (
-                <TouchableOpacity 
-                  style={{ backgroundColor: theme.colors.secondary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
-                  onPress={handleManualSave}
-                >
-                  <Text style={{ color: "white", fontSize: 12, fontWeight: '700' }}>Guardar Manual</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity 
-                  style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
-                  onPress={handleIdentify}
-                >
-                  <Text style={{ color: "white", fontSize: 12, fontWeight: '700' }}>Reintentar</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity 
-                style={{ marginLeft: 8 }}
-                onPress={() => {
-                  setIdentificationError(null);
-                  setShowManualSave(false);
-                }}
-              >
-                <Ionicons name="close-circle" size={24} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </SafeAreaView>
+            ) : (
+              /* Footer con botones del sistema */
+              (!aiResult && !isIdentifying) && (
+                <View style={styles.previewFooter}>
+                  <TouchableOpacity 
+                    style={[styles.systemButtonSecondary, { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border }]} 
+                    onPress={handleRetake}
+                    activeOpacity={theme.opacity.pressableButton}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+                    <Text style={[styles.systemButtonText, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.semibold }]}>
+                      Descartar
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.identifyButton, { backgroundColor: theme.colors.secondary }]} 
+                    onPress={handleIdentify}
+                    disabled={isIdentifying}
+                    activeOpacity={theme.opacity.pressableButton}
+                  >
+                    <Ionicons name="leaf" size={20} color="white" />
+                    <Text style={[styles.systemButtonText, { color: "white", fontFamily: theme.typography.fontFamily.bold }]}>
+                      Identificar
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )
+            )}
+          </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -551,19 +537,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorContainer: {
-    position: "absolute",
-    bottom: 100,
-    left: 16,
-    right: 16,
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    marginBottom: 20, // Espacio respecto al borde inferior o elementos adyacentes
+    width: '100%',
   },
   errorText: {
-    flex: 1,
     fontSize: 14,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   errorRetry: {
     fontSize: 14,

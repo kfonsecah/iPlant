@@ -4,9 +4,14 @@ import { UserInterface } from "../types-dtos/user.types";
 import { withTimeout } from "../utils/withTimeout";
 
 export async function getUserById(userId: string): Promise<UserInterface | null> {
-  const snap = await withTimeout(getDoc(doc(db, "users", userId)));
-  if (!snap.exists()) return null;
-  return snap.data() as UserInterface;
+  try {
+    const snap = await withTimeout(getDoc(doc(db, "users", userId)));
+    if (!snap.exists()) return null;
+    return snap.data() as UserInterface;
+  } catch (e) {
+    console.warn("User fetch failed (offline/timeout), using local state.");
+    return null;
+  }
 }
 
 export async function updateUser(

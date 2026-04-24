@@ -10,17 +10,44 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "../global.css";
 
-import { AuthProvider, useAuth } from "../src/context/AuthContext";
-import { ConnectivityProvider } from "../src/context/ConnectivityContext";
-import { SyncProvider } from "../src/context/SyncContext";
-import OfflineBanner from "../src/components/ui/offlineBanner/OfflineBanner";
+import { AuthProvider, useAuth } from "./../src/context/AuthContext";
+import { ConnectivityProvider } from "./../src/context/ConnectivityContext";
+import { SyncProvider } from "./../src/context/SyncContext";
+import OfflineBanner from "./../src/components/ui/offlineBanner/OfflineBanner";
 
 SplashScreen.preventAutoHideAsync();
-// ... rest of imports unchanged
 
-// ... RootLayoutNav unchanged
+function RootLayoutNav() {
+  const { user, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
-// ─── Root Layout ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (loading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!user && !inAuthGroup) {
+      // Si no hay usuario y no estamos en auth, redirigir a login
+      router.replace("/(auth)/login");
+    } else if (user && inAuthGroup) {
+      // Si hay usuario y estamos en auth, redirigir a la app
+      router.replace("/(app)/(tabs)/plants");
+    }
+  }, [user, loading, segments, router]);
+
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
+      <OfflineBanner />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,

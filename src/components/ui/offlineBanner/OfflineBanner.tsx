@@ -31,10 +31,13 @@ export default function OfflineBanner() {
     }
   };
 
-  if (isConnected && !hasPending) return null;
-
-  const showSyncButton = isConnected && hasPending;
   const isSyncing = isLocalSyncing || globalIsSyncing;
+
+  // Si estamos conectados y NO hay pendientes, ocultamos el banner
+  if (isConnected && !hasPending && !isSyncing) return null;
+
+  // El botón de sincronización se muestra si hay internet, hay pendientes y NO estamos sincronizando ya
+  const showSyncButton = isConnected && hasPending && !isSyncing;
 
   return (
     <SafeAreaView 
@@ -51,7 +54,7 @@ export default function OfflineBanner() {
           />
           <Text style={styles.text} numberOfLines={1}>
             {isConnected 
-              ? "Conexión restaurada. Tienes cambios pendientes." 
+              ? (isSyncing ? "Sincronizando cambios..." : "Conexión restaurada.") 
               : "Sin conexión. Trabajando localmente."}
           </Text>
         </View>

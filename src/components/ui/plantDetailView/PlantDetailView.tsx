@@ -19,7 +19,7 @@ import AppInput from '../appInput/AppInput';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
-const HEADER_HEIGHT = SCREEN_HEIGHT * 0.5;
+const HEADER_HEIGHT = SCREEN_HEIGHT * 0.45; // Reducido un poco para dar más aire al card
 
 export interface PlantEditData {
   nombre: string;

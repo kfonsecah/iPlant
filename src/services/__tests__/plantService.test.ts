@@ -77,12 +77,24 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
-// Mock react-native
-jest.mock('react-native', () => ({}));
+// Mock firebase/app
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(),
+  getApps: jest.fn(() => []),
+  getApp: jest.fn(),
+}));
+
+// Mock firebase/auth
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(),
+  initializeAuth: jest.fn(),
+  onAuthStateChanged: jest.fn(),
+}));
 
 // Mock firebase config
 jest.mock('../../config/firebase', () => ({
   db: {},
+  auth: {},
 }));
 
 // Mock utils/withTimeout
@@ -95,6 +107,9 @@ import { identifyPlant, getPlantsByUserId, addPlant } from "../plantService";
 import { getItem, saveItem } from '../storageService';
 import { addToQueue } from '../syncService';
 import { getDocs, Timestamp } from 'firebase/firestore';
+
+// Mock react-native
+jest.mock('react-native', () => ({}));
 
 describe('plantService', () => {
   const originalEnv = process.env;
@@ -160,18 +175,17 @@ describe('plantService', () => {
       ];
       (getDocs as jest.Mock).mockResolvedValueOnce({ docs: mockDocs });
 
-      const plants = await getPlantsByUserId(userId);
+      const plants = await getPlantsByUserId(userId, true);
 
       expect(plants.length).toBe(1);
       expect(saveItem).toHaveBeenCalled();
     });
 
     it('should return from cache when offline', async () => {
-      (NetInfo.fetch as jest.Mock).mockResolvedValue({ isConnected: false });
       const cachedPlants = [{ id: 'cached-1', nombre: 'Cached Plant' }];
       (getItem as jest.Mock).mockResolvedValueOnce(cachedPlants);
 
-      const plants = await getPlantsByUserId(userId);
+      const plants = await getPlantsByUserId(userId, false);
 
       expect(plants).toEqual(cachedPlants);
       expect(getDocs).not.toHaveBeenCalled();

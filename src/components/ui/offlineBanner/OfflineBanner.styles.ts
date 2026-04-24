@@ -5,9 +5,19 @@ export const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     safeArea: {
       backgroundColor: theme.colors.warning,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 9999,
     },
     safeAreaInfo: {
       backgroundColor: theme.colors.secondary,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 9999,
     },
     container: {
       paddingVertical: theme.spacing.s8,

@@ -35,6 +35,9 @@ import { AppTheme, useTheme } from "../../theme/desingSystem";
 import { PlantaCompletaInterface, SaludPlanta } from "../../types-dtos/plant.types";
 import { createMisPlantasStyles } from "./MisPlants.styles";
 import { useAuth } from "../../context/AuthContext";
+import { useSync } from "../../context/SyncContext";
+import { useConnectivity } from "../../context/ConnectivityContext";
+
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
   { value: "saludable", label: "Saludable" },
@@ -361,14 +364,13 @@ function AddPlantModal({
 
 // ─── MisPlants ────────────────────────────────────────────────────────────────
 
-import { useSync } from "../../context/SyncContext";
-
 export default function MisPlants() {
   const theme  = useTheme();
   const styles = createMisPlantasStyles(theme);
   const { user: authUser } = useAuth();
   const userId = authUser?.uid ?? "";
   const { isSyncing, queueLength } = useSync(); // Get sync status and queue length
+  const { isConnected } = useConnectivity(); // Get connectivity status
 
   const [plantas, setPlantas] = useState<PlantaCompletaInterface[]>([]);
   const [racha, setRacha] = useState(0);
@@ -384,7 +386,7 @@ export default function MisPlants() {
     if (showLoading) setLoading(true);
     try {
       const [plantasData, userData] = await Promise.all([
-        getPlantsByUserId(userId),
+        getPlantsByUserId(userId, isConnected),
         getUserById(userId),
       ]);
       setPlantas(plantasData);
@@ -394,7 +396,7 @@ export default function MisPlants() {
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [userId]);
+  }, [userId, isConnected]);
 
   useFocusEffect(
     useCallback(() => {

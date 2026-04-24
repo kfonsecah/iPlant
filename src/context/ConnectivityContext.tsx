@@ -1,5 +1,5 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useNetInfo } from '@react-native-community/netinfo';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 
 interface ConnectivityContextData {
   isConnected: boolean;
@@ -8,14 +8,29 @@ interface ConnectivityContextData {
 const ConnectivityContext = createContext<ConnectivityContextData>({ isConnected: true });
 
 export const ConnectivityProvider = ({ children }: { children: ReactNode }) => {
-  const { isConnected } = useNetInfo();
-  
-  // Handle initial null state from NetInfo by defaulting to true
-  // (assume connected until proven otherwise)
-  const connectionStatus = isConnected ?? true;
+  const [isConnected, setIsConnected] = useState(true);
+
+  useEffect(() => {
+    // Escuchar cambios de forma activa
+    const unsubscribe = NetInfo.addEventListener(state => {
+      // Solo actualizamos si el estado es definitivamente falso o verdadero
+      if (state.isConnected !== null) {
+        setIsConnected(state.isConnected);
+      }
+    });
+
+    // Carga inicial
+    NetInfo.fetch().then(state => {
+      if (state.isConnected !== null) {
+        setIsConnected(state.isConnected);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <ConnectivityContext.Provider value={{ isConnected: connectionStatus }}>
+    <ConnectivityContext.Provider value={{ isConnected }}>
       {children}
     </ConnectivityContext.Provider>
   );

@@ -1,21 +1,22 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, Easing } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions, Easing, LayoutChangeEvent } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../../../theme/desingSystem';
 
-const { height, width } = Dimensions.get('window');
-
-// Definimos dimensiones del recuadro para reutilizarlas en cálculos
-const FRAME_WIDTH = width * 0.75;
-const FRAME_HEIGHT = height * 0.5;
-const FRAME_TOP = (height - FRAME_HEIGHT) / 2;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const IdentificationAnimation = () => {
   const theme = useTheme();
+  const [containerLayout, setContainerLayout] = useState({ width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
   
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
   const dataFlowAnim = useRef(new Animated.Value(0)).current;
+
+  // Calculamos dimensiones del recuadro basadas en el contenedor real
+  const FRAME_WIDTH = containerLayout.width * 0.75;
+  const FRAME_HEIGHT = containerLayout.height * 0.5;
+  const FRAME_TOP = (containerLayout.height - FRAME_HEIGHT) / 2;
 
   useEffect(() => {
     Animated.loop(
@@ -52,7 +53,12 @@ const IdentificationAnimation = () => {
     ).start();
   }, []);
 
-  // La animación ahora viaja exactamente desde el tope del recuadro hasta su base
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setContainerLayout({ width, height });
+  };
+
+  // La animación viaja desde el tope del recuadro hasta su base
   const translateY = scanLineAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [FRAME_TOP, FRAME_TOP + FRAME_HEIGHT],
@@ -69,10 +75,10 @@ const IdentificationAnimation = () => {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onLayout}>
       {/* Overlay Oscurecido Perimetral */}
       <View style={styles.darkOverlay}>
-          <View style={[styles.targetFrame, { borderColor: 'rgba(255,255,255,0.2)' }]}>
+          <View style={[styles.targetFrame, { width: FRAME_WIDTH, height: FRAME_HEIGHT, borderColor: 'rgba(255,255,255,0.2)' }]}>
             <Animated.View style={[styles.cornersContainer, { transform: [{ scale: cornerScale }] }]}>
                 <View style={[styles.corner, styles.topLeft, { borderColor: theme.colors.primary }]} />
                 <View style={[styles.corner, styles.topRight, { borderColor: theme.colors.primary }]} />
@@ -89,13 +95,13 @@ const IdentificationAnimation = () => {
           { transform: [{ translateY }], opacity: scanLineOpacity }
         ]}
       >
-        <View style={[styles.scanLine, { backgroundColor: theme.colors.primary }]} />
-        <View style={[styles.scanGlow, { backgroundColor: theme.colors.primary, opacity: 0.3 }]} />
+        <View style={[styles.scanLine, { width: FRAME_WIDTH, backgroundColor: theme.colors.primary }]} />
+        <View style={[styles.scanGlow, { width: FRAME_WIDTH, backgroundColor: theme.colors.primary, opacity: 0.3 }]} />
       </Animated.View>
 
       {/* UI OVERLAY / HUD */}
       <View style={styles.uiOverlay}>
-        <View style={styles.topInfo}>
+        <View style={[styles.topInfo, { marginTop: containerLayout.height * 0.1 }]}>
             <BlurView intensity={30} tint="dark" style={styles.badge}>
                 <View style={[styles.dot, { backgroundColor: theme.colors.primary }]} />
                 <Text style={[styles.badgeText, { color: 'white', fontFamily: theme.typography.fontFamily.bold }]}>
@@ -104,7 +110,7 @@ const IdentificationAnimation = () => {
             </BlurView>
         </View>
 
-        <View style={styles.bottomInfo}>
+        <View style={[styles.bottomInfo, { marginBottom: containerLayout.height * 0.12 }]}>
             <View style={styles.dataRow}>
                 <View style={styles.dataColumn}>
                     <Text style={styles.dataLabel}>STRUCTURAL_DNA</Text>
@@ -158,8 +164,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   targetFrame: {
-    width: FRAME_WIDTH,
-    height: FRAME_HEIGHT,
     borderWidth: 1,
     borderRadius: 24,
     position: 'relative',
@@ -185,7 +189,6 @@ const styles = StyleSheet.create({
     zIndex: 11,
   },
   scanLine: {
-    width: FRAME_WIDTH,
     height: 2,
     shadowColor: '#fff',
     shadowOffset: { width: 0, height: 0 },
@@ -193,7 +196,6 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   scanGlow: {
-    width: FRAME_WIDTH,
     height: 30,
     marginTop: -15,
   },
@@ -205,7 +207,6 @@ const styles = StyleSheet.create({
   },
   topInfo: {
     alignItems: 'center',
-    marginTop: height * 0.1,
   },
   badge: {
     flexDirection: 'row',
@@ -229,7 +230,6 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   bottomInfo: {
-    marginBottom: height * 0.12,
     gap: 20,
   },
   dataRow: {

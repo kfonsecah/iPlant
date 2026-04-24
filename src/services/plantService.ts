@@ -3,7 +3,7 @@ import * as Crypto from 'expo-crypto';
 import { File } from 'expo-file-system';
 import NetInfo from '@react-native-community/netinfo';
 import { db } from "../config/firebase";
-import { PlantAIFields, PlantIdentificationResult, PlantaCompletaInterface, PlantaInterface, SaludPlanta } from "../types-dtos/plant.types";
+import { PlantAIFields, PlantIdentificationResult, PlantaCompletaInterface, PlantaInterface } from "../types-dtos/plant.types";
 import { withTimeout } from "../utils/withTimeout";
 import { getItem, persistImage, saveItem } from "./storageService";
 import { addToQueue, getQueue, processQueue } from "./syncService";
@@ -146,8 +146,7 @@ function formatUltimoRiego(value: unknown): string {
 
 const getCacheKey = (userId: string) => `PLANTS_CACHE_${userId}`;
 
-export async function getPlantsByUserId(userId: string): Promise<PlantaCompletaInterface[]> {
-  const isConnected = (await NetInfo.fetch()).isConnected;
+export async function getPlantsByUserId(userId: string, isConnected: boolean): Promise<PlantaCompletaInterface[]> {
   const cacheKey = getCacheKey(userId);
 
   if (isConnected) {
@@ -182,7 +181,7 @@ export async function getPlantsByUserId(userId: string): Promise<PlantaCompletaI
       await saveItem(cacheKey, allPlants);
       return allPlants;
     } catch (e) {
-      console.error("Error fetching from Firestore, falling back to cache:", e);
+      console.warn("Fallback: Cargando plantas desde el caché local por inestabilidad de red.");
     }
   }
 
@@ -232,6 +231,13 @@ export async function addPlant(
     data: newPlant,
     userId: data.userId,
     timestamp: Date.now(),
+  });
+
+  // 3. Trigger background sync if online
+  NetInfo.fetch().then(state => {
+    if (state.isConnected) {
+      syncPlants(data.userId).catch(err => console.error("Auto-sync failed:", err));
+    }
   });
 
   return newPlant;

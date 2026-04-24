@@ -11,7 +11,7 @@ export function withTimeout<T>(
 ): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
     setTimeout(
-      () => reject(new Error("Sin conexión. Verifica tu internet e inténtalo de nuevo.")),
+      () => reject(new Error("Timeout: La operación tardó demasiado en responder.")),
       ms
     )
   );
