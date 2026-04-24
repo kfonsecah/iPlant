@@ -156,7 +156,7 @@ export default function CameraScreen() {
   }
 
   if (!permission.granted) {
-    const isPermanentlyDenied = !permission.canAskAgain;
+    const isPermanentlyDenied = !permission.canAskAgain && permission.status === 'denied';
 
     return (
       <View 
@@ -167,7 +167,11 @@ export default function CameraScreen() {
           style={{ backgroundColor: theme.colors.surface }}
           className="w-28 h-28 rounded-full justify-center items-center mb-8"
         >
-          <Ionicons name="camera-outline" size={56} color={theme.colors.primary} />
+          <Ionicons 
+            name={isPermanentlyDenied ? "alert-circle-outline" : "camera-outline"} 
+            size={56} 
+            color={isPermanentlyDenied ? theme.colors.error : theme.colors.primary} 
+          />
         </View>
         
         <Text 
@@ -177,7 +181,7 @@ export default function CameraScreen() {
           }}
           className="text-2xl text-center mb-3"
         >
-          Acceso a la cámara
+          {isPermanentlyDenied ? "Permiso Denegado" : "Acceso a la cámara"}
         </Text>
         
         <Text 
@@ -187,13 +191,16 @@ export default function CameraScreen() {
           }}
           className="text-base text-center px-5 mb-10 leading-6"
         >
-          iPlant necesita usar la cámara para identificar tus plantas. Toca el botón de abajo para activar el permiso.
+          {isPermanentlyDenied 
+            ? "Parece que has desactivado el acceso a la cámara permanentemente. Para identificar plantas, debes habilitarlo desde los ajustes de tu sistema."
+            : "iPlant necesita usar la cámara para identificar tus plantas. Toca el botón de abajo para activar el permiso y comenzar el escaneo."
+          }
         </Text>
 
         <TouchableOpacity 
            style={{ 
-             backgroundColor: theme.colors.primary,
-             shadowColor: theme.colors.primary,
+             backgroundColor: isPermanentlyDenied ? theme.colors.error : theme.colors.primary,
+             shadowColor: isPermanentlyDenied ? theme.colors.error : theme.colors.primary,
              shadowOffset: { width: 0, height: 4 },
              shadowOpacity: 0.3,
              shadowRadius: 8,
@@ -206,9 +213,23 @@ export default function CameraScreen() {
             style={{ fontFamily: theme.typography.fontFamily.bold }}
             className="text-white text-base"
           >
-            {isPermanentlyDenied ? "Abrir Ajustes" : "Activar Cámara"}
+            {isPermanentlyDenied ? "Ir a Configuración" : "Solicitar Permiso"}
           </Text>
         </TouchableOpacity>
+
+        {!isPermanentlyDenied && (
+          <TouchableOpacity 
+            style={{ marginBottom: 20 }}
+            onPress={() => {
+              // Forced check
+              getPermission();
+            }}
+          >
+             <Text style={{ color: theme.colors.primary, fontFamily: theme.typography.fontFamily.medium }}>
+               ¿Ya lo activaste? Refrescar estado
+             </Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity 
            style={{ 
@@ -227,7 +248,7 @@ export default function CameraScreen() {
             }}
             className="text-base"
           >
-            Seleccionar de Galería
+            Usar Galería
           </Text>
         </TouchableOpacity>
 
@@ -241,7 +262,7 @@ export default function CameraScreen() {
               fontFamily: theme.typography.fontFamily.medium 
             }}
           >
-            Ahora no
+            Volver atrás
           </Text>
         </TouchableOpacity>
       </View>
