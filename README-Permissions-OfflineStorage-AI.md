@@ -60,6 +60,23 @@ Para asegurar que el usuario confíe en los resultados de la identificación:
 
 ---
 
+## 6. Arquitectura del Sistema (Híbrida)
+Para este proyecto se optó por una arquitectura **híbrida moderna**, combinando servicios de infraestructura (BaaS) con un micro-servicio especializado.
+
+### A. Firebase: El motor de persistencia y sincronización
+Se delegó la gestión de usuarios y la base de datos a **Firebase**. 
+*   **Razón:** Firebase ofrece soporte nativo para el modo offline y la sincronización automática de datos una vez que se recupera la conexión. Implementar esta lógica desde cero en un backend tradicional habría aumentado la complejidad sin aportar beneficios adicionales para el alcance de este laboratorio.
+
+### B. Render: El API Proxy de Inteligencia Artificial
+Se desplegó un micro-backend en **Render** para manejar exclusivamente la identificación de plantas.
+*   **Seguridad:** Su función principal es actuar como un **Proxy de Seguridad**. Al procesar las peticiones de IA en Render, mantenemos la clave privada de `Plant.id` fuera del código del cliente (celular), previniendo filtraciones de credenciales.
+*   **Escalabilidad:** Esta separación permite que, si en el futuro se desea cambiar de proveedor de IA o añadir lógica de procesamiento de imágenes pesada, se pueda hacer sin afectar la base de datos principal en Firebase.
+
+### C. Conclusión del Diseño
+Esta arquitectura permite que la aplicación sea **robusta en su manejo de datos (vía Firebase)** y **segura en sus capacidades de IA (vía Render)**, cumpliendo con todos los requisitos técnicos de la Actividad 3 de manera eficiente.
+
+---
+
 **Link del Repositorio:** https://github.com/kfonsecah/iPlant.git  
 **Link del Video Demostrativo:** https://drive.google.com/file/d/1BgprKlJ2LqJIlJ1ZKhTSys9SL8UEsPmY/view?usp=sharing  
 **Backend en Render:** https://iplant.onrender.com
