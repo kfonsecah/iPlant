@@ -24,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { useTheme } from "../../theme/desingSystem";
-import { createStyles } from "../login/Login.styles";
+import { createStyles } from "./Register.styles";
 import AppInput from "../../components/ui/appInput/AppInput";
 import Toast from "../../components/ui/toast/Toast";
 import { signUp, getAuthErrorMessage } from "../../services/authService";

@@ -23,7 +23,7 @@ import Toast, { ToastType } from "../../components/ui/toast/Toast";
 import { getUserById, updateUser } from "../../services/userService";
 import { useTheme } from "../../theme/desingSystem";
 import { PrivacidadPerfil, UserInterface } from "../../types-dtos/user.types";
-import { createStyles } from "./UserProfile.styles";
+import { createStyles } from "./userProfile.styles";
 import { useAuth } from "../../context/AuthContext";
 import { logOut } from "../../services/authService";
 
