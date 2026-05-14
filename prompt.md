@@ -8,14 +8,13 @@
 ## Assets
 Ya están en `assets/images/`:
 - `layer1.jpeg` — cielo nocturno, fondo opaco (base)
-- `layer2.png` — siluetas de plantas, PNG con alpha transparente
 - `layer3.png` — hojas primer plano, PNG con alpha transparente
 
 ---
 
 ## Archivo 1: `components/ParallaxBackground.tsx`
 
-- 3 imágenes apiladas en `position: absolute`, sin `mixBlendMode`
+- 2 imágenes apiladas en `position: absolute`, sin `mixBlendMode`
 - Giroscopio con `DeviceMotion` de `expo-sensors`
 - Cada capa se mueve a distinta velocidad con `useSharedValue` + `useAnimatedStyle` + `withSpring`
 - `ParallaxLayer` como componente separado (Rules of Hooks)
@@ -30,7 +29,6 @@ Ya están en `assets/images/`:
 ```ts
 const LAYERS = [
   { source: require('../assets/images/layer1.jpeg'), factor: 0.06 },
-  { source: require('../assets/images/layer2.png'),  factor: 0.18 },
   { source: require('../assets/images/layer3.png'),  factor: 0.55 },
 ];
 
