@@ -29,6 +29,22 @@ export interface PlantEditData {
   frecuenciaRiego: string;
   confidence: number;
   imagen?: string;
+  // New botanical fields
+  latinName?: string;
+  taxonomy?: {
+    class?: string;
+    family?: string;
+    genus?: string;
+  };
+  wateringDetails?: {
+    max?: string;
+    min?: string;
+  };
+  sunlight?: string;
+  pruning?: string;
+  soil?: string;
+  propagationMethods?: string[];
+  wikiExtract?: string;
 }
 
 interface PlantDetailViewProps {
@@ -51,6 +67,14 @@ const PlantDetailView = ({ result, imageUri, onConfirm, onCancel }: PlantDetailV
     cuidados: result.careInstructions || "",
     frecuenciaRiego: "7",
     confidence: result.probability,
+    latinName: result.latinName,
+    taxonomy: result.taxonomy,
+    wateringDetails: result.watering,
+    sunlight: result.sunlight,
+    pruning: result.pruning,
+    soil: result.soil,
+    propagationMethods: result.propagationMethods,
+    wikiExtract: result.wikiDescription?.extract,
   });
 
   const headerTranslateY = scrollY.interpolate({

@@ -1,34 +1,46 @@
 ---
-updated_at: "2026-04-23T13:30:00Z"
+updated_at: "2025-02-28T00:00:00.000Z"
 ---
 
 ## Architecture Overview
 
-This is a React Native mobile application built with **Expo** and **TypeScript**. It uses **Expo Router** for file-based navigation and **NativeWind** (Tailwind CSS for React Native) for styling. The backend is powered by **Firebase** (Auth and Firestore), and it integrates with the **Plant.id API** for AI-based plant identification.
+iPlant is a cross-platform mobile application built with Expo (React Native). It follows a modular architecture with a clear separation between UI (screens/components), business logic (services), and state management (contexts).
+
+The application implements an **Offline-First** strategy using a hybrid storage approach (AsyncStorage for metadata, FileSystem for images) and a synchronization queue that automatically pushes pending changes to a remote backend when connectivity is restored.
+
+The backend is a lightweight Express.js proxy that secures API keys for third-party services (Plant.id) and provides endpoints for end-to-end data flow verification.
 
 ## Key Components
 
 | Component | Path | Responsibility |
 |-----------|------|---------------|
-| App Entry | `app/index.tsx` | Main entry point for the application. |
-| Auth Context | `src/context/AuthContext.tsx` | Manages authentication state and provides it to the app via `useAuth`. |
-| Firebase Config | `src/config/firebase.ts` | Initializes Firebase Auth and Firestore instances. |
-| Auth Service | `src/services/authService.ts` | Handles user authentication logic (sign in, sign up, Google login). |
-| Plant Service | `src/services/plantService.ts` | Handles plant-related operations, including AI identification and CRUD in Firestore. |
-| User Service | `src/services/userService.ts` | Manages user profile data in Firestore. |
-| Navigation | `app/(app)/_layout.tsx` | Defines the main app navigation structure (tabs and camera). |
+| App Layout | `app/_layout.tsx` | Root entry point, provides Auth, Connectivity, and Sync contexts. |
+| Plant Service | `src/services/plantService.ts` | Orchestrates plant identification, local saving, and remote syncing. |
+| Storage Service | `src/services/storageService.ts` | Abstract layer for AsyncStorage and FileSystem operations. |
+| Sync Service | `src/services/syncService.ts` | Manages the persistent queue of operations to be synchronized. |
+| Backend Proxy | `backend/src/index.ts` | Express server handling IA identification requests and mock persistence. |
+| Connectivity Context | `src/context/ConnectivityContext.tsx` | Real-time monitoring of network status across the app. |
 
 ## Data Flow
 
-1. **Authentication**: `app/_layout.tsx` (Guard) -> `AuthContext` -> `authService` -> Firebase Auth.
-2. **Plant Identification**: `app/(app)/camera.tsx` -> `plantService.identifyPlant` -> Plant.id API -> Result.
-3. **Plant Management**: `app/(app)/(tabs)/plants.tsx` -> `plantService.getPlantsByUserId` -> Firestore.
-4. **User Profile**: `app/(app)/(tabs)/profile.tsx` -> `userService.getUserProfile` -> Firestore.
+**Plant Identification Flow:**
+1. `CameraScreen` captures image -> `plantService.identifyPlant`
+2. `plantService` sends image to `Backend Proxy` (`/api/identify`)
+3. `Backend Proxy` calls `Plant.id v3` API and returns botanical metadata
+4. `plantService` returns structured data to UI for user confirmation
+
+**Offline Save & Sync Flow:**
+1. User saves plant -> `plantService.addPlant`
+2. `plantService` saves metadata to `AsyncStorage` and image to `FileSystem`
+3. `plantService` adds a `CREATE` action to `Sync Service` queue
+4. `Sync Service` monitors `Connectivity Context`
+5. When online, `Sync Service` processes queue -> `plantService.syncPlants`
+6. `plantService` calls `Backend Proxy` (`/api/plants`) and `Firebase Firestore`
+7. Local cache is updated with remote IDs and `isPending` flag is cleared
 
 ## Conventions
 
-- **File-based Routing**: Using Expo Router conventions in the `app/` directory.
-- **Service Pattern**: Business logic and API calls are abstracted into services in `src/services/`.
-- **Context API**: Global state like authentication is managed via React Context.
-- **Type Safety**: TypeScript is used throughout, with DTOs and interfaces defined in `src/types-dtos/`.
-- **Styling**: NativeWind for consistent styling using Tailwind CSS classes.
+- **Hybrid Storage:** Large binary files (images) go to `FileSystem`; structured JSON metadata goes to `AsyncStorage`.
+- **Zod Validation:** Used for DTOs and API responses (where applicable).
+- **NativeWind:** Tailwind-based styling for consistent UI across components.
+- **Service Pattern:** API and storage logic is encapsulated in singleton-like service modules.

@@ -2,7 +2,7 @@ import { getItem, saveItem } from './storageService';
 
 export interface SyncAction {
   id: string;
-  type: 'CREATE';
+  type: 'CREATE' | 'DELETE' | 'UPDATE';
   data: any;
   userId: string;
   timestamp: number;

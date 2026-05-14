@@ -41,6 +41,23 @@ export interface PlantAIFields {
   descripcion?: string;
   cuidados?: string;
   identificadoConIA?: boolean;
+  // New rich botanical fields
+  latinName?: string;
+  taxonomy?: {
+    class?: string;
+    family?: string;
+    genus?: string;
+  };
+  wateringDetails?: {
+    max?: string;
+    min?: string;
+  };
+  sunlight?: string;
+  pruning?: string;
+  soil?: string;
+  propagationMethods?: string[];
+  wikiExtract?: string;
+  // Sync metadata
   isPending?: boolean;
   syncError?: string;
 }

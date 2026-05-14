@@ -377,4 +377,38 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
     color: theme.colors.textOnAccent,
     letterSpacing: theme.typography.letterSpacing.md,
   },
+  // ── Search Bar ──────────────────────────────────────────────────────────────
+  searchBar: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: theme.spacing.s14,
+    height: 46,
+    marginHorizontal: theme.spacing.s16,
+    marginTop: theme.spacing.s10,
+    borderWidth: theme.borders.thin,
+    borderColor: theme.colors.border,
+    gap: theme.spacing.s10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: theme.typography.fontSizes.md,
+    color: theme.colors.textPrimary,
+    padding: 0,
+  },
+  // ── Empty State ─────────────────────────────────────────────────────────────
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    paddingVertical: theme.spacing.s44,
+    width: "100%" as const,
+    gap: theme.spacing.s12,
+  },
+  emptyText: {
+    fontFamily: theme.typography.fontFamily.medium,
+    fontSize: theme.typography.fontSizes.md,
+    textAlign: "center" as const,
+  },
 });

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-04-23T19:08:36.276Z",
+    "updated_at": "2026-05-14T02:02:36.946Z",
     "version": 2
   },
   "languages": [
@@ -10,25 +10,21 @@
   "frameworks": [
     "React Native",
     "Expo",
-    "NativeWind",
-    "Firebase",
-    "React"
+    "Express",
+    "NativeWind"
   ],
   "tools": [
     "ESLint",
     "Jest",
-    "Expo CLI",
-    "Tailwind CSS"
+    "Tailwind CSS",
+    "TypeScript"
   ],
   "build_system": "npm scripts",
   "test_framework": "Jest",
   "package_manager": "npm",
   "content_formats": [
-    "Markdown (skills, agents, commands)",
-    "YAML (frontmatter config)",
-    "EJS (templates)",
+    "Markdown (skills, agents, commands, planning)",
     "JSON (config, data)",
-    "CSS (global styles)",
-    "TSX (React components)"
+    "TypeScript/TSX (source code)"
   ]
 }

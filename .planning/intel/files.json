@@ -1,16 +1,94 @@
 {
   "_meta": {
-    "updated_at": "2026-04-23T19:08:36.931Z",
-    "version": 2
+    "updated_at": "2026-05-14T02:02:37.682Z",
+    "version": 4
   },
   "entries": {
     "app/_layout.tsx": {
       "exports": [
-        "RootLayout"
+        "default"
       ],
       "imports": [
         "expo-router",
-        "src/context/AuthContext"
+        "src/context/AuthContext",
+        "src/context/ConnectivityContext",
+        "src/context/SyncContext"
+      ],
+      "type": "entry-point"
+    },
+    "src/services/plantService.ts": {
+      "exports": [
+        "identifyPlant",
+        "getPlantsByUserId",
+        "addPlant",
+        "syncPlants",
+        "updatePlant"
+      ],
+      "imports": [
+        "firebase/firestore",
+        "@react-native-community/netinfo",
+        "src/config/firebase",
+        "src/services/storageService",
+        "src/services/syncService"
+      ],
+      "type": "module"
+    },
+    "src/services/storageService.ts": {
+      "exports": [
+        "saveItem",
+        "getItem",
+        "removeItem",
+        "persistImage",
+        "deleteImage"
+      ],
+      "imports": [
+        "@react-native-async-storage/async-storage",
+        "expo-file-system"
+      ],
+      "type": "module"
+    },
+    "src/services/syncService.ts": {
+      "exports": [
+        "addToQueue",
+        "getQueue",
+        "processQueue",
+        "clearQueue"
+      ],
+      "imports": [
+        "src/services/storageService"
+      ],
+      "type": "module"
+    },
+    "src/context/ConnectivityContext.tsx": {
+      "exports": [
+        "ConnectivityProvider",
+        "useConnectivity"
+      ],
+      "imports": [
+        "react",
+        "@react-native-community/netinfo"
+      ],
+      "type": "module"
+    },
+    "src/context/SyncContext.tsx": {
+      "exports": [
+        "SyncProvider",
+        "useSync"
+      ],
+      "imports": [
+        "react",
+        "src/context/ConnectivityContext",
+        "src/services/syncService"
+      ],
+      "type": "module"
+    },
+    "backend/src/index.ts": {
+      "exports": [],
+      "imports": [
+        "express",
+        "cors",
+        "dotenv",
+        "axios"
       ],
       "type": "entry-point"
     },
@@ -25,59 +103,6 @@
         "firebase/firestore"
       ],
       "type": "config"
-    },
-    "src/services/authService.ts": {
-      "exports": [
-        "getAuthErrorMessage",
-        "signIn",
-        "signUp",
-        "logOut",
-        "sendPasswordReset",
-        "signInWithGoogle"
-      ],
-      "imports": [
-        "firebase/auth",
-        "firebase/firestore",
-        "src/config/firebase"
-      ],
-      "type": "module"
-    },
-    "src/services/plantService.ts": {
-      "exports": [
-        "identifyPlant",
-        "getPlantsByUserId",
-        "addPlant",
-        "updatePlant"
-      ],
-      "imports": [
-        "firebase/firestore",
-        "expo-constants",
-        "src/config/firebase"
-      ],
-      "type": "module"
-    },
-    "src/context/AuthContext.tsx": {
-      "exports": [
-        "AuthProvider",
-        "useAuth"
-      ],
-      "imports": [
-        "react",
-        "firebase/auth",
-        "src/config/firebase"
-      ],
-      "type": "module"
-    },
-    "src/services/userService.ts": {
-      "exports": [
-        "getUserProfile",
-        "updateUserProfile"
-      ],
-      "imports": [
-        "firebase/firestore",
-        "src/config/firebase"
-      ],
-      "type": "module"
     }
   }
 }

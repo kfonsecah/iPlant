@@ -134,6 +134,14 @@ export default function CameraScreen() {
         descripcion: editData.descripcion,
         cuidados: editData.cuidados,
         identificadoConIA: !!aiResult && (aiResult.probability > 0),
+        latinName: editData.latinName,
+        taxonomy: editData.taxonomy,
+        wateringDetails: editData.wateringDetails,
+        sunlight: editData.sunlight,
+        pruning: editData.pruning,
+        soil: editData.soil,
+        propagationMethods: editData.propagationMethods,
+        wikiExtract: editData.wikiExtract,
       });
       
       router.back();

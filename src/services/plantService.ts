@@ -157,6 +157,14 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
           descripcion: data.descripcion,
           cuidados: data.cuidados,
           identificadoConIA: data.identificadoConIA,
+          latinName: data.latinName,
+          taxonomy: data.taxonomy,
+          wateringDetails: data.wateringDetails,
+          sunlight: data.sunlight,
+          pruning: data.pruning,
+          soil: data.soil,
+          propagationMethods: data.propagationMethods,
+          wikiExtract: data.wikiExtract,
         } as PlantaCompletaInterface;
       });
 
@@ -174,6 +182,11 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
   }
 
   return (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
+}
+
+export async function getPlantById(userId: string, plantId: string, isConnected: boolean): Promise<PlantaCompletaInterface | null> {
+  const plants = await getPlantsByUserId(userId, isConnected);
+  return plants.find(p => p.id === plantId) || null;
 }
 
 export async function addPlant(
@@ -205,6 +218,14 @@ export async function addPlant(
     descripcion: data.descripcion,
     cuidados: data.cuidados,
     identificadoConIA: data.identificadoConIA,
+    latinName: data.latinName,
+    taxonomy: data.taxonomy,
+    wateringDetails: data.wateringDetails,
+    sunlight: data.sunlight,
+    pruning: data.pruning,
+    soil: data.soil,
+    propagationMethods: data.propagationMethods,
+    wikiExtract: data.wikiExtract,
   };
 
   // 1. Save to local cache
@@ -248,6 +269,14 @@ async function pushPlantToFirestore(plant: PlantaCompletaInterface): Promise<str
     ...(plant.descripcion && { descripcion: plant.descripcion }),
     ...(plant.cuidados && { cuidados: plant.cuidados }),
     ...(plant.identificadoConIA !== undefined && { identificadoConIA: plant.identificadoConIA }),
+    ...(plant.latinName && { latinName: plant.latinName }),
+    ...(plant.taxonomy && { taxonomy: plant.taxonomy }),
+    ...(plant.wateringDetails && { wateringDetails: plant.wateringDetails }),
+    ...(plant.sunlight && { sunlight: plant.sunlight }),
+    ...(plant.pruning && { pruning: plant.pruning }),
+    ...(plant.soil && { soil: plant.soil }),
+    ...(plant.propagationMethods && { propagationMethods: plant.propagationMethods }),
+    ...(plant.wikiExtract && { wikiExtract: plant.wikiExtract }),
   };
 
   // 1. Notify Backend (Phase 4 Requirement: "Plant creation endpoint works end-to-end")
@@ -284,6 +313,16 @@ export async function syncPlants(userId: string): Promise<void> {
         p.id === action.id ? { ...p, id: remoteId, isPending: false } : p
       );
       await saveItem(cacheKey, updatedCache);
+    } else if (action.type === 'DELETE') {
+      // Direct delete from Firestore if it's a remote ID
+      if (action.id && !action.id.includes('-')) { // Simple check if it's a UUID or Firestore ID
+        try {
+          const { deleteDoc } = await import("firebase/firestore");
+          await withTimeout(deleteDoc(doc(db, "plants", action.id)));
+        } catch (e) {
+          console.warn("Could not delete from remote, might have been already deleted:", e);
+        }
+      }
     }
   });
 }
@@ -293,4 +332,26 @@ export async function updatePlant(
   data: Partial<Pick<PlantaInterface, "nombre" | "categoria" | "salud" | "proximoRiego">>
 ): Promise<void> {
   await withTimeout(updateDoc(doc(db, "plants", plantId), data));
+}
+
+export async function deletePlant(userId: string, plantId: string, isConnected: boolean): Promise<void> {
+  // 1. Remove from local cache
+  const cacheKey = `PLANTS_CACHE_${userId}`;
+  const currentCache = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
+  const updatedCache = currentCache.filter(p => p.id !== plantId);
+  await saveItem(cacheKey, updatedCache);
+
+  // 2. Add to sync queue (DELETE action)
+  await addToQueue({
+    id: plantId,
+    type: 'DELETE',
+    data: { id: plantId },
+    userId: userId,
+    timestamp: Date.now(),
+  });
+
+  // 3. Trigger sync
+  if (isConnected) {
+    syncPlants(userId).catch(err => console.error("Auto-sync failed:", err));
+  }
 }

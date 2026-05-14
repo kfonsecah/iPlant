@@ -22,14 +22,15 @@ El usuario puede tomar una foto de una planta, obtener su identificación y cuid
 - ✓ Manejo de permisos de cámara y re-solicitud — Phase 2
 - ✓ Interfaz inmersiva con animaciones HUD y Parallax — Phase 1+
 - ✓ Metadatos botánicos extendidos (Riego, Poda, Suelo, Taxonomía) — Phase 1+
+- ✓ Indicadores visuales de contenido pendiente de sincronización — Phase 3
+- ✓ Módulos que funcionen sin internet (offline-first) — Phase 3
+- ✓ Sincronización de cambios cuando vuelve la conexión — Phase 3
+- ✓ Almacenamiento local justificado (AsyncStorage + FileSystem) — Phase 3
 
 ### Active
 
-- [ ] Indicadores visuales de contenido pendiente de sincronización
-- [ ] Módulos que funcionen sin internet (offline-first)
-- [ ] Sincronización de cambios cuando vuelve la conexión
 - [ ] Deploy del API backend en Render (cloud)
-- [ ] Almacenamiento local justificado (AsyncStorage / MMKV / SQLite)
+- [ ] Documentación técnica final (PDF)
 
 ### Out of Scope
 
@@ -43,16 +44,15 @@ El usuario puede tomar una foto de una planta, obtener su identificación y cuid
 - React Native + Expo SDK (managed workflow)
 - Firebase Auth (Google + email/password)
 - NativeWind (Tailwind CSS para RN)
-- Backend propio con plantService.ts / userService.ts (endpoints ya definidos)
-- Cámara: expo-camera con preview ya implementado (876c258)
-- Galería: expo-image-picker ya integrado (876c258)
+- Backend: Express Proxy (Node.js)
+- Cámara: expo-camera con preview e identificación IA
+- Almacenamiento: AsyncStorage (JSON) + FileSystem (Imágenes)
 
 **Situación actual:**
-- La cámara ya funciona y puede tomar fotos
-- El form de creación de planta existe pero no llama a ninguna IA
-- No hay manejo de permisos denegados con re-solicitud
-- El backend no está desplegado en Render aún
-- No hay lógica offline ni indicadores de sincronización
+- La identificación por IA está completamente integrada.
+- El manejo de permisos es robusto y permite re-solicitar acceso.
+- Existe una arquitectura offline-first con cola de sincronización.
+- El código del backend está listo; falta confirmar el despliegue final en Render.
 
 **Fecha de entrega:** 24/04/2026 a las 11:59 pm
 
@@ -68,7 +68,7 @@ El usuario puede tomar una foto de una planta, obtener su identificación y cuid
 - **Tech stack**: React Native/Expo managed — no se puede usar código nativo puro
 - **Backend**: Debe desplegarse en Render (gratis o paid) con logs verificables
 - **IA**: Puede ser cualquier API de IA que identifique plantas (Plant.id, OpenAI Vision, Google Vision)
-- **Almacenamiento**: Debe justificarse técnicamente la elección (AsyncStorage vs MMKV vs SQLite)
+- **Almacenamiento**: AsyncStorage + FileSystem (híbrido)
 
 ## Key Decisions
 
@@ -76,25 +76,12 @@ El usuario puede tomar una foto de una planta, obtener su identificación y cuid
 |----------|-----------|---------|
 | IA API para identificación | Plant.id v3: Especializada, ofrece metadatos botánicos extensos y confianza nativa. | Plant.id |
 | UI Strategy | Inmersiva: Animaciones HUD para escaneo y vista Parallax para perfil para mayor engagement. | Immersive UI |
-| Almacenamiento local | Por definir: AsyncStorage (simple) vs MMKV (performance) vs SQLite (relacional) | — Pending |
-| Estrategia offline | Queue de operaciones pendientes vs cache de solo lectura | — Pending |
+| Almacenamiento local | Híbrido: AsyncStorage para rapidez en metadatos y FileSystem para persistencia de imágenes pesadas. | AsyncStorage + FileSystem |
+| Estrategia offline | Queue de operaciones (Optimistic UI): Los cambios se aplican localmente y se sincronizan al detectar red. | Offline-First Sync |
 
 ---
-*Last updated: 2026-04-23 after completing Phase 1 & 2*
+*Last updated: 2026-04-24 after completing Phase 3*
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition:**
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone:**
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state

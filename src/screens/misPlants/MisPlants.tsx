@@ -14,6 +14,7 @@ import {
   ScrollView,
   StatusBar,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -26,6 +27,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
+import { useRouter } from "expo-router";
 import AppInput from "../../components/ui/appInput/AppInput";
 import Toast, { ToastType } from "../../components/ui/toast/Toast";
 import WateringFrequencyPicker from "../../components/ui/wateringFrequencyPicker/WateringFrequencyPicker";
@@ -367,6 +369,7 @@ function AddPlantModal({
 export default function MisPlants() {
   const theme  = useTheme();
   const styles = createMisPlantasStyles(theme);
+  const router = useRouter();
   const { user: authUser } = useAuth();
   const userId = authUser?.uid ?? "";
   const { isSyncing, queueLength } = useSync(); // Get sync status and queue length
@@ -377,6 +380,7 @@ export default function MisPlants() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editingPlanta, setEditingPlanta] = useState<PlantaCompletaInterface | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [toast, setToast] = useState<{ visible: boolean; type: ToastType; message: string }>({
     visible: false, type: "success", message: "",
   });
@@ -435,7 +439,12 @@ export default function MisPlants() {
   }
 
   const categorias = [...new Set(plantas.map((p) => p.categoria))];
-  const alertPlantas = plantas.filter((p) => p.salud !== "saludable");
+  const filteredPlantas = plantas.filter(p => 
+    p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.categoria.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.latinName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const alertPlantas = filteredPlantas.filter((p) => p.salud !== "saludable");
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -455,10 +464,28 @@ export default function MisPlants() {
       >
         <Animated.View entering={FadeInDown.duration(400)}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Mis Plantas</Text>
-            <View style={styles.filterBtn}>
-              <Ionicons name="options-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.headerTitle}>Mis Plantas</Text>
             </View>
+            <TouchableOpacity style={styles.filterBtn} onPress={() => {/* Toggle Filter Modal */}}>
+              <Ionicons name="options-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.searchBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <Ionicons name="search" size={18} color={theme.colors.textSecondary} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.regular }]}
+              placeholder="Buscar por nombre o especie..."
+              placeholderTextColor={theme.colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={18} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            )}
           </View>
         </Animated.View>
 
@@ -509,15 +536,24 @@ export default function MisPlants() {
           </Animated.View>
 
           <Animated.View style={styles.grid} entering={FadeInUp.delay(300).duration(500)}>
-            {plantas.map((planta) => (
-              <PlantCard
-                key={planta.id}
-                planta={planta}
-                styles={styles}
-                theme={theme}
-                onPress={() => setEditingPlanta(planta)}
-              />
-            ))}
+            {filteredPlantas.length > 0 ? (
+              filteredPlantas.map((planta) => (
+                <PlantCard
+                  key={planta.id}
+                  planta={planta}
+                  styles={styles}
+                  theme={theme}
+                  onPress={() => router.push(`/(app)/plants/${planta.id}`)}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="leaf-outline" size={48} color={theme.colors.textSecondary} />
+                <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                  {searchQuery ? "No se encontraron plantas" : "Aún no tienes plantas"}
+                </Text>
+              </View>
+            )}
           </Animated.View>
         </ScrollView>
       </ImageBackground>

@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "updated_at": "2026-04-23T19:08:36.718Z",
-    "version": 2
+    "updated_at": "2026-05-14T02:02:38.833Z",
+    "version": 4
   },
   "entries": {
     "expo": {
@@ -18,43 +18,48 @@
       "invocation": "require",
       "used_by": [
         "src/config/firebase.ts",
-        "src/services/authService.ts",
-        "src/services/plantService.ts",
-        "src/services/userService.ts"
+        "src/services/plantService.ts"
       ]
     },
-    "react-native": {
-      "version": "0.81.5",
+    "express": {
+      "version": "^4.18.2",
       "type": "production",
       "invocation": "require",
       "used_by": [
-        "package.json"
+        "backend/src/index.ts"
       ]
     },
-    "nativewind": {
-      "version": "^4.2.2",
+    "axios": {
+      "version": "^1.6.7",
       "type": "production",
       "invocation": "require",
       "used_by": [
-        "global.css",
-        "tailwind.config.js"
+        "backend/src/index.ts"
       ]
     },
-    "expo-router": {
-      "version": "~6.0.23",
+    "@react-native-async-storage/async-storage": {
+      "version": "2.2.0",
       "type": "production",
       "invocation": "require",
       "used_by": [
-        "app/_layout.tsx",
-        "app/(app)/_layout.tsx"
+        "src/services/storageService.ts"
       ]
     },
-    "jest": {
-      "version": "^29.7.0",
-      "type": "development",
-      "invocation": "npm test",
+    "expo-file-system": {
+      "version": "~19.0.21",
+      "type": "production",
+      "invocation": "require",
       "used_by": [
-        "package.json"
+        "src/services/storageService.ts"
+      ]
+    },
+    "@react-native-community/netinfo": {
+      "version": "11.4.1",
+      "type": "production",
+      "invocation": "require",
+      "used_by": [
+        "src/context/ConnectivityContext.tsx",
+        "src/services/plantService.ts"
       ]
     }
   }
