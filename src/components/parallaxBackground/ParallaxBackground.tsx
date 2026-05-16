@@ -211,7 +211,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 10,
     elevation: 10,
-    justifyContent: 'center',
   },
 });
 

@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, {
   FadeInDown,
   FadeOutUp,
 } from "react-native-reanimated";
+import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../theme/desingSystem";
 import { createStyles } from "./Toast.styles";
@@ -70,6 +71,7 @@ export default function Toast({
       exiting={FadeOutUp.duration(250)}
       style={[styles.container, styles[type], { top: insets.top + 8 }]}
     >
+      <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />
       <Ionicons name={iconMap[type]} size={20} color={colorMap[type]} />
       <Text style={[styles.message, msgStyleMap[type]]}>{message}</Text>
       <TouchableOpacity style={styles.closeBtn} onPress={onDismiss}>

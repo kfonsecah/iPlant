@@ -81,7 +81,6 @@ export default function LoginScreen() {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const loginTranslateY = useSharedValue(0);
   const loginOpacity = useSharedValue(1);
@@ -93,7 +92,7 @@ export default function LoginScreen() {
       loginTranslateY.value = withTiming(80, { duration: 250 });
       loginOpacity.value = withTiming(0, { duration: 250 });
 
-      registerTranslateY.value = withSpring(-70, { damping: 18, stiffness: 85 });
+      registerTranslateY.value = withSpring(-60, { damping: 18, stiffness: 85 });
       registerOpacity.value = withTiming(1, { duration: 250 });
     } else {
       registerTranslateY.value = withTiming(-600, { duration: 250 });
@@ -236,154 +235,162 @@ export default function LoginScreen() {
         </>
       }
       behindForeground={
-        <Animated.View style={[styles.registerFormWrapper, registerAnimatedStyle]} pointerEvents={showRegister ? "auto" : "none"}>
-          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-          <View style={styles.registerFormInner}>
-            <Text style={styles.registerTitle}>Crear cuenta</Text>
-            <Text style={styles.registerSubtitle}>Únete a iPlant y comienza tu jardín</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+          pointerEvents={showRegister ? "auto" : "none"}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Animated.View style={[styles.registerFormWrapper, registerAnimatedStyle]}>
+              <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+              <View style={styles.registerFormInner}>
+                <Text style={styles.registerTitle}>Crear cuenta</Text>
+                <Text style={styles.registerSubtitle}>Únete a iPlant y comienza tu jardín</Text>
 
-            {/* Nombre */}
-            <Controller
-              control={registerControl}
-              name="nombre"
-              render={({ field: { onChange, value, onBlur } }) => (
-                <View>
-                  <View style={[styles.inputWrapper, focusedField === 'nombre' && styles.inputWrapperFocus]}>
-                    <Ionicons name="person-outline" size={20} color={focusedField === 'nombre' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={() => { setFocusedField(null); onBlur(); }}
-                      onFocus={() => setFocusedField('nombre')}
-                      placeholder="Nombre completo"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
-                      autoCapitalize="words"
-                    />
-                  </View>
-                  {registerErrors.nombre && <Text style={styles.errorText}>{registerErrors.nombre.message}</Text>}
+                {/* Nombre */}
+                <Controller
+                  control={registerControl}
+                  name="nombre"
+                  render={({ field: { onChange, value, onBlur } }) => (
+                    <View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="person-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.input}
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          placeholder="Nombre completo"
+                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          autoCapitalize="words"
+                        />
+                      </View>
+                      {registerErrors.nombre && <Text style={styles.errorText}>{registerErrors.nombre.message}</Text>}
+                    </View>
+                  )}
+                />
+
+                {/* Email */}
+                <Controller
+                  control={registerControl}
+                  name="email"
+                  render={({ field: { onChange, value, onBlur } }) => (
+                    <View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.input}
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          placeholder="Correo electrónico"
+                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                      </View>
+                      {registerErrors.email && <Text style={styles.errorText}>{registerErrors.email.message}</Text>}
+                    </View>
+                  )}
+                />
+
+                {/* Password */}
+                <Controller
+                  control={registerControl}
+                  name="password"
+                  render={({ field: { onChange, value, onBlur } }) => (
+                    <View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.input}
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          placeholder="Contraseña"
+                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          secureTextEntry={!showRegisterPassword}
+                          autoCapitalize="none"
+                        />
+                        <TouchableOpacity
+                          onPress={() => setShowRegisterPassword(!showRegisterPassword)}
+                          style={styles.eyeIcon}
+                        >
+                          <Ionicons
+                            name={showRegisterPassword ? "eye-off-outline" : "eye-outline"}
+                            size={20}
+                            color="rgba(255,255,255,0.35)"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                      {registerErrors.password && <Text style={styles.errorText}>{registerErrors.password.message}</Text>}
+                    </View>
+                  )}
+                />
+
+                {/* Confirm Password */}
+                <Controller
+                  control={registerControl}
+                  name="confirmPassword"
+                  render={({ field: { onChange, value, onBlur } }) => (
+                    <View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="shield-checkmark-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.input}
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          placeholder="Confirmar contraseña"
+                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          secureTextEntry={!showRegisterConfirmPassword}
+                          autoCapitalize="none"
+                        />
+                        <TouchableOpacity
+                          onPress={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                          style={styles.eyeIcon}
+                        >
+                          <Ionicons
+                            name={showRegisterConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                            size={20}
+                            color="rgba(255,255,255,0.35)"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                      {registerErrors.confirmPassword && <Text style={styles.errorText}>{registerErrors.confirmPassword.message}</Text>}
+                    </View>
+                  )}
+                />
+
+                {/* Register Button */}
+                <TouchableOpacity
+                  style={[styles.loginBtn, registerLoading && { opacity: 0.7 }]}
+                  onPress={handleRegisterSubmit(onRegisterSubmit)}
+                  disabled={registerLoading}
+                >
+                  {registerLoading ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text style={styles.loginBtnText}>Registrarse</Text>
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.registerFooter}>
+                  <Text style={styles.registerText}>¿Ya tienes cuenta? </Text>
+                  <TouchableOpacity onPress={() => setShowRegister(false)}>
+                    <Text style={styles.registerLink}>Inicia sesión</Text>
+                  </TouchableOpacity>
                 </View>
-              )}
-            />
 
-            {/* Email */}
-            <Controller
-              control={registerControl}
-              name="email"
-              render={({ field: { onChange, value, onBlur } }) => (
-                <View>
-                  <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocus]}>
-                    <Ionicons name="mail-outline" size={20} color={focusedField === 'email' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={() => { setFocusedField(null); onBlur(); }}
-                      onFocus={() => setFocusedField('email')}
-                      placeholder="Correo electrónico"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                  </View>
-                  {registerErrors.email && <Text style={styles.errorText}>{registerErrors.email.message}</Text>}
-                </View>
-              )}
-            />
-
-            {/* Password */}
-            <Controller
-              control={registerControl}
-              name="password"
-              render={({ field: { onChange, value, onBlur } }) => (
-                <View>
-                  <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputWrapperFocus]}>
-                    <Ionicons name="lock-closed-outline" size={20} color={focusedField === 'password' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={() => { setFocusedField(null); onBlur(); }}
-                      onFocus={() => setFocusedField('password')}
-                      placeholder="Contraseña"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
-                      secureTextEntry={!showRegisterPassword}
-                      autoCapitalize="none"
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowRegisterPassword(!showRegisterPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons
-                        name={showRegisterPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color={focusedField === 'password' ? "#4ade80" : "rgba(255,255,255,0.35)"}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  {registerErrors.password && <Text style={styles.errorText}>{registerErrors.password.message}</Text>}
-                </View>
-              )}
-            />
-
-            {/* Confirm Password */}
-            <Controller
-              control={registerControl}
-              name="confirmPassword"
-              render={({ field: { onChange, value, onBlur } }) => (
-                <View>
-                  <View style={[styles.inputWrapper, focusedField === 'confirmPassword' && styles.inputWrapperFocus]}>
-                    <Ionicons name="shield-checkmark-outline" size={20} color={focusedField === 'confirmPassword' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={() => { setFocusedField(null); onBlur(); }}
-                      onFocus={() => setFocusedField('confirmPassword')}
-                      placeholder="Confirmar contraseña"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
-                      secureTextEntry={!showRegisterConfirmPassword}
-                      autoCapitalize="none"
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons
-                        name={showRegisterConfirmPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color={focusedField === 'confirmPassword' ? "#4ade80" : "rgba(255,255,255,0.35)"}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  {registerErrors.confirmPassword && <Text style={styles.errorText}>{registerErrors.confirmPassword.message}</Text>}
-                </View>
-              )}
-            />
-
-            {/* Register Button */}
-            <TouchableOpacity
-              style={[styles.loginBtn, registerLoading && { opacity: 0.7 }]}
-              onPress={handleRegisterSubmit(onRegisterSubmit)}
-              disabled={registerLoading}
-            >
-              {registerLoading ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.loginBtnText}>Registrarse</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.registerFooter}>
-              <Text style={styles.registerText}>¿Ya tienes cuenta? </Text>
-              <TouchableOpacity onPress={() => setShowRegister(false)}>
-                <Text style={styles.registerLink}>Inicia sesión</Text>
-              </TouchableOpacity>
-            </View>
-
-          </View>
-        </Animated.View>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       }
     >
       <Animated.View style={[styles.keyboardView, loginAnimatedStyle]} pointerEvents={showRegister ? "none" : "auto"}>
