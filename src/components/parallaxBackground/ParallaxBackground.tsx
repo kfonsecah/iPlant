@@ -9,14 +9,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { width: W, height: H } = Dimensions.get('window');
-const MAX_OFFSET = 60;
-const BOTTOM_LAYER_WIDTH = (W + MAX_OFFSET * 2) * 3; 
+const MAX_OFFSET = 35;
+const BOTTOM_LAYER_WIDTH = (W + MAX_OFFSET * 2) * 2.5; 
 const BOTTOM_LAYER_HEIGHT = BOTTOM_LAYER_WIDTH * (9 / 16);
 
 const LAYERS = [
-  { source: require('../../../assets/images/layer1.jpeg'), factor: 0.05 },
-  { source: require('../../../assets/images/layer2.png'), factor: 0.8 },
-  { source: require('../../../assets/images/layer3.png'), factor: 3.2 },
+  { source: require('../../../assets/images/layer1.jpeg'), factor: 0.06 },
+  { source: require('../../../assets/images/layer2.png'), factor: 0.5 },
+  { source: require('../../../assets/images/layer3.png'), factor: 1.5 },
 ];
 
 interface ParallaxLayerProps {
@@ -33,10 +33,13 @@ const ParallaxLayer = ({
   isBottomLayer
 }: ParallaxLayerProps) => {
   const animatedStyle = useAnimatedStyle(() => {
-    let tx = rotation.x.value * MAX_OFFSET * factor;
-    let ty = rotation.y.value * MAX_OFFSET * factor;
+    let tx = rotation.x.value * MAX_OFFSET * factor * 0.5;
+    let ty = rotation.y.value * MAX_OFFSET * factor * 0.5;
 
-    // We no longer need restrictive clamping for Layer 3 as its size covers the motion
+    if (isBottomLayer) {
+      tx = Math.max(Math.min(tx, 50), -150);
+      ty = Math.max(Math.min(ty, 30), -30);
+    }
 
     return {
       transform: [
@@ -83,16 +86,16 @@ export default function ParallaxBackground({
           if (status !== 'granted') return;
         }
 
-        // Intervalo de 16ms (~60fps) para máxima fluidez
-        DeviceMotion.setUpdateInterval(16);
+        // Intervalo más conservador (32ms = ~30fps) para evitar saturar el JS thread
+        DeviceMotion.setUpdateInterval(32);
         
         subscription = DeviceMotion.addListener((data: DeviceMotionMeasurement) => {
           if (data.rotation) {
             const { beta, gamma } = data.rotation;
-            // Configuración de resorte más reactiva: mayor stiffness, menor damping
-            rotationX.value = withSpring(gamma, { damping: 18, stiffness: 150 });
+            // damping: 25 para un movimiento más suave y menos costoso
+            rotationX.value = withSpring(gamma, { damping: 25, stiffness: 80 });
             const adjustedBeta = Platform.OS === 'ios' ? beta - 1.1 : beta - 0.5;
-            rotationY.value = withSpring(adjustedBeta, { damping: 18, stiffness: 150 });
+            rotationY.value = withSpring(adjustedBeta, { damping: 25, stiffness: 80 });
           }
         });
       } catch (error) {
@@ -154,10 +157,10 @@ const styles = StyleSheet.create({
   },
   layer: {
     position: 'absolute',
-    top: -MAX_OFFSET * 1.5,
-    left: -MAX_OFFSET * 1.5,
-    width: W + MAX_OFFSET * 3,
-    height: H + MAX_OFFSET * 3,
+    top: -MAX_OFFSET,
+    left: -MAX_OFFSET,
+    width: W + MAX_OFFSET * 2,
+    height: H + MAX_OFFSET * 2,
     zIndex: 1, // Base layers at the bottom
   },
   layerBottom: {
