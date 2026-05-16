@@ -1,35 +1,35 @@
-import React, { useState, useRef } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  TextInput,
   StatusBar,
   StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import * as AuthSession from "expo-auth-session";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 
+import { BlurView } from "expo-blur";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import RainOnGlass from "../../components/animations/RainOnGlass";
+import WaterParticles, { WaterParticlesRef } from "../../components/animations/WaterParticles";
+import ParallaxBackground from "../../components/parallaxBackground/ParallaxBackground";
+import Toast from "../../components/ui/toast/Toast";
+import { getAuthErrorMessage, signIn, signInWithGoogle, signUp } from "../../services/authService";
 import { useTheme } from "../../theme/desingSystem";
 import { createStyles } from "./Login.styles";
-import ParallaxBackground from "../../components/parallaxBackground/ParallaxBackground";
-import { signIn, signInWithGoogle, signUp, getAuthErrorMessage } from "../../services/authService";
-import Toast from "../../components/ui/toast/Toast";
-import WaterParticles, { WaterParticlesRef } from "../../components/animations/WaterParticles";
-import RainOnGlass from "../../components/animations/RainOnGlass";
-import { BlurView } from "expo-blur";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from "react-native-reanimated";
 
 // Necesario para cerrar el browser de OAuth al volver a la app
 WebBrowser.maybeCompleteAuthSession();
@@ -92,13 +92,13 @@ export default function LoginScreen() {
     if (showRegister) {
       loginTranslateY.value = withTiming(80, { duration: 250 });
       loginOpacity.value = withTiming(0, { duration: 250 });
-      
-      registerTranslateY.value = withSpring(0, { damping: 18, stiffness: 85 });
+
+      registerTranslateY.value = withSpring(-70, { damping: 18, stiffness: 85 });
       registerOpacity.value = withTiming(1, { duration: 250 });
     } else {
       registerTranslateY.value = withTiming(-600, { duration: 250 });
       registerOpacity.value = withTiming(0, { duration: 250 });
-      
+
       loginTranslateY.value = withSpring(0, { damping: 18, stiffness: 85 });
       loginOpacity.value = withTiming(1, { duration: 250 });
     }
@@ -391,128 +391,128 @@ export default function LoginScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Brand */}
-          <View style={styles.brandContainer}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="leaf" size={52} color="#4ade80" />
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Brand */}
+            <View style={styles.brandContainer}>
+              <View style={styles.logoContainer}>
+                <Ionicons name="leaf" size={52} color="#4ade80" />
+              </View>
+              <Text style={styles.brandName}>iPlant</Text>
+              <Text style={styles.tagline}>Tu jardín inteligente</Text>
             </View>
-            <Text style={styles.brandName}>iPlant</Text>
-            <Text style={styles.tagline}>Tu jardín inteligente</Text>
-          </View>
 
-          {/* Form */}
-          <View style={styles.formContainer}>
-            {/* Email */}
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value, onBlur } }) => (
-                <View>
-                  <View style={styles.inputWrapper}>
-                    <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
-                    <TextInput
-                      ref={emailRef}
-                      style={styles.input}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      placeholder="Correo electrónico"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                  </View>
-                  {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-                </View>
-              )}
-            />
-
-            {/* Password */}
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, value, onBlur } }) => (
-                <View>
-                  <View style={styles.inputWrapper}>
-                    <Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
-                    <TextInput
-                      ref={passwordRef}
-                      style={styles.input}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      placeholder="Contraseña"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color="rgba(255,255,255,0.35)"
+            {/* Form */}
+            <View style={styles.formContainer}>
+              {/* Email */}
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value, onBlur } }) => (
+                  <View>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                      <TextInput
+                        ref={emailRef}
+                        style={styles.input}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        placeholder="Correo electrónico"
+                        placeholderTextColor="rgba(255,255,255,0.35)"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
                       />
-                    </TouchableOpacity>
+                    </View>
+                    {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
                   </View>
-                  {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-                </View>
-              )}
-            />
+                )}
+              />
 
-            {/* Forgot Password */}
-            <TouchableOpacity style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-            </TouchableOpacity>
+              {/* Password */}
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value, onBlur } }) => (
+                  <View>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                      <TextInput
+                        ref={passwordRef}
+                        style={styles.input}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        placeholder="Contraseña"
+                        placeholderTextColor="rgba(255,255,255,0.35)"
+                        secureTextEntry={!showPassword}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={styles.eyeIcon}
+                      >
+                        <Ionicons
+                          name={showPassword ? "eye-off-outline" : "eye-outline"}
+                          size={20}
+                          color="rgba(255,255,255,0.35)"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+                  </View>
+                )}
+              />
 
-            {/* Login Button */}
-            <TouchableOpacity
-              ref={loginBtnRef}
-              style={[styles.loginBtn, loading && { opacity: 0.7 }]}
-              onPress={handleSubmit(onSubmit)}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.loginBtnText}>Iniciar sesión</Text>
-              )}
-            </TouchableOpacity>
+              {/* Forgot Password */}
+              <TouchableOpacity style={styles.forgotBtn}>
+                <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+              </TouchableOpacity>
 
-            {/* Divider */}
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o continúa con</Text>
-              <View style={styles.dividerLine} />
+              {/* Login Button */}
+              <TouchableOpacity
+                ref={loginBtnRef}
+                style={[styles.loginBtn, loading && { opacity: 0.7 }]}
+                onPress={handleSubmit(onSubmit)}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#000" />
+                ) : (
+                  <Text style={styles.loginBtnText}>Iniciar sesión</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>o continúa con</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              {/* Google Button */}
+              <TouchableOpacity
+                ref={googleBtnRef}
+                style={[styles.googleBtn, googleLoading && { opacity: 0.7 }]}
+                onPress={handleGoogleSignIn}
+                disabled={googleLoading}
+              >
+                {googleLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="logo-google" size={20} color="#fff" />
+                    <Text style={styles.googleBtnText}>Continuar con Google</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
             </View>
-
-            {/* Google Button */}
-            <TouchableOpacity
-              ref={googleBtnRef}
-              style={[styles.googleBtn, googleLoading && { opacity: 0.7 }]}
-              onPress={handleGoogleSignIn}
-              disabled={googleLoading}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="logo-google" size={20} color="#fff" />
-                  <Text style={styles.googleBtnText}>Continuar con Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-          </View>
-        </ScrollView>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Animated.View>
     </ParallaxBackground>
