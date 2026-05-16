@@ -9,14 +9,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { width: W, height: H } = Dimensions.get('window');
-const MAX_OFFSET = 35;
-const BOTTOM_LAYER_WIDTH = (W + MAX_OFFSET * 2) * 2.5; 
+const MAX_OFFSET = 60;
+const BOTTOM_LAYER_WIDTH = (W + MAX_OFFSET * 2) * 3; 
 const BOTTOM_LAYER_HEIGHT = BOTTOM_LAYER_WIDTH * (9 / 16);
 
 const LAYERS = [
-  { source: require('../../../assets/images/layer1.jpeg'), factor: 0.06 },
-  { source: require('../../../assets/images/layer2.png'), factor: 0.5 }, // Aumentado para acercarla
-  { source: require('../../../assets/images/layer3.png'), factor: 1.5 },
+  { source: require('../../../assets/images/layer1.jpeg'), factor: 0.05 },
+  { source: require('../../../assets/images/layer2.png'), factor: 0.8 },
+  { source: require('../../../assets/images/layer3.png'), factor: 3.2 },
 ];
 
 interface ParallaxLayerProps {
@@ -24,38 +24,33 @@ interface ParallaxLayerProps {
   factor: number;
   rotation: { x: SharedValue<number>; y: SharedValue<number> };
   isBottomLayer?: boolean;
-  baseScale?: number;
-  baseTranslateY?: number;
 }
 
 const ParallaxLayer = ({ 
   source, 
   factor, 
   rotation, 
-  isBottomLayer, 
-  baseScale = 1,
-  baseTranslateY = 0 
+  isBottomLayer
 }: ParallaxLayerProps) => {
   const animatedStyle = useAnimatedStyle(() => {
-    let tx = rotation.x.value * MAX_OFFSET * factor * 0.5;
-    let ty = rotation.y.value * MAX_OFFSET * factor * 0.5;
+    let tx = rotation.x.value * MAX_OFFSET * factor;
+    let ty = rotation.y.value * MAX_OFFSET * factor;
 
-    if (isBottomLayer) {
-      tx = Math.max(Math.min(tx, 50), -150);
-      ty = Math.max(Math.min(ty, 30), -30);
-    }
+    // We no longer need restrictive clamping for Layer 3 as its size covers the motion
 
     return {
       transform: [
         { translateX: tx },
-        { translateY: ty + baseTranslateY },
-        { scale: baseScale },
+        { translateY: ty },
       ],
     };
   });
 
   return (
-    <Animated.View style={[isBottomLayer ? styles.layerBottom : styles.layer, animatedStyle]}>
+    <Animated.View 
+      style={[isBottomLayer ? styles.layerBottom : styles.layer, animatedStyle]}
+      pointerEvents="none"
+    >
       <Image
         source={source}
         style={styles.image}
@@ -88,50 +83,50 @@ export default function ParallaxBackground({
           if (status !== 'granted') return;
         }
 
+        // Intervalo de 16ms (~60fps) para máxima fluidez
         DeviceMotion.setUpdateInterval(16);
-        DeviceMotion.removeAllListeners();
-
+        
         subscription = DeviceMotion.addListener((data: DeviceMotionMeasurement) => {
           if (data.rotation) {
             const { beta, gamma } = data.rotation;
-            rotationX.value = withSpring(gamma, { damping: 20, stiffness: 90 });
+            // Configuración de resorte más reactiva: mayor stiffness, menor damping
+            rotationX.value = withSpring(gamma, { damping: 18, stiffness: 150 });
             const adjustedBeta = Platform.OS === 'ios' ? beta - 1.1 : beta - 0.5;
-            rotationY.value = withSpring(adjustedBeta, { damping: 20, stiffness: 90 });
+            rotationY.value = withSpring(adjustedBeta, { damping: 18, stiffness: 150 });
           }
         });
       } catch (error) {
-        console.error('[DeviceMotion] Error starting motion:', error);
+        console.log('[DeviceMotion] Error:', error);
       }
     };
 
     startMotion();
 
     return () => {
-      if (subscription) subscription.remove();
-      DeviceMotion.removeAllListeners();
+      subscription?.remove();
     };
   }, []);
 
   return (
     <View style={styles.container}>
-      {/* Layer 1: Fondo (Cielo) */}
+      {/* Layer 1: Fondo */}
       <ParallaxLayer
         source={LAYERS[0].source}
         factor={LAYERS[0].factor}
         rotation={{ x: rotationX, y: rotationY }}
       />
 
-      {/* Layer 2: Siluetas (Plano intermedio) */}
+      {/* Layer 2: Siluetas */}
       <ParallaxLayer
         source={LAYERS[1].source}
         factor={LAYERS[1].factor}
         rotation={{ x: rotationX, y: rotationY }}
-        baseScale={1.0}
-        baseTranslateY={0}
       />
 
       {/* CONTENIDO INTERMEDIO (UI) */}
-      <View style={styles.content}>{children}</View>
+      <View style={styles.content} pointerEvents="box-none">
+        {children}
+      </View>
 
       {/* Layer 3: Hojas primer plano */}
       <ParallaxLayer
@@ -141,8 +136,12 @@ export default function ParallaxBackground({
         isBottomLayer
       />
 
-      {/* CONTENIDO SUPERIOR (Encima de todo) */}
-      {foregroundChildren && <View style={styles.content}>{foregroundChildren}</View>}
+      {/* CONTENIDO SUPERIOR */}
+      {foregroundChildren && (
+        <View style={styles.contentOverlay} pointerEvents="box-none">
+          {foregroundChildren}
+        </View>
+      )}
     </View>
   );
 }
@@ -155,10 +154,11 @@ const styles = StyleSheet.create({
   },
   layer: {
     position: 'absolute',
-    top: -MAX_OFFSET,
-    left: -MAX_OFFSET,
-    width: W + MAX_OFFSET * 2,
-    height: H + MAX_OFFSET * 2,
+    top: -MAX_OFFSET * 1.5,
+    left: -MAX_OFFSET * 1.5,
+    width: W + MAX_OFFSET * 3,
+    height: H + MAX_OFFSET * 3,
+    zIndex: 1, // Base layers at the bottom
   },
   layerBottom: {
     position: 'absolute',
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     left: -W * 0.99,
     width: BOTTOM_LAYER_WIDTH,
     height: BOTTOM_LAYER_HEIGHT,
-    zIndex: 20,
+    zIndex: 5, // Foreground leaves above background but below UI
   },
   image: {
     width: '100%',
@@ -174,6 +174,11 @@ const styles = StyleSheet.create({
   },
   content: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 50, 
+    zIndex: 10, // UI above background and foreground leaves
+  },
+  contentOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20, // Toasts and status bar on top of everything
   },
 });
+

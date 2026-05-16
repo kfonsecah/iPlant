@@ -50,9 +50,9 @@ export const createStyles = (theme: AppTheme) =>
       gap: 16,
     },
     inputWrapper: {
-      backgroundColor: "rgba(255,255,255,0.07)",
+      backgroundColor: "rgba(255,255,255,0.12)",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)",
+      borderColor: "rgba(255,255,255,0.2)",
       borderRadius: 14,
       height: 52,
       flexDirection: "row",
@@ -74,7 +74,7 @@ export const createStyles = (theme: AppTheme) =>
     errorText: {
       color: "#f87171",
       fontSize: 12,
-      marginTop: -12,
+      marginTop: 4,
       marginLeft: 4,
     },
     forgotBtn: {
