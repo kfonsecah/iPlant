@@ -10,7 +10,7 @@ import Animated, {
 
 const { width: W, height: H } = Dimensions.get('window');
 const MAX_OFFSET = 35;
-const BOTTOM_LAYER_WIDTH = (W + MAX_OFFSET * 2) * 2.5; 
+const BOTTOM_LAYER_WIDTH = (W + MAX_OFFSET * 2) * 2.5;
 const BOTTOM_LAYER_HEIGHT = BOTTOM_LAYER_WIDTH * (9 / 16);
 
 const LAYERS = [
@@ -27,10 +27,10 @@ interface ParallaxLayerProps {
   zIndex?: number;
 }
 
-const ParallaxLayer = ({ 
-  source, 
-  factor, 
-  rotation, 
+const ParallaxLayer = ({
+  source,
+  factor,
+  rotation,
   isBottomLayer,
   zIndex
 }: ParallaxLayerProps) => {
@@ -52,7 +52,7 @@ const ParallaxLayer = ({
   });
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[isBottomLayer ? styles.layerBottom : styles.layer, animatedStyle, { zIndex }]}
       pointerEvents="none"
     >
@@ -68,11 +68,13 @@ const ParallaxLayer = ({
 export default function ParallaxBackground({
   children,
   foregroundChildren,
-  ambientChildren
+  ambientChildren,
+  behindForeground
 }: {
   children: React.ReactNode;
   foregroundChildren?: React.ReactNode;
   ambientChildren?: React.ReactNode;
+  behindForeground?: React.ReactNode;
 }) {
   const rotationX = useSharedValue(0);
   const rotationY = useSharedValue(0);
@@ -92,7 +94,7 @@ export default function ParallaxBackground({
 
         // Intervalo más conservador (32ms = ~30fps) para evitar saturar el JS thread
         DeviceMotion.setUpdateInterval(32);
-        
+
         subscription = DeviceMotion.addListener((data: DeviceMotionMeasurement) => {
           if (data.rotation) {
             const { beta, gamma } = data.rotation;
@@ -129,6 +131,13 @@ export default function ParallaxBackground({
         {ambientChildren}
       </View>
 
+      {/* BEHIND FOREGROUND */}
+      {behindForeground && (
+        <View style={styles.behindForegroundOverlay} pointerEvents="box-none">
+          {behindForeground}
+        </View>
+      )}
+
       {/* Layer 2: Siluetas (Sobre la animación) */}
       <ParallaxLayer
         source={LAYERS[1].source}
@@ -148,7 +157,7 @@ export default function ParallaxBackground({
         factor={LAYERS[2].factor}
         rotation={{ x: rotationX, y: rotationY }}
         isBottomLayer
-        zIndex={5}
+        zIndex={15}
       />
 
       {/* CONTENIDO SUPERIOR */}
@@ -174,6 +183,7 @@ const styles = StyleSheet.create({
     width: W + MAX_OFFSET * 2,
     height: H + MAX_OFFSET * 2,
     zIndex: 1, // Base layers at the bottom
+    elevation: 0,
   },
   layerBottom: {
     position: 'absolute',
@@ -181,7 +191,8 @@ const styles = StyleSheet.create({
     left: -W * 0.99,
     width: BOTTOM_LAYER_WIDTH,
     height: BOTTOM_LAYER_HEIGHT,
-    zIndex: 5, // Foreground leaves above background but below UI
+    zIndex: 15, // Foreground leaves above background and UI
+    elevation: 15, // High elevation for Android to stay on top
   },
   image: {
     width: '100%',
@@ -189,11 +200,18 @@ const styles = StyleSheet.create({
   },
   content: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 10, // UI above background and foreground leaves
+    zIndex: 4, // UI above background layers but below foreground leaves
   },
   contentOverlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 20, // Toasts and status bar on top of everything
+    elevation: 20, // Ensure it stays on top on Android too
+  },
+  behindForegroundOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    elevation: 10,
+    justifyContent: 'center',
   },
 });
 

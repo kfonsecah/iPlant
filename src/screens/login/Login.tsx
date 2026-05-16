@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   TextInput,
   StatusBar,
+  StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -23,10 +24,12 @@ import * as WebBrowser from "expo-web-browser";
 import { useTheme } from "../../theme/desingSystem";
 import { createStyles } from "./Login.styles";
 import ParallaxBackground from "../../components/parallaxBackground/ParallaxBackground";
-import { signIn, signInWithGoogle, getAuthErrorMessage } from "../../services/authService";
+import { signIn, signInWithGoogle, signUp, getAuthErrorMessage } from "../../services/authService";
 import Toast from "../../components/ui/toast/Toast";
 import WaterParticles, { WaterParticlesRef } from "../../components/animations/WaterParticles";
 import RainOnGlass from "../../components/animations/RainOnGlass";
+import { BlurView } from "expo-blur";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from "react-native-reanimated";
 
 // Necesario para cerrar el browser de OAuth al volver a la app
 WebBrowser.maybeCompleteAuthSession();
@@ -42,6 +45,18 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
+
+const registerSchema = z.object({
+  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(40),
+  email: z.string().email("Correo electrónico no válido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  confirmPassword: z.string(),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -59,6 +74,53 @@ export default function LoginScreen() {
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const [showRegister, setShowRegister] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  const loginTranslateY = useSharedValue(0);
+  const loginOpacity = useSharedValue(1);
+  const registerTranslateY = useSharedValue(-600);
+  const registerOpacity = useSharedValue(0);
+
+  React.useEffect(() => {
+    if (showRegister) {
+      loginTranslateY.value = withTiming(80, { duration: 250 });
+      loginOpacity.value = withTiming(0, { duration: 250 });
+      
+      registerTranslateY.value = withSpring(0, { damping: 18, stiffness: 85 });
+      registerOpacity.value = withTiming(1, { duration: 250 });
+    } else {
+      registerTranslateY.value = withTiming(-600, { duration: 250 });
+      registerOpacity.value = withTiming(0, { duration: 250 });
+      
+      loginTranslateY.value = withSpring(0, { damping: 18, stiffness: 85 });
+      loginOpacity.value = withTiming(1, { duration: 250 });
+    }
+  }, [showRegister]);
+
+  const loginAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: loginOpacity.value,
+    transform: [{ translateY: loginTranslateY.value }],
+  }));
+
+  const registerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: registerOpacity.value,
+    transform: [{ translateY: registerTranslateY.value }],
+  }));
+
+  const { control: registerControl, handleSubmit: handleRegisterSubmit, formState: { errors: registerErrors }, reset: resetRegister } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      nombre: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -103,6 +165,19 @@ export default function LoginScreen() {
       setToastMessage(getAuthErrorMessage(error));
       setToastVisible(true);
       setLoading(false);
+    }
+  };
+
+  const onRegisterSubmit = async (data: RegisterForm) => {
+    setRegisterLoading(true);
+    try {
+      await signUp(data.nombre, data.email, data.password);
+      setShowRegister(false);
+      resetRegister();
+    } catch (error) {
+      setToastMessage(getAuthErrorMessage(error));
+      setToastVisible(true);
+      setRegisterLoading(false);
     }
   };
 
@@ -151,13 +226,171 @@ export default function LoginScreen() {
             onDismiss={() => setToastVisible(false)}
           />
           <WaterParticles ref={waterParticlesRef} />
+          {/* Register moved to foreground to stay on top of Layer 3 */}
+          <Animated.View style={[styles.registerContainer, loginAnimatedStyle]} pointerEvents={showRegister ? "none" : "auto"}>
+            <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+            <TouchableOpacity onPress={() => setShowRegister(true)}>
+              <Text style={styles.registerLink}>Regístrate</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </>
       }
+      behindForeground={
+        <Animated.View style={[styles.registerFormWrapper, registerAnimatedStyle]} pointerEvents={showRegister ? "auto" : "none"}>
+          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+          <View style={styles.registerFormInner}>
+            <Text style={styles.registerTitle}>Crear cuenta</Text>
+            <Text style={styles.registerSubtitle}>Únete a iPlant y comienza tu jardín</Text>
+
+            {/* Nombre */}
+            <Controller
+              control={registerControl}
+              name="nombre"
+              render={({ field: { onChange, value, onBlur } }) => (
+                <View>
+                  <View style={[styles.inputWrapper, focusedField === 'nombre' && styles.inputWrapperFocus]}>
+                    <Ionicons name="person-outline" size={20} color={focusedField === 'nombre' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={() => { setFocusedField(null); onBlur(); }}
+                      onFocus={() => setFocusedField('nombre')}
+                      placeholder="Nombre completo"
+                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      autoCapitalize="words"
+                    />
+                  </View>
+                  {registerErrors.nombre && <Text style={styles.errorText}>{registerErrors.nombre.message}</Text>}
+                </View>
+              )}
+            />
+
+            {/* Email */}
+            <Controller
+              control={registerControl}
+              name="email"
+              render={({ field: { onChange, value, onBlur } }) => (
+                <View>
+                  <View style={[styles.inputWrapper, focusedField === 'email' && styles.inputWrapperFocus]}>
+                    <Ionicons name="mail-outline" size={20} color={focusedField === 'email' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={() => { setFocusedField(null); onBlur(); }}
+                      onFocus={() => setFocusedField('email')}
+                      placeholder="Correo electrónico"
+                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+                  {registerErrors.email && <Text style={styles.errorText}>{registerErrors.email.message}</Text>}
+                </View>
+              )}
+            />
+
+            {/* Password */}
+            <Controller
+              control={registerControl}
+              name="password"
+              render={({ field: { onChange, value, onBlur } }) => (
+                <View>
+                  <View style={[styles.inputWrapper, focusedField === 'password' && styles.inputWrapperFocus]}>
+                    <Ionicons name="lock-closed-outline" size={20} color={focusedField === 'password' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={() => { setFocusedField(null); onBlur(); }}
+                      onFocus={() => setFocusedField('password')}
+                      placeholder="Contraseña"
+                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      secureTextEntry={!showRegisterPassword}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowRegisterPassword(!showRegisterPassword)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons
+                        name={showRegisterPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={focusedField === 'password' ? "#4ade80" : "rgba(255,255,255,0.35)"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {registerErrors.password && <Text style={styles.errorText}>{registerErrors.password.message}</Text>}
+                </View>
+              )}
+            />
+
+            {/* Confirm Password */}
+            <Controller
+              control={registerControl}
+              name="confirmPassword"
+              render={({ field: { onChange, value, onBlur } }) => (
+                <View>
+                  <View style={[styles.inputWrapper, focusedField === 'confirmPassword' && styles.inputWrapperFocus]}>
+                    <Ionicons name="shield-checkmark-outline" size={20} color={focusedField === 'confirmPassword' ? "#4ade80" : "rgba(255,255,255,0.35)"} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={() => { setFocusedField(null); onBlur(); }}
+                      onFocus={() => setFocusedField('confirmPassword')}
+                      placeholder="Confirmar contraseña"
+                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      secureTextEntry={!showRegisterConfirmPassword}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons
+                        name={showRegisterConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={focusedField === 'confirmPassword' ? "#4ade80" : "rgba(255,255,255,0.35)"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {registerErrors.confirmPassword && <Text style={styles.errorText}>{registerErrors.confirmPassword.message}</Text>}
+                </View>
+              )}
+            />
+
+            {/* Register Button */}
+            <TouchableOpacity
+              style={[styles.loginBtn, registerLoading && { opacity: 0.7 }]}
+              onPress={handleRegisterSubmit(onRegisterSubmit)}
+              disabled={registerLoading}
+            >
+              {registerLoading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.loginBtnText}>Registrarse</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.registerFooter}>
+              <Text style={styles.registerText}>¿Ya tienes cuenta? </Text>
+              <TouchableOpacity onPress={() => setShowRegister(false)}>
+                <Text style={styles.registerLink}>Inicia sesión</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </Animated.View>
+      }
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
+      <Animated.View style={[styles.keyboardView, loginAnimatedStyle]} pointerEvents={showRegister ? "none" : "auto"}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+        >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -278,16 +511,10 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Register */}
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>¿No tienes cuenta? </Text>
-              <TouchableOpacity onPress={() => router.push("/(auth)/register" as any)}>
-                <Text style={styles.registerLink}>Regístrate</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </Animated.View>
     </ParallaxBackground>
   );
 }

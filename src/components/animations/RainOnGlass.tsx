@@ -23,7 +23,7 @@ const PARTICLE_COUNT = 60;
 const AmbientParticle = () => {
   const y = useSharedValue(-20);
   const x = useMemo(() => Math.random() * W, []);
-  const duration = useMemo(() => Math.random() * 2000 + 2000, []); // 2-4s
+  const duration = useMemo(() => Math.random() * 3000 + 4000, []); // 4-7s
   const delay = useMemo(() => Math.random() * 5000, []);
   const size = useMemo(() => Math.random() * 2 + 3, []); // 3-5px
 
@@ -39,7 +39,7 @@ const AmbientParticle = () => {
     left: x,
     width: size,
     height: size,
-    opacity: interpolate(y.value, [0, H * 0.1, H * 0.9, H], [0, 0.18, 0.18, 0], Extrapolate.CLAMP),
+    opacity: interpolate(y.value, [0, H * 0.1, H * 0.9, H], [0, 0.14, 0.14, 0], Extrapolate.CLAMP),
   }));
 
   return <Animated.View style={[styles.particle, animatedStyle]} />;
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   particle: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.35)', 
     borderRadius: 10,
   },
 });
