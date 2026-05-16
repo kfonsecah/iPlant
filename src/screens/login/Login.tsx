@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,8 @@ import { createStyles } from "./Login.styles";
 import ParallaxBackground from "../../components/parallaxBackground/ParallaxBackground";
 import { signIn, signInWithGoogle, getAuthErrorMessage } from "../../services/authService";
 import Toast from "../../components/ui/toast/Toast";
+import WaterParticles, { WaterParticlesRef } from "../../components/animations/WaterParticles";
+import RainOnGlass from "../../components/animations/RainOnGlass";
 
 // Necesario para cerrar el browser de OAuth al volver a la app
 WebBrowser.maybeCompleteAuthSession();
@@ -60,6 +62,25 @@ export default function LoginScreen() {
     },
   });
 
+  // Refs para partículas
+  const waterParticlesRef = useRef<WaterParticlesRef>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const loginBtnRef = useRef<View>(null);
+  const googleBtnRef = useRef<View>(null);
+
+  const triggerEffect = (ref: React.RefObject<any>, type: 'typing' | 'press') => {
+    ref.current?.measureInWindow((x: number, y: number, width: number, height: number) => {
+      const centerX = x + width / 2;
+      const centerY = y + height / 2;
+      if (type === 'typing') {
+        waterParticlesRef.current?.triggerTyping(centerX, centerY);
+      } else {
+        waterParticlesRef.current?.triggerPress(centerX, centerY);
+      }
+    });
+  };
+
   // ── Google Auth ──────────────────────────────────────────────────────────────
   const [googleRequest] = AuthSession.useAuthRequest(
     {
@@ -74,6 +95,7 @@ export default function LoginScreen() {
   );
 
   const onSubmit = async (data: LoginForm) => {
+    triggerEffect(loginBtnRef, 'press');
     setLoading(true);
     try {
       await signIn(data.email, data.password);
@@ -85,6 +107,7 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
+    triggerEffect(googleBtnRef, 'press');
     if (!googleRequest || googleLoading) return;
     setGoogleLoading(true);
     try {
@@ -117,6 +140,7 @@ export default function LoginScreen() {
 
   return (
     <ParallaxBackground
+      ambientChildren={<RainOnGlass />}
       foregroundChildren={
         <>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -126,6 +150,7 @@ export default function LoginScreen() {
             type="error"
             onDismiss={() => setToastVisible(false)}
           />
+          <WaterParticles ref={waterParticlesRef} />
         </>
       }
     >
@@ -158,6 +183,7 @@ export default function LoginScreen() {
                   <View style={styles.inputWrapper}>
                     <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
                     <TextInput
+                      ref={emailRef}
                       style={styles.input}
                       value={value}
                       onChangeText={onChange}
@@ -183,6 +209,7 @@ export default function LoginScreen() {
                   <View style={styles.inputWrapper}>
                     <Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
                     <TextInput
+                      ref={passwordRef}
                       style={styles.input}
                       value={value}
                       onChangeText={onChange}
@@ -215,6 +242,7 @@ export default function LoginScreen() {
 
             {/* Login Button */}
             <TouchableOpacity
+              ref={loginBtnRef}
               style={[styles.loginBtn, loading && { opacity: 0.7 }]}
               onPress={handleSubmit(onSubmit)}
               disabled={loading}
@@ -235,6 +263,7 @@ export default function LoginScreen() {
 
             {/* Google Button */}
             <TouchableOpacity
+              ref={googleBtnRef}
               style={[styles.googleBtn, googleLoading && { opacity: 0.7 }]}
               onPress={handleGoogleSignIn}
               disabled={googleLoading}

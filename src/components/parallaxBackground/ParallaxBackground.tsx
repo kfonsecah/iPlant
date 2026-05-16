@@ -24,13 +24,15 @@ interface ParallaxLayerProps {
   factor: number;
   rotation: { x: SharedValue<number>; y: SharedValue<number> };
   isBottomLayer?: boolean;
+  zIndex?: number;
 }
 
 const ParallaxLayer = ({ 
   source, 
   factor, 
   rotation, 
-  isBottomLayer
+  isBottomLayer,
+  zIndex
 }: ParallaxLayerProps) => {
   const animatedStyle = useAnimatedStyle(() => {
     let tx = rotation.x.value * MAX_OFFSET * factor * 0.5;
@@ -51,7 +53,7 @@ const ParallaxLayer = ({
 
   return (
     <Animated.View 
-      style={[isBottomLayer ? styles.layerBottom : styles.layer, animatedStyle]}
+      style={[isBottomLayer ? styles.layerBottom : styles.layer, animatedStyle, { zIndex }]}
       pointerEvents="none"
     >
       <Image
@@ -65,10 +67,12 @@ const ParallaxLayer = ({
 
 export default function ParallaxBackground({
   children,
-  foregroundChildren
+  foregroundChildren,
+  ambientChildren
 }: {
   children: React.ReactNode;
   foregroundChildren?: React.ReactNode;
+  ambientChildren?: React.ReactNode;
 }) {
   const rotationX = useSharedValue(0);
   const rotationY = useSharedValue(0);
@@ -112,18 +116,25 @@ export default function ParallaxBackground({
 
   return (
     <View style={styles.container}>
-      {/* Layer 1: Fondo */}
+      {/* Layer 1: Fondo (El más profundo) */}
       <ParallaxLayer
         source={LAYERS[0].source}
         factor={LAYERS[0].factor}
         rotation={{ x: rotationX, y: rotationY }}
+        zIndex={1}
       />
 
-      {/* Layer 2: Siluetas */}
+      {/* AMBIENT CONTENT (Partículas/Lluvia entre capa 1 y 2) */}
+      <View style={[StyleSheet.absoluteFill, { zIndex: 2 }]} pointerEvents="none">
+        {ambientChildren}
+      </View>
+
+      {/* Layer 2: Siluetas (Sobre la animación) */}
       <ParallaxLayer
         source={LAYERS[1].source}
         factor={LAYERS[1].factor}
         rotation={{ x: rotationX, y: rotationY }}
+        zIndex={3}
       />
 
       {/* CONTENIDO INTERMEDIO (UI) */}
@@ -131,12 +142,13 @@ export default function ParallaxBackground({
         {children}
       </View>
 
-      {/* Layer 3: Hojas primer plano */}
+      {/* Layer 3: Hojas primer plano (Al frente) */}
       <ParallaxLayer
         source={LAYERS[2].source}
         factor={LAYERS[2].factor}
         rotation={{ x: rotationX, y: rotationY }}
         isBottomLayer
+        zIndex={5}
       />
 
       {/* CONTENIDO SUPERIOR */}
