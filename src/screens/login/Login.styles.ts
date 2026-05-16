@@ -145,12 +145,13 @@ export const createStyles = (theme: AppTheme) =>
       marginTop: 20,
     },
     registerText: {
-      color: "rgba(255,255,255,0.5)",
-      fontSize: 14,
+      color: "rgba(255,255,255,0.85)",
+      fontSize: 15,
     },
     registerLink: {
       color: "#4ade80",
-      fontWeight: "600",
+      fontWeight: "700",
+      fontSize: 15,
     },
   });
 
