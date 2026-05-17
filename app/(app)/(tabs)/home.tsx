@@ -12,7 +12,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useSync } from "../../../src/context/SyncContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
@@ -77,61 +76,58 @@ export default function HomeIndex() {
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER BANNER */}
-        <View style={{ position: "relative", width: "100%", height: 200 }}>
+        <View style={{ position: "relative", width: "100%", height: 220, overflow: "hidden", borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
           <Image 
             source={require("../../../assets/images/banner.jpeg")} 
-            style={{ width: "100%", height: "100%", resizeMode: "cover" }} 
+            style={{ width: "100%", height: "100%", resizeMode: "cover", position: "absolute" }} 
           />
-          <LinearGradient
-            colors={["rgba(0,0,0,0.15)", "rgba(0,0,0,0.7)"]}
-            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-          />
-          
-          <View style={{ position: "absolute", bottom: 16, left: 20 }}>
-            <Text style={{ fontSize: 22, fontWeight: "300", color: "#fff", marginBottom: 4 }}>
-              Hola, {authUser?.displayName || "Usuario"}!
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="partly-sunny-outline" size={13} color="rgba(255,255,255,0.6)" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Nublado 22°</Text>
+
+          <View style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <View>
+                <Text style={{ fontSize: 22, fontWeight: "600", color: "#fff", textShadowColor: "rgba(0,0,0,0.4)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
+                  Hola, {authUser?.displayName || "Usuario"}!
+                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4, gap: 4 }}>
+                  <Ionicons name="partly-sunny-outline" size={13} color="rgba(255,255,255,0.85)" />
+                  <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Nublado 22°</Text>
+                </View>
+              </View>
+
+              <View>
+                {authUser?.photoURL ? (
+                  <Image 
+                    source={{ uri: authUser.photoURL }} 
+                    style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: "#fff" }} 
+                  />
+                ) : (
+                  <Ionicons name="person-circle-outline" size={42} color="#fff" />
+                )}
+              </View>
+            </View>
+
+            {/* SEARCH BAR inside the banner */}
+            <View style={[{ 
+              backgroundColor: "rgba(255,255,255,0.25)", 
+              borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", 
+              borderRadius: 14, height: 44, 
+              flexDirection: "row", alignItems: "center" 
+            }, { backdropFilter: "blur(10px)" } as any]}>
+              <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.7)" style={{ paddingLeft: 14, marginRight: 8 }} />
+              <TextInput
+                style={{ flex: 1, color: "#fff", fontSize: 14 }}
+                placeholder="Buscar plantas..."
+                placeholderTextColor="rgba(255,255,255,0.6)"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")} style={{ paddingRight: 14 }}>
+                  <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
-
-          <View style={{ position: "absolute", top: 48, right: 20 }}>
-            {authUser?.photoURL ? (
-              <Image 
-                source={{ uri: authUser.photoURL }} 
-                style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "#4ade80" }} 
-              />
-            ) : (
-              <View style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "#4ade80", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.3)" }}>
-                <Ionicons name="person-circle-outline" size={34} color="#4ade80" />
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* SEARCH BAR */}
-        <View style={{ 
-          marginHorizontal: 20, marginTop: 16, marginBottom: 8, 
-          backgroundColor: "rgba(255,255,255,0.06)", 
-          borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", 
-          borderRadius: 14, height: 46, 
-          flexDirection: "row", alignItems: "center", paddingHorizontal: 14 
-        }}>
-          <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.3)" style={{ marginRight: 8 }} />
-          <TextInput
-            style={{ flex: 1, color: "#fff", fontSize: 14 }}
-            placeholder="Buscar plantas..."
-            placeholderTextColor="rgba(255,255,255,0.3)"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.3)" />
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* AI ASSISTANT BANNER CARD */}
