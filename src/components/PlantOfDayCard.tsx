@@ -1,5 +1,8 @@
 import React from "react";
-import { Image, ImageSourcePropType, ImageStyle, StyleProp, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, Image, ImageSourcePropType, ImageStyle, StyleProp, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = width - 30;
 
 interface PlantOfDayCardProps {
   label?: string;
@@ -49,7 +52,7 @@ export default function PlantOfDayCard({
 const styles = StyleSheet.create({
   container: {
     marginTop: 20,
-    width: 320,
+    width: CARD_WIDTH,
     backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",

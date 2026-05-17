@@ -3,7 +3,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { ResizeMode, Video } from "expo-av";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -14,6 +14,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Dimensions,
+  Animated,
+  Easing,
 } from "react-native";
 import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import { useAuth } from "../../../src/context/AuthContext";
@@ -32,6 +35,66 @@ export default function HomeIndex() {
   const [plantas, setPlantas] = useState<PlantaCompletaInterface[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const carouselRef = useRef<ScrollView>(null);
+  const activeIndexRef = useRef(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    
+    const { width: windowWidth } = Dimensions.get("window");
+    const cardWidth = windowWidth - 30; 
+    const gap = 24; 
+    const step = cardWidth + gap;
+    
+    timerRef.current = setInterval(() => {
+      const nextIndex = activeIndexRef.current + 1;
+      
+      carouselRef.current?.scrollTo({
+        x: nextIndex * step,
+        animated: true,
+      });
+      
+      if (nextIndex === 5) {
+        setTimeout(() => {
+          carouselRef.current?.scrollTo({
+            x: 0,
+            animated: false,
+          });
+          activeIndexRef.current = 0;
+        }, 600);
+      } else {
+        activeIndexRef.current = nextIndex;
+      }
+    }, 10000);
+  }, []);
+
+  const handleScrollEnd = (e: any) => {
+    const contentOffsetX = e.nativeEvent.contentOffset.x;
+    const { width: windowWidth } = Dimensions.get("window");
+    const cardWidth = windowWidth - 30;
+    const gap = 24;
+    const step = cardWidth + gap;
+    
+    let index = Math.round(contentOffsetX / step);
+    
+    if (index >= 5) {
+      carouselRef.current?.scrollTo({ x: 0, animated: false });
+      index = 0;
+    }
+    activeIndexRef.current = index;
+    
+    // Reiniciar temporizador al scrollear manualmente
+    startTimer();
+  };
+
+  useEffect(() => {
+    startTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [startTimer]);
 
   const fetchData = useCallback(async (showLoading = true) => {
     if (!userId) return;
@@ -154,17 +217,18 @@ export default function HomeIndex() {
         >
           <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)" }} />
 
-          <View style={{ flex: 1, marginRight: 16 }}>
-            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>Pregúntale a tu</Text>
-            <Text style={{ fontSize: 19, fontWeight: "700", color: "#4ade80", textShadowColor: "rgba(0,0,0,0.5)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }}>Asistente IA</Text>
-            <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>Identifica plantas, revisa su salud</Text>
+          <View style={{ flex: 1, marginRight: 60, zIndex: 10 }}>
+            <Text style={{ fontSize: 22, fontWeight: "700", color: "white", lineHeight: 28 }}>
+              Pregúntale al Asistente de <Text style={{ color: '#4ade80' }}>IA</Text> de iPlant!
+            </Text>
+            <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6, lineHeight: 18 }}>El Asistente está listo para verificar{"\n"}la salud de tus plantas, programar recordatorios y darte consejos personalizados.</Text>
             <TouchableOpacity style={{ backgroundColor: "#4ade80", borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8, marginTop: 12, alignSelf: "flex-start" }}>
               <Text style={{ fontSize: 13, fontWeight: "600", color: "#000" }}>Chatear</Text>
             </TouchableOpacity>
           </View>
           <Video
             source={require("../../../assets/images/cara.mp4")}
-            style={[{ width: 200, height: 200, marginVertical: -70, marginRight: -50 }, { mixBlendMode: "screen" } as any]}
+            style={[{ position: "absolute", right: -30, width: 200, height: 200 }, { mixBlendMode: "screen" } as any]}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
             isLooping
@@ -180,13 +244,19 @@ export default function HomeIndex() {
           </TouchableOpacity>
         </View>
         <ScrollView
+          ref={carouselRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}
+          contentContainerStyle={{ paddingHorizontal: 15, gap: 24 }}
+          snapToInterval={Dimensions.get("window").width - 30 + 24}
+          decelerationRate="fast"
+          disableIntervalMomentum={true}
+          onMomentumScrollEnd={handleScrollEnd}
+          onScrollEndDrag={handleScrollEnd}
         >
           <PlantOfDayCard
             name="Monstera Deliciosa"
-            description="Perfecta para interiores con poca luz. Purifica el aire."
+            description={"Perfecta para interiores con\npoca luz. Purifica el aire."}
             image={require("../../../assets/images/monstera.png")}
           />
 
@@ -215,6 +285,13 @@ export default function HomeIndex() {
             description="Garra de langosta. Una de las flores tropicales más dramáticas del mundo."
             image={require("../../../assets/images/heliconia.png")}
             imageStyle={{ width: 140, height: 175, top: 13, left: 20 }}
+          />
+
+          {/* CLONE CARD FOR INFINITE SCROLL */}
+          <PlantOfDayCard
+            name="Monstera Deliciosa"
+            description={"Perfecta para interiores con\npoca luz. Purifica el aire."}
+            image={require("../../../assets/images/monstera.png")}
           />
         </ScrollView>
 
