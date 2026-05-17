@@ -32,7 +32,7 @@ function RootLayoutNav() {
       router.replace("/(auth)/login");
     } else if (user && inAuthGroup) {
       // Si hay usuario y estamos en auth, redirigir a la app
-      router.replace("/(app)/(tabs)/plants");
+      router.replace("/(app)/(tabs)/home");
     }
   }, [user, loading, segments, router]);
 

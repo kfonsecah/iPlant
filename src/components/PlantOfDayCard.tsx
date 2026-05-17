@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, ImageSourcePropType, StyleProp, ImageStyle } from "react-native";
+import { Image, ImageSourcePropType, ImageStyle, StyleProp, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface PlantOfDayCardProps {
   label?: string;
@@ -35,10 +35,10 @@ export default function PlantOfDayCard({
       {/* RIGHT SIDE */}
       <View style={styles.rightSide}>
         <View style={styles.imageContainer}>
-          <Image 
-            source={image} 
-            style={[styles.image, imageStyle]} 
-            resizeMode="contain" 
+          <Image
+            source={image}
+            style={[styles.image, imageStyle]}
+            resizeMode="contain"
           />
         </View>
       </View>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   rightSide: {
     position: "absolute",
-    right: -10,
+    right: -15,
     top: -30,
     bottom: 0,
     width: 160,

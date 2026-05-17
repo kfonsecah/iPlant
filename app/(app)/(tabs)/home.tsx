@@ -207,7 +207,14 @@ export default function HomeIndex() {
             name="Strelitzia Reginae"
             description="Ave del paraíso. Flores dramáticas en naranja y azul."
             image={require("../../../assets/images/strelitzia.png")}
-            imageStyle={{ bottom: -20 }}
+            imageStyle={{ bottom: 0 }}
+          />
+
+          <PlantOfDayCard
+            name="Heliconia Rostrata"
+            description="Garra de langosta. Una de las flores tropicales más dramáticas del mundo."
+            image={require("../../../assets/images/heliconia.png")}
+            imageStyle={{ width: 140, height: 175, top: 13, left: 20 }}
           />
         </ScrollView>
 
