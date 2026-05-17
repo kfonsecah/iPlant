@@ -164,7 +164,7 @@ export default function HomeIndex() {
           </View>
           <Video
             source={require("../../../assets/images/cara.mp4")}
-            style={[{ width: 150, height: 150, marginVertical: -40, marginRight: -16 }, { mixBlendMode: "screen" } as any]}
+            style={[{ width: 200, height: 200, marginVertical: -70, marginRight: -50 }, { mixBlendMode: "screen" } as any]}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
             isLooping
