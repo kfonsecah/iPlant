@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
@@ -60,6 +61,70 @@ app.post('/api/plants', (req, res) => {
     id: mockId,
     receivedData: plantData 
   });
+});
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages, imageBase64 } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server' });
+    }
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Messages are required and must be a non-empty array' });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction: `Eres Flora, asistente de IA especializada en plantas de iPlant. 
+Ayudas a identificar plantas, diagnosticar enfermedades, dar consejos 
+de cuidado y responder preguntas botánicas. Responde siempre en español,
+de forma amigable, concisa y precisa. Si el usuario comparte una imagen,
+analízala detalladamente. Usa markdown en tus respuestas: **negrita** para nombres de plantas,
+listas con - para pasos de cuidado, y ## para secciones cuando sea útil.`
+    });
+
+    // Extract history (all messages except the last one)
+    const history = messages.slice(0, -1).map(msg => ({
+      role: msg.role === 'model' ? 'model' : 'user',
+      parts: [{ text: msg.content || '' }]
+    }));
+
+    const latestMessage = messages[messages.length - 1];
+    
+    // Construct parts for latest message
+    const parts: any[] = [{ text: latestMessage.content || '' }];
+
+    if (imageBase64) {
+      let mimeType = 'image/jpeg';
+      let base64Data = imageBase64;
+      if (imageBase64.startsWith('data:')) {
+        const match = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          mimeType = match[1];
+          base64Data = match[2];
+        }
+      }
+      parts.push({
+        inlineData: {
+          data: base64Data,
+          mimeType
+        }
+      });
+    }
+
+    const chat = model.startChat({ history });
+    const result = await chat.sendMessage(parts);
+    const responseText = result.response.text();
+
+    res.json({ response: responseText });
+  } catch (error: any) {
+    console.error('Error in chat endpoint:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
 });
 
 app.listen(PORT, () => {

@@ -22,15 +22,15 @@ type TabItem = {
 };
 
 const ROUTE_MAP: Record<string, string> = {
-  home:     "/home",
-  diagnose: "/diagnose",
-  plants:   "/plants",
-  profile:  "/profile",
+  home:      "/home",
+  asistente: "/asistente",
+  plants:    "/plants",
+  profile:   "/profile",
 };
 
 const LEFT_TABS: TabItem[] = [
-  { key: "home",     label: "Para Ti",      icon: "home-outline",   iconActive: "home"   },
-  { key: "diagnose", label: "Diagnosticar", icon: "medkit-outline", iconActive: "medkit" },
+  { key: "home",      label: "Para Ti",  icon: "home-outline",                 iconActive: "home" },
+  { key: "asistente", label: "Asistente", icon: "chatbubble-ellipses-outline", iconActive: "chatbubble-ellipses" },
 ];
 
 const RIGHT_TABS: TabItem[] = [

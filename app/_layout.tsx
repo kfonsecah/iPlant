@@ -8,6 +8,7 @@ import {
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
 
 import { AuthProvider, useAuth } from "./../src/context/AuthContext";
@@ -63,12 +64,14 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <ConnectivityProvider>
-      <AuthProvider>
-        <SyncProvider>
-          <RootLayoutNav />
-        </SyncProvider>
-      </AuthProvider>
-    </ConnectivityProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ConnectivityProvider>
+        <AuthProvider>
+          <SyncProvider>
+            <RootLayoutNav />
+          </SyncProvider>
+        </AuthProvider>
+      </ConnectivityProvider>
+    </GestureHandlerRootView>
   );
 }
