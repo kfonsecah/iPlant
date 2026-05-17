@@ -63,6 +63,27 @@ app.post('/api/plants', (req, res) => {
   });
 });
 
+app.get('/api/test-models', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server' });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const results: any = {};
+    for (const modelName of ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.0-pro']) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent('hola');
+        results[modelName] = { success: true, text: result.response.text() };
+      } catch (e: any) {
+        results[modelName] = { success: false, error: e.message };
+      }
+    }
+    res.json(results);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, imageBase64 } = req.body;
