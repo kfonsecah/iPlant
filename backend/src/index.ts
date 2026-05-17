@@ -68,7 +68,10 @@ app.get('/api/test-models', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server' });
     const genAI = new GoogleGenerativeAI(apiKey);
-    const results: any = {};
+    const maskedKey = apiKey.length > 10 
+      ? `${apiKey.substring(0, 6)}...${apiKey.substring(apiKey.length - 4)}` 
+      : 'too_short';
+    const results: any = { maskedKey };
     for (const modelName of ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.0-pro']) {
       try {
         const model = genAI.getGenerativeModel({ model: modelName });
