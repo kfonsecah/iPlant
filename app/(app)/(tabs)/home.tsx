@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import { BlurView } from "expo-blur";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useSync } from "../../../src/context/SyncContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
@@ -107,26 +108,31 @@ export default function HomeIndex() {
             </View>
 
             {/* SEARCH BAR inside the banner */}
-            <View style={[{ 
-              backgroundColor: "rgba(255,255,255,0.25)", 
-              borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", 
-              borderRadius: 14, height: 44, 
-              flexDirection: "row", alignItems: "center" 
-            }, { backdropFilter: "blur(10px)" } as any]}>
-              <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.7)" style={{ paddingLeft: 14, marginRight: 8 }} />
+            <BlurView
+              intensity={20}
+              tint="light"
+              style={{ 
+                backgroundColor: "transparent", 
+                borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", 
+                borderRadius: 14, height: 44, 
+                flexDirection: "row", alignItems: "center",
+                overflow: "hidden"
+              }}
+            >
+              <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.8)" style={{ paddingLeft: 14, marginRight: 8 }} />
               <TextInput
                 style={{ flex: 1, color: "#fff", fontSize: 14 }}
                 placeholder="Buscar plantas..."
-                placeholderTextColor="rgba(255,255,255,0.6)"
+                placeholderTextColor="rgba(255,255,255,0.7)"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery("")} style={{ paddingRight: 14 }}>
-                  <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.7)" />
+                  <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.8)" />
                 </TouchableOpacity>
               )}
-            </View>
+            </BlurView>
           </View>
         </View>
 
