@@ -20,6 +20,7 @@ import { useSync } from "../../../src/context/SyncContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
 import { getPlantsByUserId } from "../../../src/services/plantService";
 import { PlantaCompletaInterface } from "../../../src/types-dtos/plant.types";
+import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 
 export default function HomeIndex() {
   const router = useRouter();
@@ -170,6 +171,15 @@ export default function HomeIndex() {
             isMuted 
           />
         </ImageBackground>
+
+        {/* PLANT OF DAY SECTION */}
+        <View style={{ marginHorizontal: 20, marginTop: 24, marginBottom: 0, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ fontSize: 17, fontWeight: "500", color: "#fff" }}>Destacada hoy</Text>
+          <TouchableOpacity>
+            <Text style={{ fontSize: 13, color: "#4ade80" }}>Ver colección</Text>
+          </TouchableOpacity>
+        </View>
+        <PlantOfDayCard />
 
         {/* MY PLANTS SECTION */}
         <View style={{ marginHorizontal: 20, marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
