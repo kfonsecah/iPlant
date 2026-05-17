@@ -202,6 +202,13 @@ export default function HomeIndex() {
             description="Flores exóticas de larga duración. Símbolo de hospitalidad y abundancia."
             image={require("../../../assets/images/andrea.png")}
           />
+
+          <PlantOfDayCard
+            name="Strelitzia Reginae"
+            description="Ave del paraíso. Flores dramáticas en naranja y azul eléctrico."
+            image={require("../../../assets/images/strelitzia.png")}
+            imageStyle={{ bottom: -20 }}
+          />
         </ScrollView>
 
         {/* MY PLANTS SECTION */}
