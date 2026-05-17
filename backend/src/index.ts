@@ -72,7 +72,7 @@ app.get('/api/test-models', async (req, res) => {
       ? `${apiKey.substring(0, 6)}...${apiKey.substring(apiKey.length - 4)}` 
       : 'too_short';
     const results: any = { maskedKey };
-    for (const modelName of ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.0-pro']) {
+    for (const modelName of ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.0-pro']) {
       try {
         const model = genAI.getGenerativeModel({ model: modelName });
         const result = await model.generateContent('hola');
@@ -104,8 +104,13 @@ app.post('/api/chat', async (req, res) => {
     
     // Define a robust sequence of fallback models to guarantee success
     const modelsToTry = [
+      { name: 'gemini-2.5-flash', useSystemInstruction: true },
+      { name: 'gemini-2.5-pro', useSystemInstruction: true },
+      { name: 'gemini-2.0-flash', useSystemInstruction: true },
+      { name: 'gemini-2.0-flash-lite', useSystemInstruction: true },
       { name: 'gemini-1.5-flash', useSystemInstruction: true },
       { name: 'gemini-1.5-flash-latest', useSystemInstruction: true },
+      { name: 'gemini-1.5-pro', useSystemInstruction: true },
       { name: 'gemini-pro', useSystemInstruction: false }
     ];
 
