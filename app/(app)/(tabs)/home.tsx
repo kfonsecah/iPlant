@@ -196,6 +196,12 @@ export default function HomeIndex() {
             image={require("../../../assets/images/ficus.png")}
             imageStyle={{ width: 130, height: 160, marginTop: 20, marginLeft: 15 }}
           />
+
+          <PlantOfDayCard
+            name="Anthurium Andreanum"
+            description="Flores exóticas de larga duración. Símbolo de hospitalidad y abundancia."
+            image={require("../../../assets/images/andrea.png")}
+          />
         </ScrollView>
 
         {/* MY PLANTS SECTION */}

@@ -24,7 +24,7 @@ export default function PlantOfDayCard({
       <View style={styles.leftSide}>
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.title}>{name}</Text>
-        <Text style={styles.description}>
+        <Text style={styles.description} numberOfLines={2}>
           {description}
         </Text>
         <TouchableOpacity style={styles.button}>
@@ -59,9 +59,10 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   leftSide: {
-    padding: 20,
+    padding: 16,
     flex: 1,
     zIndex: 10,
+    justifyContent: 'center',
   },
   label: {
     fontSize: 10,
