@@ -99,7 +99,7 @@ interface ThemeSpacing {
 
 interface TextStyleToken {
     fontSize: number;
-    fontWeight: "400" | "500" | "600" | "700";
+    fontWeight: "300" | "400" | "500" | "600" | "700";
     lineHeight: number;
     letterSpacing: number;
 }
@@ -256,112 +256,62 @@ export interface AppTheme {
 
 const darkColors: ThemeColors = {
     // Backgrounds
-    background: "#0D1117",
-    backgroundCard: "#161B22",
-    backgroundChip: "#1C2128",
+    background: "#0A0A0A",
+    backgroundCard: "rgba(255,255,255,0.05)",
+    backgroundChip: "rgba(255,255,255,0.07)",
     // Semantic surfaces
-    surface: "#161B22",
-    surfaceElevated: "#1C2128",
+    surface: "rgba(255,255,255,0.05)",
+    surfaceElevated: "rgba(255,255,255,0.07)",
     // Border
-    border: "#21262D",
-    // Brand – Primary (emerald green)
-    primary: "#34D399",
-    primaryPressed: "#059669",
-    primaryDisabled: "#1A3D2F",
-    // Brand – Secondary (mint / lighter green)
-    secondary: "#86EFAC",
-    secondaryPressed: "#4ADE80",
-    secondaryDisabled: "#1E3A28",
+    border: "rgba(255,255,255,0.08)",
+    // Brand – Primary
+    primary: "#4ADE80",
+    primaryPressed: "#22C55E",
+    primaryDisabled: "rgba(74,222,128,0.3)",
+    // Brand – Secondary
+    secondary: "rgba(255,255,255,0.07)",
+    secondaryPressed: "rgba(255,255,255,0.1)",
+    secondaryDisabled: "rgba(255,255,255,0.03)",
     // Accent (legacy alias)
-    accent: "#34D399",
-    accentDim: "#163330",
-    accentWithAlpha: "#34D39960",
+    accent: "#4ADE80",
+    accentDim: "rgba(74,222,128,0.1)",
+    accentWithAlpha: "rgba(74,222,128,0.6)",
     // Feedback – Error
     error: "#F87171",
-    errorPressed: "#DC2626",
-    errorDisabled: "#3D1515",
-    errorDim: "#2D1515",
+    errorPressed: "#EF4444",
+    errorDisabled: "rgba(248,113,113,0.3)",
+    errorDim: "rgba(248,113,113,0.12)",
     // Feedback – Warning
     warning: "#F59E0B",
     warningDim: "#2A1C00",
     warningWithAlpha: "#F59E0B52",
     // Feedback – Success
-    success: "#34D399",
-    successPressed: "#059669",
-    successDisabled: "#1A3D2F",
-    successDim: "#163330",
+    success: "#4ADE80",
+    successPressed: "#22C55E",
+    successDisabled: "rgba(74,222,128,0.3)",
+    successDim: "rgba(74,222,128,0.1)",
     // Interaction States
-    disabled: "#21262D",
-    disabledText: "#4B5563",
-    hover: "#1F2937",
-    overlay: "#00000099",
+    disabled: "rgba(255,255,255,0.03)",
+    disabledText: "rgba(255,255,255,0.3)",
+    hover: "rgba(255,255,255,0.1)",
+    overlay: "rgba(0,0,0,0.85)",
     // Text
-    textPrimary: "#E6EDF3",
-    textSecondary: "#8B949E",
-    textOnAccent: "#FFFFFF",
+    textPrimary: "#FFFFFF",
+    textSecondary: "rgba(255,255,255,0.55)",
+    textOnAccent: "#000000",
     // Tab Bar
-    tabBarBackground: "#161B22",
-    tabBarBorder: "#21262D",
-    tabBarActive: "#34D399",
-    tabBarInactive: "#4B5563",
-    tabBarCenterButton: "#34D399",
-    chip: "#1C2128",
+    tabBarBackground: "rgba(0,0,0,0.85)",
+    tabBarBorder: "rgba(255,255,255,0.08)",
+    tabBarActive: "#4ADE80",
+    tabBarInactive: "rgba(255,255,255,0.35)",
+    tabBarCenterButton: "#4ADE80",
+    chip: "rgba(255,255,255,0.07)",
 };
 
 // ─── Light Colors ─────────────────────────────────────────────────────────────
-
+// The prompt specifies a pure dark design system everywhere, so lightColors mirrors darkColors
 const lightColors: ThemeColors = {
-    // Backgrounds
-    background: "#FFFFFF",
-    backgroundCard: "#F9FAFB",
-    backgroundChip: "#F3F4F6",
-    // Semantic surfaces
-    surface: "#F9FAFB",
-    surfaceElevated: "#FFFFFF",
-    // Border
-    border: "#D1D5DB",
-    // Brand – Primary (deeper emerald for light bg contrast)
-    primary: "#059669",
-    primaryPressed: "#047857",
-    primaryDisabled: "#A7F3D0",
-    // Brand – Secondary
-    secondary: "#10B981",
-    secondaryPressed: "#059669",
-    secondaryDisabled: "#D1FAE5",
-    // Accent (legacy alias)
-    accent: "#34D399",
-    accentDim: "#ECFDF5",
-    accentWithAlpha: "#34D39960",
-    // Feedback – Error
-    error: "#EF4444",
-    errorPressed: "#DC2626",
-    errorDisabled: "#FCA5A5",
-    errorDim: "#FEF2F2",
-    // Feedback – Warning
-    warning: "#D97706",
-    warningDim: "#FFFBEB",
-    warningWithAlpha: "#D9770652",
-    // Feedback – Success
-    success: "#10B981",
-    successPressed: "#059669",
-    successDisabled: "#A7F3D0",
-    successDim: "#ECFDF5",
-    // Interaction States
-    disabled: "#F3F4F6",
-    disabledText: "#9CA3AF",
-    hover: "#F3F4F6",
-    overlay: "#00000066",
-    // Text
-    textPrimary: "#111827",
-    textSecondary: "#4B5563",
-    textOnAccent: "#FFFFFF",
-    // Tab Bar
-    tabBarBackground: "#FFFFFF",
-    tabBarBorder: "#E5E7EB",
-    tabBarActive: "#34D399",
-    tabBarInactive: "#9CA3AF",
-    tabBarCenterButton: "#34D399",
-    chip: "#F3F4F6",
+    ...darkColors,
 };
 
 // ─── Shared Tokens ────────────────────────────────────────────────────────────
@@ -370,7 +320,7 @@ const sharedRadius: ThemeRadius = {
     pill: 20,
     sm: 12,
     md: 14,
-    lg: 16,
+    lg: 20,
     xl: 20,
     full: 40,
     avatar: 46,
@@ -409,12 +359,12 @@ const sharedTypography: ThemeTypography = {
     },
     textStyles: {
         //                              size  weight  lineH  letterS
-        title:    { fontSize: 24, fontWeight: "700", lineHeight: 32, letterSpacing: 0.3 },
-        subtitle: { fontSize: 18, fontWeight: "600", lineHeight: 26, letterSpacing: 0.2 },
-        body:     { fontSize: 16, fontWeight: "400", lineHeight: 24, letterSpacing: 0.1 },
-        caption:  { fontSize: 12, fontWeight: "400", lineHeight: 16, letterSpacing: 0.2 },
-        button:   { fontSize: 14, fontWeight: "600", lineHeight: 20, letterSpacing: 0.3 },
-        overline: { fontSize: 11, fontWeight: "500", lineHeight: 16, letterSpacing: 0.8 },
+        title:    { fontSize: 24, fontWeight: "300", lineHeight: 32, letterSpacing: -0.5 },
+        subtitle: { fontSize: 18, fontWeight: "400", lineHeight: 26, letterSpacing: 0 },
+        body:     { fontSize: 15, fontWeight: "400", lineHeight: 24, letterSpacing: 0 },
+        caption:  { fontSize: 12, fontWeight: "400", lineHeight: 16, letterSpacing: 0 },
+        button:   { fontSize: 14, fontWeight: "600", lineHeight: 20, letterSpacing: 0 },
+        overline: { fontSize: 11, fontWeight: "500", lineHeight: 16, letterSpacing: 2 },
     },
     fontSizes: {
         xs: 10,
@@ -453,18 +403,18 @@ const sharedTypography: ThemeTypography = {
 
 const sharedShadows: ThemeShadows = {
     card: {
-        color: "#000000",
-        opacity: 0.3,
-        radius: 16,
-        offset: { width: 0, height: 8 },
-        elevation: 8,
+        color: "transparent",
+        opacity: 0,
+        radius: 0,
+        offset: { width: 0, height: 0 },
+        elevation: 0,
     },
     centerButton: {
-        color: "#34D399",
-        opacity: 0.45,
-        radius: 12,
-        offset: { width: 0, height: 2 },
-        elevation: 12,
+        color: "transparent",
+        opacity: 0,
+        radius: 0,
+        offset: { width: 0, height: 0 },
+        elevation: 0,
     },
 };
 
@@ -507,7 +457,7 @@ const sharedDimensions: ThemeDimensions = {
     buttonIconSize: 18,
     logoIconSize: 32,
     logoCircle: { width: 72, height: 72 },
-    inputHeight: 48,
+    inputHeight: 52,
 };
 
 // ─── Themes ───────────────────────────────────────────────────────────────────

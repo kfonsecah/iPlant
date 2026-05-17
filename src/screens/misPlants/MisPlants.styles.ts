@@ -33,11 +33,11 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
     elevation: theme.shadows.card.elevation,
   },
   headerTitle: {
-    color: theme.colors.textPrimary,
+    color: "#FFFFFF",
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["5xl"],
-    fontWeight: theme.typography.fontWeights.bold,
-    letterSpacing: theme.typography.letterSpacing.md,
+    fontWeight: "300" as const,
+    letterSpacing: -0.5,
   },
   filterBtn: {
     width: theme.dimensions.settingsButton.width,
@@ -285,9 +285,9 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
   modalTitle: {
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["5xl"],
-    fontWeight: theme.typography.fontWeights.bold,
-    color: theme.colors.textPrimary,
-    letterSpacing: theme.typography.letterSpacing.sm,
+    fontWeight: "300" as const,
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
   },
   modalCloseBtn: {
     width: 36,
@@ -309,15 +309,15 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
     marginBottom: theme.scale.sm,
   },
   textInput: {
-    height: theme.dimensions.inputHeight,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.borders.thin,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.backgroundChip,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(255,255,255,0.07)",
     paddingHorizontal: theme.spacing.s16,
     fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.fontSizes["2xl"],
-    color: theme.colors.textPrimary,
+    color: "#FFFFFF",
   },
   textInputError: {
     borderColor: theme.colors.error,
@@ -359,22 +359,17 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
 
   // ── Botón guardar ────────────────────────────────────────────────────────────
   saveButton: {
-    height: theme.dimensions.inputHeight,
-    borderRadius: theme.radius.md,
+    height: 52,
+    borderRadius: 14,
     backgroundColor: theme.colors.primary,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
   },
   saveButtonText: {
     fontFamily: theme.typography.fontFamily.semibold,
     fontSize: theme.typography.fontSizes["2xl"],
     fontWeight: theme.typography.fontWeights.semibold,
-    color: theme.colors.textOnAccent,
+    color: "#000000",
     letterSpacing: theme.typography.letterSpacing.md,
   },
   // ── Search Bar ──────────────────────────────────────────────────────────────
