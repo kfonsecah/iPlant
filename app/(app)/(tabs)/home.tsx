@@ -1,26 +1,26 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { ResizeMode, Video } from "expo-av";
+import { BlurView } from "expo-blur";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  ImageBackground,
   ScrollView,
   StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ImageBackground,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-import { BlurView } from "expo-blur";
-import { Video, ResizeMode } from "expo-av";
+import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import { useAuth } from "../../../src/context/AuthContext";
-import { useSync } from "../../../src/context/SyncContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
+import { useSync } from "../../../src/context/SyncContext";
 import { getPlantsByUserId } from "../../../src/services/plantService";
 import { PlantaCompletaInterface } from "../../../src/types-dtos/plant.types";
-import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 
 export default function HomeIndex() {
   const router = useRouter();
@@ -73,17 +73,17 @@ export default function HomeIndex() {
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-      
-      <ScrollView 
+
+      <ScrollView
         style={{ flex: 1, backgroundColor: "#000" }}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER BANNER */}
         <View style={{ position: "relative", width: "100%", height: 220, overflow: "hidden", borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
-          <Image 
-            source={require("../../../assets/images/banner.jpeg")} 
-            style={{ width: "100%", height: "100%", resizeMode: "cover", position: "absolute" }} 
+          <Image
+            source={require("../../../assets/images/banner.jpeg")}
+            style={{ width: "100%", height: "100%", resizeMode: "cover", position: "absolute" }}
           />
 
           <View style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
@@ -92,12 +92,12 @@ export default function HomeIndex() {
                 <Text style={{ fontSize: 22, fontWeight: "600", color: "#fff", textShadowColor: "rgba(0,0,0,0.4)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
                   Hola, {authUser?.displayName || "Usuario"}!
                 </Text>
-                
+
                 <View>
                   {authUser?.photoURL ? (
-                    <Image 
-                      source={{ uri: authUser.photoURL }} 
-                      style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: "#fff" }} 
+                    <Image
+                      source={{ uri: authUser.photoURL }}
+                      style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: "#fff" }}
                     />
                   ) : (
                     <Ionicons name="person-circle-outline" size={42} color="#fff" />
@@ -115,10 +115,10 @@ export default function HomeIndex() {
             <BlurView
               intensity={20}
               tint="light"
-              style={{ 
-                backgroundColor: "transparent", 
-                borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", 
-                borderRadius: 14, height: 44, 
+              style={{
+                backgroundColor: "transparent",
+                borderWidth: 1, borderColor: "rgba(255,255,255,0.15)",
+                borderRadius: 14, height: 44,
                 flexDirection: "row", alignItems: "center",
                 overflow: "hidden"
               }}
@@ -141,11 +141,11 @@ export default function HomeIndex() {
         </View>
 
         {/* AI ASSISTANT BANNER CARD */}
-        <ImageBackground 
+        <ImageBackground
           source={require("../../../assets/images/bubbles.jpeg")}
-          style={{ 
-            marginHorizontal: 20, marginTop: 24, 
-            borderWidth: 1, borderColor: "rgba(74,222,128,0.2)", 
+          style={{
+            marginHorizontal: 20, marginTop: 24,
+            borderWidth: 1, borderColor: "rgba(74,222,128,0.2)",
             borderRadius: 20, padding: 24, minHeight: 140,
             flexDirection: "row", alignItems: "center", justifyContent: "space-between",
             overflow: "hidden"
@@ -153,7 +153,7 @@ export default function HomeIndex() {
           imageStyle={{ borderRadius: 20 }}
         >
           <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)" }} />
-          
+
           <View style={{ flex: 1, marginRight: 16 }}>
             <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>Pregúntale a tu</Text>
             <Text style={{ fontSize: 19, fontWeight: "700", color: "#4ade80", textShadowColor: "rgba(0,0,0,0.5)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }}>Asistente IA</Text>
@@ -162,13 +162,13 @@ export default function HomeIndex() {
               <Text style={{ fontSize: 13, fontWeight: "600", color: "#000" }}>Chatear</Text>
             </TouchableOpacity>
           </View>
-          <Video 
-            source={require("../../../assets/images/cara.mp4")} 
-            style={[{ width: 150, height: 150, marginVertical: -40, marginRight: -16 }, { mixBlendMode: "screen" } as any]} 
-            resizeMode={ResizeMode.CONTAIN} 
-            shouldPlay 
-            isLooping 
-            isMuted 
+          <Video
+            source={require("../../../assets/images/cara.mp4")}
+            style={[{ width: 150, height: 150, marginVertical: -40, marginRight: -16 }, { mixBlendMode: "screen" } as any]}
+            resizeMode={ResizeMode.CONTAIN}
+            shouldPlay
+            isLooping
+            isMuted
           />
         </ImageBackground>
 
@@ -179,8 +179,8 @@ export default function HomeIndex() {
             <Text style={{ fontSize: 13, color: "#4ade80" }}>Ver colección</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}
         >
@@ -189,7 +189,7 @@ export default function HomeIndex() {
             description="Perfecta para interiores con poca luz. Purifica el aire."
             image={require("../../../assets/images/monstera.png")}
           />
-          
+
           <PlantOfDayCard
             name="Ficus Lyrata"
             description="Elegante y dramática. Ideal para espacios con luz indirecta."
@@ -205,7 +205,7 @@ export default function HomeIndex() {
 
           <PlantOfDayCard
             name="Strelitzia Reginae"
-            description="Ave del paraíso. Flores dramáticas en naranja y azul eléctrico."
+            description="Ave del paraíso. Flores dramáticas en naranja y azul."
             image={require("../../../assets/images/strelitzia.png")}
             imageStyle={{ bottom: -20 }}
           />
@@ -220,9 +220,9 @@ export default function HomeIndex() {
         </View>
 
         {filteredPlantas.length > 0 ? (
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20, marginTop: 12, gap: 12 }}
           >
             {filteredPlantas.map((planta) => (
@@ -233,10 +233,10 @@ export default function HomeIndex() {
                 onPress={() => router.push(`/(app)/plants/${planta.id}`)}
               >
                 <Image source={{ uri: planta.imagen }} style={{ width: 155, height: 100, borderTopLeftRadius: 20, borderTopRightRadius: 20, objectFit: "cover" }} />
-                
+
                 <View style={{ padding: 12 }}>
                   <Text style={{ fontSize: 14, fontWeight: "500", color: "#fff", marginBottom: 6 }} numberOfLines={1}>{planta.nombre}</Text>
-                  
+
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: planta.salud === "saludable" ? "#4ade80" : planta.salud === "atención" ? "#fbbf24" : "#f87171", marginRight: 6 }} />
                     <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
@@ -250,8 +250,8 @@ export default function HomeIndex() {
                       {planta.proximoRiego < 0
                         ? `${Math.abs(planta.proximoRiego)}d de retraso`
                         : planta.proximoRiego === 0
-                        ? "Regar hoy"
-                        : `En ${planta.proximoRiego}d`}
+                          ? "Regar hoy"
+                          : `En ${planta.proximoRiego}d`}
                     </Text>
                   </View>
                 </View>
@@ -276,10 +276,10 @@ export default function HomeIndex() {
 
         <View style={{ marginHorizontal: 20 }}>
           {alertPlantas.length > 0 ? alertPlantas.map((p) => (
-            <View key={`act-${p.id}`} style={{ 
-              backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 16, padding: 14, marginBottom: 8, 
-              borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", 
-              flexDirection: "row", alignItems: "center" 
+            <View key={`act-${p.id}`} style={{
+              backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 16, padding: 14, marginBottom: 8,
+              borderWidth: 1, borderColor: "rgba(255,255,255,0.06)",
+              flexDirection: "row", alignItems: "center"
             }}>
               <Image source={{ uri: p.imagen }} style={{ width: 48, height: 48, borderRadius: 12, marginRight: 12 }} />
               <View style={{ flex: 1 }}>
@@ -295,7 +295,7 @@ export default function HomeIndex() {
             </View>
           )) : (
             <View style={{ alignItems: "center", marginTop: 16 }}>
-               <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>Sin actividad reciente</Text>
+              <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>Sin actividad reciente</Text>
             </View>
           )}
         </View>
