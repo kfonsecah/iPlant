@@ -98,48 +98,86 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction: `Eres Flora, asistente de IA especializada en plantas de iPlant. 
+    
+    // Define a robust sequence of fallback models to guarantee success
+    const modelsToTry = [
+      { name: 'gemini-1.5-flash', useSystemInstruction: true },
+      { name: 'gemini-1.5-flash-latest', useSystemInstruction: true },
+      { name: 'gemini-pro', useSystemInstruction: false }
+    ];
+
+    let responseText = '';
+    let lastError: any = null;
+
+    for (const modelConfig of modelsToTry) {
+      try {
+        console.log(`Attempting chat with model: ${modelConfig.name}`);
+        const modelOptions: any = { model: modelConfig.name };
+        
+        if (modelConfig.useSystemInstruction) {
+          modelOptions.systemInstruction = `Eres Flora, asistente de IA especializada en plantas de iPlant. 
 Ayudas a identificar plantas, diagnosticar enfermedades, dar consejos 
 de cuidado y responder preguntas botánicas. Responde siempre en español,
 de forma amigable, concisa y precisa. Si el usuario comparte una imagen,
 analízala detalladamente. Usa markdown en tus respuestas: **negrita** para nombres de plantas,
-listas con - para pasos de cuidado, y ## para secciones cuando sea útil.`
-    });
-
-    // Extract history (all messages except the last one)
-    const history = messages.slice(0, -1).map(msg => ({
-      role: msg.role === 'model' ? 'model' : 'user',
-      parts: [{ text: msg.content || '' }]
-    }));
-
-    const latestMessage = messages[messages.length - 1];
-    
-    // Construct parts for latest message
-    const parts: any[] = [{ text: latestMessage.content || '' }];
-
-    if (imageBase64) {
-      let mimeType = 'image/jpeg';
-      let base64Data = imageBase64;
-      if (imageBase64.startsWith('data:')) {
-        const match = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
-        if (match) {
-          mimeType = match[1];
-          base64Data = match[2];
+listas con - para pasos de cuidado, y ## para secciones cuando sea útil.`;
         }
+
+        const model = genAI.getGenerativeModel(modelOptions);
+        
+        const history: any[] = [];
+        
+        if (!modelConfig.useSystemInstruction) {
+          // Prepend system prompt to history for legacy models
+          const systemPrompt = `Eres Flora, asistente de IA especializada en plantas de iPlant. 
+Ayudas a identificar plantas, diagnosticar enfermedades, dar consejos de cuidado y responder preguntas botánicas. Responde siempre en español, de forma amigable, concisa y precisa. Si el usuario comparte una imagen, analízala detalladamente. Usa markdown en tus respuestas.`;
+          history.push(
+            { role: 'user', parts: [{ text: systemPrompt }] },
+            { role: 'model', parts: [{ text: 'Entendido, soy Flora. ¿En qué puedo ayudarte hoy?' }] }
+          );
+        }
+
+        history.push(...messages.slice(0, -1).map(msg => ({
+          role: msg.role === 'model' ? 'model' : 'user',
+          parts: [{ text: msg.content || '' }]
+        })));
+
+        const latestMessage = messages[messages.length - 1];
+        const parts: any[] = [{ text: latestMessage.content || '' }];
+
+        if (imageBase64) {
+          let mimeType = 'image/jpeg';
+          let base64Data = imageBase64;
+          if (imageBase64.startsWith('data:')) {
+            const match = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+            if (match) {
+              mimeType = match[1];
+              base64Data = match[2];
+            }
+          }
+          parts.push({
+            inlineData: {
+              data: base64Data,
+              mimeType
+            }
+          });
+        }
+
+        const chat = model.startChat({ history });
+        const result = await chat.sendMessage(parts);
+        responseText = result.response.text();
+        
+        console.log(`Successfully generated response using model: ${modelConfig.name}`);
+        break; // Success! Exit loop
+      } catch (err: any) {
+        console.warn(`Model ${modelConfig.name} failed:`, err.message);
+        lastError = err;
       }
-      parts.push({
-        inlineData: {
-          data: base64Data,
-          mimeType
-        }
-      });
     }
 
-    const chat = model.startChat({ history });
-    const result = await chat.sendMessage(parts);
-    const responseText = result.response.text();
+    if (!responseText) {
+      throw lastError || new Error('All models failed to respond');
+    }
 
     res.json({ response: responseText });
   } catch (error: any) {
