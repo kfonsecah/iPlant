@@ -8,11 +8,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { BlurView } from "expo-blur";
+import { Video, ResizeMode } from "expo-av";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useSync } from "../../../src/context/SyncContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
@@ -84,26 +86,27 @@ export default function HomeIndex() {
           />
 
           <View style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <View>
+            <View style={{ marginBottom: 16 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <Text style={{ fontSize: 22, fontWeight: "600", color: "#fff", textShadowColor: "rgba(0,0,0,0.4)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
                   Hola, {authUser?.displayName || "Usuario"}!
                 </Text>
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4, gap: 4 }}>
-                  <Ionicons name="partly-sunny-outline" size={13} color="rgba(255,255,255,0.85)" />
-                  <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Nublado 22°</Text>
+                
+                <View>
+                  {authUser?.photoURL ? (
+                    <Image 
+                      source={{ uri: authUser.photoURL }} 
+                      style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: "#fff" }} 
+                    />
+                  ) : (
+                    <Ionicons name="person-circle-outline" size={42} color="#fff" />
+                  )}
                 </View>
               </View>
 
-              <View>
-                {authUser?.photoURL ? (
-                  <Image 
-                    source={{ uri: authUser.photoURL }} 
-                    style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: "#fff" }} 
-                  />
-                ) : (
-                  <Ionicons name="person-circle-outline" size={42} color="#fff" />
-                )}
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 4 }}>
+                <Ionicons name="partly-sunny-outline" size={13} color="rgba(255,255,255,0.85)" />
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Nublado 22°</Text>
               </View>
             </View>
 
@@ -137,23 +140,36 @@ export default function HomeIndex() {
         </View>
 
         {/* AI ASSISTANT BANNER CARD */}
-        <View style={{ 
-          marginHorizontal: 20, marginTop: 8, 
-          backgroundColor: "rgba(74,222,128,0.08)", 
-          borderWidth: 1, borderColor: "rgba(74,222,128,0.15)", 
-          borderRadius: 20, padding: 18, 
-          flexDirection: "row", alignItems: "center", justifyContent: "space-between" 
-        }}>
+        <ImageBackground 
+          source={require("../../../assets/images/bubbles.jpeg")}
+          style={{ 
+            marginHorizontal: 20, marginTop: 24, 
+            borderWidth: 1, borderColor: "rgba(74,222,128,0.2)", 
+            borderRadius: 20, padding: 24, minHeight: 140,
+            flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+            overflow: "hidden"
+          }}
+          imageStyle={{ borderRadius: 20 }}
+        >
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)" }} />
+          
           <View style={{ flex: 1, marginRight: 16 }}>
-            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>Pregúntale a tu</Text>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "#4ade80" }}>Asistente IA 🌿</Text>
-            <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Identifica plantas, revisa su salud</Text>
-            <TouchableOpacity style={{ backgroundColor: "#4ade80", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 6, marginTop: 10, alignSelf: "flex-start" }}>
-              <Text style={{ fontSize: 12, fontWeight: "600", color: "#000" }}>Chatear</Text>
+            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>Pregúntale a tu</Text>
+            <Text style={{ fontSize: 19, fontWeight: "700", color: "#4ade80", textShadowColor: "rgba(0,0,0,0.5)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }}>Asistente IA</Text>
+            <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>Identifica plantas, revisa su salud</Text>
+            <TouchableOpacity style={{ backgroundColor: "#4ade80", borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8, marginTop: 12, alignSelf: "flex-start" }}>
+              <Text style={{ fontSize: 13, fontWeight: "600", color: "#000" }}>Chatear</Text>
             </TouchableOpacity>
           </View>
-          <Ionicons name="leaf-outline" size={52} color="rgba(74,222,128,0.2)" />
-        </View>
+          <Video 
+            source={require("../../../assets/images/cara.mp4")} 
+            style={[{ width: 150, height: 150, marginVertical: -40, marginRight: -16 }, { mixBlendMode: "screen" } as any]} 
+            resizeMode={ResizeMode.CONTAIN} 
+            shouldPlay 
+            isLooping 
+            isMuted 
+          />
+        </ImageBackground>
 
         {/* MY PLANTS SECTION */}
         <View style={{ marginHorizontal: 20, marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
