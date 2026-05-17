@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function PlantOfDayCard() {
   return (
@@ -19,15 +18,13 @@ export default function PlantOfDayCard() {
 
       {/* RIGHT SIDE */}
       <View style={styles.rightSide}>
-        <Image 
-          source={require("../../assets/images/monstera.png")} 
-          style={styles.image} 
-          resizeMode="contain" 
-        />
-        <LinearGradient
-          colors={["transparent", "rgba(10,10,10,1)"]}
-          style={styles.gradient}
-        />
+        <View style={styles.imageContainer}>
+          <Image 
+            source={require("../../assets/images/monstera.png")} 
+            style={styles.image} 
+            resizeMode="contain" 
+          />
+        </View>
       </View>
     </View>
   );
@@ -83,18 +80,15 @@ const styles = StyleSheet.create({
     top: -30,
     bottom: 0,
     width: 160,
-    overflow: "visible",
     zIndex: 5,
+  },
+  imageContainer: {
+    width: 160,
+    height: 170, // 140 (card height) + 30 (top offset)
+    overflow: "hidden",
   },
   image: {
     width: 160,
     height: 200,
-  },
-  gradient: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
   },
 });
