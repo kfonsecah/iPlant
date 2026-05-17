@@ -11,6 +11,7 @@ interface PlantOfDayCardProps {
   buttonText?: string;
   image: ImageSourcePropType;
   imageStyle?: StyleProp<ImageStyle>;
+  onPress?: () => void;
 }
 
 export default function PlantOfDayCard({
@@ -20,6 +21,7 @@ export default function PlantOfDayCard({
   buttonText = "Ver más →",
   image,
   imageStyle,
+  onPress,
 }: PlantOfDayCardProps) {
   return (
     <View style={styles.container}>
@@ -30,7 +32,7 @@ export default function PlantOfDayCard({
         <Text style={styles.description} numberOfLines={2}>
           {description}
         </Text>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={onPress}>
           <Text style={styles.buttonText}>{buttonText}</Text>
         </TouchableOpacity>
       </View>

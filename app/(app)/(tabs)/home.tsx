@@ -19,6 +19,8 @@ import {
   Easing,
 } from "react-native";
 import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
+import PlantDetailModal from "../../../src/components/PlantDetailModal";
+import { featuredPlants, FeaturedPlant } from "../../../src/data/featuredPlants";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
 import { useSync } from "../../../src/context/SyncContext";
@@ -38,7 +40,10 @@ export default function HomeIndex() {
 
   const carouselRef = useRef<ScrollView>(null);
   const activeIndexRef = useRef(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<any>(null);
+
+  const [selectedPlant, setSelectedPlant] = useState<FeaturedPlant | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -258,6 +263,10 @@ export default function HomeIndex() {
             name="Monstera Deliciosa"
             description={"Perfecta para interiores con\npoca luz. Purifica el aire."}
             image={require("../../../assets/images/monstera.png")}
+            onPress={() => {
+              setSelectedPlant(featuredPlants.find(p => p.id === "monstera_deliciosa") || null);
+              setModalVisible(true);
+            }}
           />
 
           <PlantOfDayCard
@@ -265,12 +274,20 @@ export default function HomeIndex() {
             description="Elegante y dramática. Ideal para espacios con luz indirecta."
             image={require("../../../assets/images/ficus.png")}
             imageStyle={{ width: 130, height: 160, marginTop: 20, marginLeft: 15 }}
+            onPress={() => {
+              setSelectedPlant(featuredPlants.find(p => p.id === "ficus_lyrata") || null);
+              setModalVisible(true);
+            }}
           />
 
           <PlantOfDayCard
             name="Anthurium Andreanum"
             description="Flores exóticas de larga duración. Símbolo de hospitalidad y abundancia."
             image={require("../../../assets/images/andrea.png")}
+            onPress={() => {
+              setSelectedPlant(featuredPlants.find(p => p.id === "anthurium_andreanum") || null);
+              setModalVisible(true);
+            }}
           />
 
           <PlantOfDayCard
@@ -278,6 +295,10 @@ export default function HomeIndex() {
             description="Ave del paraíso. Flores dramáticas en naranja y azul."
             image={require("../../../assets/images/strelitzia.png")}
             imageStyle={{ bottom: 0 }}
+            onPress={() => {
+              setSelectedPlant(featuredPlants.find(p => p.id === "strelitzia_reginae") || null);
+              setModalVisible(true);
+            }}
           />
 
           <PlantOfDayCard
@@ -285,6 +306,10 @@ export default function HomeIndex() {
             description="Garra de langosta. Una de las flores tropicales más dramáticas del mundo."
             image={require("../../../assets/images/heliconia.png")}
             imageStyle={{ width: 140, height: 175, top: 13, left: 20 }}
+            onPress={() => {
+              setSelectedPlant(featuredPlants.find(p => p.id === "heliconia_rostrata") || null);
+              setModalVisible(true);
+            }}
           />
 
           {/* CLONE CARD FOR INFINITE SCROLL */}
@@ -292,6 +317,10 @@ export default function HomeIndex() {
             name="Monstera Deliciosa"
             description={"Perfecta para interiores con\npoca luz. Purifica el aire."}
             image={require("../../../assets/images/monstera.png")}
+            onPress={() => {
+              setSelectedPlant(featuredPlants.find(p => p.id === "monstera_deliciosa") || null);
+              setModalVisible(true);
+            }}
           />
         </ScrollView>
 
@@ -384,6 +413,12 @@ export default function HomeIndex() {
           )}
         </View>
       </ScrollView>
+
+      <PlantDetailModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        plant={selectedPlant}
+      />
     </View>
   );
 }
