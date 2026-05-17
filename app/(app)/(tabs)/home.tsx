@@ -179,7 +179,24 @@ export default function HomeIndex() {
             <Text style={{ fontSize: 13, color: "#4ade80" }}>Ver colección</Text>
           </TouchableOpacity>
         </View>
-        <PlantOfDayCard />
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}
+        >
+          <PlantOfDayCard
+            name="Monstera Deliciosa"
+            description="Perfecta para interiores con poca luz. Purifica el aire."
+            image={require("../../../assets/images/monstera.png")}
+          />
+          
+          <PlantOfDayCard
+            name="Ficus Lyrata"
+            description="Elegante y dramática. Ideal para espacios con luz indirecta."
+            image={require("../../../assets/images/ficus.png")}
+            imageStyle={{ width: 130, height: 160, marginTop: 20, marginLeft: 15 }}
+          />
+        </ScrollView>
 
         {/* MY PLANTS SECTION */}
         <View style={{ marginHorizontal: 20, marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>

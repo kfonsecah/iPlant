@@ -1,18 +1,34 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ImageSourcePropType, StyleProp, ImageStyle } from "react-native";
 
-export default function PlantOfDayCard() {
+interface PlantOfDayCardProps {
+  label?: string;
+  name: string;
+  description: string;
+  buttonText?: string;
+  image: ImageSourcePropType;
+  imageStyle?: StyleProp<ImageStyle>;
+}
+
+export default function PlantOfDayCard({
+  label = "Planta del día",
+  name,
+  description,
+  buttonText = "Ver más →",
+  image,
+  imageStyle,
+}: PlantOfDayCardProps) {
   return (
     <View style={styles.container}>
       {/* LEFT SIDE */}
       <View style={styles.leftSide}>
-        <Text style={styles.label}>Planta del día</Text>
-        <Text style={styles.title}>Monstera Deliciosa</Text>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.title}>{name}</Text>
         <Text style={styles.description}>
-          Perfecta para interiores con poca luz. Purifica el aire.
+          {description}
         </Text>
         <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Ver más →</Text>
+          <Text style={styles.buttonText}>{buttonText}</Text>
         </TouchableOpacity>
       </View>
 
@@ -20,8 +36,8 @@ export default function PlantOfDayCard() {
       <View style={styles.rightSide}>
         <View style={styles.imageContainer}>
           <Image 
-            source={require("../../assets/images/monstera.png")} 
-            style={styles.image} 
+            source={image} 
+            style={[styles.image, imageStyle]} 
             resizeMode="contain" 
           />
         </View>
@@ -32,8 +48,8 @@ export default function PlantOfDayCard() {
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
     marginTop: 20,
+    width: 320,
     backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
@@ -64,7 +80,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "rgba(255,255,255,0.45)",
     marginTop: 4,
-    maxWidth: "58%",
+    maxWidth: "65%",
     lineHeight: 17,
   },
   button: {
