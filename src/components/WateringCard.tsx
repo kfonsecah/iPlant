@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { PlantaCompletaInterface } from "../types-dtos/plant.types";
+import { getPlantsNeedingWater, getWateredTodayPercentage } from "../utils/wateringUtils";
 
 interface WateringCardProps {
   plants: PlantaCompletaInterface[];
@@ -10,10 +11,12 @@ interface WateringCardProps {
 
 export default function WateringCard({ plants }: WateringCardProps) {
   const totalPlants = plants.length;
-  const pendingCount = plants.filter((p) => p.proximoRiego <= 0).length;
-  const wateredTodayCount = plants.filter((p) => p.ultimoRiego === "Hoy").length;
+  const needWater = getPlantsNeedingWater(plants);
+  const pendingCount = needWater.length;
 
-  const percentage = totalPlants > 0 ? (wateredTodayCount / totalPlants) * 100 : 0;
+  const percentage = (pendingCount === 0 && totalPlants > 0)
+    ? 100
+    : getWateredTodayPercentage(plants);
 
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
@@ -57,10 +60,18 @@ export default function WateringCard({ plants }: WateringCardProps) {
 
         {/* PLANT COUNT */}
         <View style={styles.countRow}>
-          <Text style={styles.boldNumber}>{pendingCount}</Text>
-          <Text style={styles.countLabel}>
-            {pendingCount === 1 ? " planta sin regar" : " plantas sin regar"}
-          </Text>
+          {pendingCount === 0 && totalPlants > 0 ? (
+            <Text style={[styles.boldNumber, { fontSize: 14, fontWeight: "500", letterSpacing: 0 }]}>
+              Todas tus plantas están regadas 🌿
+            </Text>
+          ) : (
+            <>
+              <Text style={styles.boldNumber}>{pendingCount}</Text>
+              <Text style={styles.countLabel}>
+                {pendingCount === 1 ? " planta sin regar" : " plantas sin regar"}
+              </Text>
+            </>
+          )}
         </View>
 
         {/* PROGRESS BAR OR EMPTY PLACEHOLDER */}

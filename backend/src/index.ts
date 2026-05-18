@@ -244,6 +244,16 @@ Analiza la siguiente planta identificada:
 
 Tu tarea es generar y completar toda la información botánica y de cuidados de esta planta en un formato JSON estructurado EXACTAMENTE como se detalla a continuación. Debes responder SOLO con el objeto JSON, sin código de bloque, sin explicaciones ni markdown. Mantén el tono ameno, profesional y los textos en una longitud moderada y equilibrada, ideal para lectura en móvil (ni muy largos que abrumen, ni tan cortos que carezcan de valor).
 
+Additionally return these fields in your JSON response:
+- wateringFrequencyDays: number (how many days between waterings, based on species, e.g. 7)
+- category: string (one of: Suculenta, Tropical, Aromática, Interior, Exterior, Cactus, Frutal, Medicinal, Acuática, Sin categoría)
+- sunlight: one of: Luz Directa, Luz Indirecta, Sombra
+- climate: string (ideal climate description, max 20 chars)
+- bloomSeason: string (flowering season or 'No florece', max 20 chars)
+- maxHeight: string (approximate max height, ex: '2 metros')
+- toxicity: string (toxicity info for pets/humans, ex: 'Tóxica para gatos', or 'No tóxica')
+- origin: string (native habitat, max 30 chars)
+
 Formato JSON esperado:
 {
   "latinName": "Nombre científico correcto",
@@ -259,13 +269,16 @@ Formato JSON esperado:
     "Consejo de abono, poda o mantenimiento general de unas 2 a 3 líneas."
   ],
   "family": "Familia botánica a la que pertenece",
-  "origin": "Región o países de origen geográfico nativo",
-  "climate": "Tipo de clima idóneo (ej: Tropical húmedo, Templado, etc.)",
+  "origin": "Origen nativo, máximo 30 caracteres (ej: Sudáfrica, México)",
+  "climate": "Clima idóneo, máximo 20 caracteres (ej: Cálido y seco)",
   "maxHeight": "Altura máxima promedio (ej: 1.5m)",
-  "bloomSeason": "Época de floración (ej: Primavera - Verano, No florece, etc.)",
+  "bloomSeason": "Época de floración (ej: Primavera - Verano, o 'No florece')",
   "countryCodes": ["MX", "CO"],
   "commonNames": "Nombres comunes ordenados por país de la siguiente forma:\\n- México: Cuna de Moisés\\n- Colombia: Espatifilo\\n- España: Lirio de la paz\\n(Genera al menos 3 países diferentes de habla hispana)",
-  "toxicity": "Especifica de forma concisa si es tóxica para perros, gatos o humanos, indicando el nivel de riesgo de forma breve."
+  "toxicity": "Especifica de forma concisa si es tóxica para perros, gatos o humanos, indicando el nivel de riesgo de forma breve.",
+  "wateringFrequencyDays": 7,
+  "category": "Suculenta",
+  "sunlight": "Luz Indirecta"
 }
 
 Asegúrate de que los valores de light, water y humidity sean exactamente "low", "medium" o "high", y que difficulty sea "facil", "moderada" o "dificil". El campo countryCodes debe ser un array de strings conteniendo de 1 a 4 códigos de país válidos de 2 letras ISO (ej: MX, CO, ES, BR, US, AR) correspondientes a sus zonas geográficas nativas.`;

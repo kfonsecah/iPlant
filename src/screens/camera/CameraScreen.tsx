@@ -141,6 +141,8 @@ export default function CameraScreen() {
           result.maxHeight = enriched.maxHeight || "";
           result.bloomSeason = enriched.bloomSeason || "";
           result.toxicity = enriched.toxicity || "";
+          result.category = enriched.category || "";
+          result.wateringFrequencyDays = enriched.wateringFrequencyDays || 7;
         }
       } catch (geminiErr) {
         console.warn("Gemini enrichment failed, using basic Plant.id details:", geminiErr);
@@ -166,6 +168,7 @@ export default function CameraScreen() {
         nombre: editData.nombre,
         categoria: editData.categoria || "Sin categoría",
         proximoRiego: parseInt(editData.frecuenciaRiego, 10) || 7,
+        wateringFrequencyDays: parseInt(editData.frecuenciaRiego, 10) || 7,
         imagen: previewUri,
         confianza: editData.confidence,
         descripcion: editData.descripcion,

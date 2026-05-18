@@ -7,6 +7,7 @@ import { PlantAIFields, PlantIdentificationResult, PlantaCompletaInterface, Plan
 import { withTimeout } from "../utils/withTimeout";
 import { getItem, persistImage, saveItem } from "./storageService";
 import { addToQueue, getQueue, processQueue } from "./syncService";
+import { calcularProximoRiego } from "../utils/wateringUtils";
 
 const getBackendUrl = (): string => {
   return process.env.EXPO_PUBLIC_BACKEND_URL || "https://iplant-cz8o.onrender.com";
@@ -147,22 +148,19 @@ export async function enrichPlant(plantName: string, latinName?: string): Promis
 
 function formatUltimoRiego(value: unknown): string {
   if (value instanceof Timestamp) {
-    const date = value.toDate();
-    const today = new Date();
-    const diffDays = Math.floor(
-      (today.setHours(0, 0, 0, 0) - date.setHours(0, 0, 0, 0)) /
-        (1000 * 60 * 60 * 24)
-    );
-    if (diffDays === 0) return "Hoy";
-    return `${diffDays}d`;
+    return value.toDate().toISOString();
   }
-  return String(value ?? "—");
+  if (typeof value === "string" && value !== "—" && value !== "Hoy") {
+    return value;
+  }
+  return new Date().toISOString();
 }
 
 const getCacheKey = (userId: string) => `PLANTS_CACHE_${userId}`;
 
 export async function getPlantsByUserId(userId: string, isConnected: boolean): Promise<PlantaCompletaInterface[]> {
   const cacheKey = getCacheKey(userId);
+  let loadedPlants: PlantaCompletaInterface[] = [];
 
   if (isConnected) {
     try {
@@ -180,6 +178,7 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
           ultimoRiego: formatUltimoRiego(data.ultimoRiego),
           salud: data.salud,
           proximoRiego: data.proximoRiego,
+          wateringFrequencyDays: data.wateringFrequencyDays,
           confianza: data.confianza,
           descripcion: data.descripcion,
           cuidados: data.cuidados,
@@ -206,16 +205,36 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
       const queue = await getQueue(userId);
       const pendingPlants = queue.map(action => action.data as PlantaCompletaInterface);
       
-      const allPlants = [...pendingPlants, ...remotePlants.filter(rp => !pendingPlants.some(pp => pp.id === rp.id))];
-
-      await saveItem(cacheKey, allPlants);
-      return allPlants;
+      loadedPlants = [...pendingPlants, ...remotePlants.filter(rp => !pendingPlants.some(pp => pp.id === rp.id))];
+      await saveItem(cacheKey, loadedPlants);
     } catch (e) {
       console.warn("Fallback: Cargando plantas desde el caché local por inestabilidad de red.");
+      loadedPlants = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
     }
+  } else {
+    loadedPlants = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
   }
 
-  return (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
+  // Recalculate proximoRiego for each plant using calcularProximoRiego
+  const updatedPlants = loadedPlants.map(plant => {
+    if (!plant.ultimoRiego || !plant.wateringFrequencyDays) return plant;
+    
+    const calculated = calcularProximoRiego(plant.ultimoRiego, plant.wateringFrequencyDays);
+    const currentStored = plant.proximoRiego ?? 0;
+    
+    // If calculated value differs from stored value by more than 1 day, sync in background
+    if (Math.abs(calculated - currentStored) > 1) {
+      console.log(`[Recalculate] Syncing proximoRiego for ${plant.nombre}: stored=${currentStored}, calculated=${calculated}`);
+      updatePlant(plant.id, { proximoRiego: calculated, userId: plant.userId }, isConnected).catch(err => {
+        console.warn(`[Recalculate] Background sync failed for ${plant.nombre}:`, err);
+      });
+      return { ...plant, proximoRiego: calculated };
+    }
+    
+    return plant;
+  });
+
+  return updatedPlants;
 }
 
 export async function getPlantById(userId: string, plantId: string, isConnected: boolean): Promise<PlantaCompletaInterface | null> {
@@ -224,7 +243,7 @@ export async function getPlantById(userId: string, plantId: string, isConnected:
 }
 
 export async function addPlant(
-  data: Pick<PlantaInterface, "userId" | "nombre" | "categoria" | "proximoRiego"> & Partial<Pick<PlantaInterface, "imagen">> & Partial<PlantAIFields>
+  data: Pick<PlantaInterface, "userId" | "nombre" | "categoria" | "proximoRiego"> & Partial<Pick<PlantaInterface, "imagen" | "wateringFrequencyDays">> & Partial<PlantAIFields>
 ): Promise<PlantaCompletaInterface> {
   const localId = Crypto.randomUUID();
   let finalImagen = data.imagen || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400";
@@ -244,9 +263,10 @@ export async function addPlant(
     nombre: data.nombre,
     categoria: data.categoria,
     proximoRiego: data.proximoRiego,
+    wateringFrequencyDays: data.wateringFrequencyDays || 7,
     salud: "saludable",
     imagen: finalImagen,
-    ultimoRiego: "Hoy",
+    ultimoRiego: new Date().toISOString(),
     isPending: true,
     confianza: data.confianza,
     descripcion: data.descripcion,
@@ -303,9 +323,10 @@ async function pushPlantToFirestore(plant: PlantaCompletaInterface): Promise<str
     nombre: plant.nombre,
     categoria: plant.categoria,
     proximoRiego: plant.proximoRiego,
+    wateringFrequencyDays: plant.wateringFrequencyDays || 7,
     salud: plant.salud,
     imagen: plant.imagen,
-    ultimoRiego: Timestamp.now(),
+    ultimoRiego: plant.ultimoRiego || new Date().toISOString(),
     ...(plant.confianza && { confianza: plant.confianza }),
     ...(plant.descripcion && { descripcion: plant.descripcion }),
     ...(plant.cuidados && { cuidados: plant.cuidados }),
@@ -371,29 +392,58 @@ export async function syncPlants(userId: string): Promise<void> {
           console.warn("Could not delete from remote, might have been already deleted:", e);
         }
       }
+    } else if (action.type === 'UPDATE') {
+      if (action.id && !action.id.includes('-')) {
+        try {
+          await withTimeout(updateDoc(doc(db, "plants", action.id), action.data));
+        } catch (e) {
+          console.warn("Could not update remote plant:", e);
+        }
+      }
     }
   });
 }
 
 export async function updatePlant(
   plantId: string,
-  data: Partial<PlantaCompletaInterface>
+  data: Partial<PlantaCompletaInterface>,
+  isConnected: boolean = true
 ): Promise<void> {
-  // 1. Update Firestore
-  await withTimeout(updateDoc(doc(db, "plants", plantId), data as any));
-
-  // 2. Sync changes to local offline cache
-  try {
-    const { auth } = await import("../config/firebase");
-    const userId = data.userId || auth.currentUser?.uid;
-    if (userId) {
+  const { auth } = await import("../config/firebase");
+  const userId = data.userId || auth.currentUser?.uid || "";
+  
+  // 1. Sync changes to local offline cache immediately
+  if (userId) {
+    try {
       const cacheKey = `PLANTS_CACHE_${userId}`;
       const currentCache = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
       const updatedCache = currentCache.map(p => p.id === plantId ? { ...p, ...data } : p);
       await saveItem(cacheKey, updatedCache);
+    } catch (err) {
+      console.warn("Failed to update local cache on plant update:", err);
     }
-  } catch (err) {
-    console.warn("Failed to update local cache on plant update:", err);
+  }
+
+  // 2. If online and not a temporary local ID, write to Firestore
+  const isLocalId = plantId.includes('-');
+  if (isConnected && !isLocalId) {
+    try {
+      await withTimeout(updateDoc(doc(db, "plants", plantId), data as any));
+      return;
+    } catch (err) {
+      console.warn("Remote update failed, queuing for offline sync:", err);
+    }
+  }
+
+  // 3. Queue update action if offline or remote fails
+  if (userId) {
+    await addToQueue({
+      id: plantId,
+      type: 'UPDATE',
+      data: data,
+      userId,
+      timestamp: Date.now(),
+    });
   }
 }
 

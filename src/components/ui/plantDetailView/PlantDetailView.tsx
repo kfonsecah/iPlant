@@ -69,10 +69,10 @@ const PlantDetailView = ({ result, imageUri, onConfirm, onCancel }: PlantDetailV
   
   const [editData, setEditData] = useState<PlantEditData>({
     nombre: result.plantName,
-    categoria: "",
+    categoria: result.category || "",
     descripcion: result.description || result.wikiDescription?.extract || "",
     cuidados: result.careInstructions || "",
-    frecuenciaRiego: "7",
+    frecuenciaRiego: result.wateringFrequencyDays ? String(result.wateringFrequencyDays) : "7",
     confidence: result.probability,
     latinName: result.latinName,
     taxonomy: result.taxonomy,

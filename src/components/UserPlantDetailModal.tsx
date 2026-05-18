@@ -25,6 +25,9 @@ import * as Speech from "expo-speech";
 import AppInput from "./ui/appInput/AppInput";
 import WateringFrequencyPicker from "./ui/wateringFrequencyPicker/WateringFrequencyPicker";
 import { useTheme } from "../theme/desingSystem";
+import Toast from "./ui/toast/Toast";
+import { calcularProximoRiego } from "../utils/wateringUtils";
+import { regarPlanta } from "../utils/waterPlant";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -56,6 +59,17 @@ export default function UserPlantDetailModal({
   const [editCategory, setEditCategory] = useState("");
   const [editFreq, setEditFreq] = useState(7);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState<"success" | "error" | "warning">("success");
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showToast = (type: "success" | "error" | "warning", msg: string) => {
+    setToastType(type);
+    setToastMessage(msg);
+    setToastVisible(true);
+  };
 
   const [showModal, setShowModal] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -223,6 +237,41 @@ export default function UserPlantDetailModal({
         }
       ]
     );
+  };
+
+  const isWateredToday = (): boolean => {
+    if (!plant?.ultimoRiego) return false;
+    const ultimo = new Date(plant.ultimoRiego);
+    const hoy = new Date();
+    return ultimo.toDateString() === hoy.toDateString();
+  };
+
+  const handleWatering = async () => {
+    if (!plant || !userId) return;
+    try {
+      const freq = plant.wateringFrequencyDays ?? 7;
+      const isToday = isWateredToday();
+      if (isToday) return;
+
+      // Immediately update local state for instant UI feedback
+      const ahora = new Date().toISOString();
+      const updatedPlant = {
+        ...plant,
+        ultimoRiego: ahora,
+        proximoRiego: freq,
+        salud: "saludable" as const,
+      };
+      setPlant(updatedPlant);
+
+      // Call regarPlanta utility (handles cache, Firestore, and SyncQueue!)
+      await regarPlanta(plant.id, userId, freq, isConnected);
+
+      showToast("success", "¡Planta regada! 💧");
+      onRefresh(); // Refresh parent screen lists
+    } catch (error) {
+      console.error("Error watering plant:", error);
+      showToast("error", "No se pudo registrar el riego.");
+    }
   };
 
   const startNarration = async () => {
@@ -491,6 +540,81 @@ export default function UserPlantDetailModal({
                     </Text>
                   </View>
 
+                  {/* WATERING TRACKING CARD */}
+                  {(() => {
+                    const freq = plant.wateringFrequencyDays ?? 7;
+                    const diasRestantes = plant.ultimoRiego
+                      ? calcularProximoRiego(plant.ultimoRiego, freq)
+                      : (plant.proximoRiego ?? 0);
+                    const isWatered = isWateredToday();
+
+                    return (
+                      <View style={styles.sectionContainer}>
+                        <Text style={styles.sectionTitle}>Seguimiento de Riego</Text>
+                        <View
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.04)",
+                            borderRadius: 16,
+                            borderWidth: 1,
+                            borderColor: "rgba(255, 255, 255, 0.08)",
+                            padding: 16,
+                            position: "relative",
+                          }}
+                        >
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                              <Ionicons name="water-outline" size={16} color="#60a5fa" />
+                              <Text style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.6)" }}>Estado de Riego</Text>
+                            </View>
+                            <Text style={{ fontSize: 13, fontWeight: "600", color: isWatered ? "#4ade80" : diasRestantes <= 0 ? "#f87171" : "#fbbf24" }}>
+                              {isWatered ? "Regada hoy" : diasRestantes < 0 ? `${Math.abs(diasRestantes)}d de retraso` : diasRestantes === 0 ? "Regar hoy" : `En ${diasRestantes} días`}
+                            </Text>
+                          </View>
+
+                          {/* Progress Bar showing days until next watering */}
+                          <View style={{ height: 6, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
+                            <View
+                              style={{
+                                height: "100%",
+                                width: `${Math.max(0, Math.min(100, (diasRestantes / freq) * 100))}%`,
+                                backgroundColor: isWatered ? "#4ade80" : diasRestantes <= 0 ? "#f87171" : "#60a5fa",
+                                borderRadius: 3,
+                              }}
+                            />
+                          </View>
+
+                          {/* Action Button */}
+                          {(diasRestantes <= 2 || isWatered) ? (
+                            <TouchableOpacity
+                              disabled={isWatered}
+                              onPress={handleWatering}
+                              style={{
+                                height: 40,
+                                borderRadius: 10,
+                                borderWidth: 1,
+                                borderColor: isWatered ? "rgba(74, 222, 128, 0.2)" : "rgba(96, 165, 250, 0.3)",
+                                backgroundColor: isWatered ? "rgba(74, 222, 128, 0.08)" : "rgba(96, 165, 250, 0.15)",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexDirection: "row",
+                                gap: 6,
+                              }}
+                            >
+                              <Ionicons
+                                name={isWatered ? "checkmark-circle" : "water"}
+                                size={16}
+                                color={isWatered ? "#4ade80" : "#60a5fa"}
+                              />
+                              <Text style={{ fontSize: 13, fontWeight: "600", color: isWatered ? "#4ade80" : "#60a5fa" }}>
+                                {isWatered ? "✓ Regada hoy" : "Regar Planta"}
+                              </Text>
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      </View>
+                    );
+                  })()}
+
                   {/* CARE GUIDE */}
                   {plant.cuidados ? (
                     <View style={styles.sectionContainer}>
@@ -543,10 +667,10 @@ export default function UserPlantDetailModal({
                         <Text style={styles.taxonomyLabel}>Familia</Text>
                         <Text style={styles.taxonomyValue}>{plant.taxonomy.family}</Text>
                       </View>
-                    ) : plant.family ? (
+                    ) : (plant as any).family ? (
                       <View style={styles.taxonomyRow}>
                         <Text style={styles.taxonomyLabel}>Familia</Text>
-                        <Text style={styles.taxonomyValue}>{plant.family}</Text>
+                        <Text style={styles.taxonomyValue}>{(plant as any).family}</Text>
                       </View>
                     ) : null}
 
@@ -684,6 +808,14 @@ export default function UserPlantDetailModal({
           </View>
         </View>
       </Modal>
+
+      {/* Dynamic Success/Error Toast */}
+      <Toast
+        visible={toastVisible}
+        type={toastType}
+        message={toastMessage}
+        onDismiss={() => setToastVisible(false)}
+      />
     </Modal>
   );
 }

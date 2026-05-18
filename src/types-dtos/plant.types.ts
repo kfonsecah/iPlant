@@ -9,6 +9,7 @@ export interface PlantaInterface {
   ultimoRiego: string;
   salud: SaludPlanta;
   proximoRiego: number;
+  wateringFrequencyDays?: number;
 }
 
 export interface PlantIdentificationResult {
@@ -41,6 +42,8 @@ export interface PlantIdentificationResult {
   maxHeight?: string;
   bloomSeason?: string;
   toxicity?: string;
+  category?: string;
+  wateringFrequencyDays?: number;
 }
 
 export interface PlantAIFields {

@@ -42,6 +42,7 @@ import { useSync } from "../../context/SyncContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
 import UserPlantDetailModal from "../../components/UserPlantDetailModal";
 import WateringCard from "../../components/WateringCard";
+import { calcularProximoRiego, getWateringStatus } from "../../utils/wateringUtils";
 
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
@@ -84,25 +85,21 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
     transform: [{ scale: scale.value }],
   }));
 
-  const isOverdue = planta.proximoRiego < 0;
-  const isToday = planta.proximoRiego === 0;
+  const diasRestantes = planta.ultimoRiego && planta.wateringFrequencyDays
+    ? calcularProximoRiego(planta.ultimoRiego, planta.wateringFrequencyDays)
+    : planta.proximoRiego ?? 0;
+
+  const status = getWateringStatus(diasRestantes);
+
+  const isOverdue = diasRestantes < 0;
+  const isToday = diasRestantes === 0;
   const needsWater = isOverdue || isToday;
   const accentColor = isOverdue ? "#f87171" : "#fbbf24";
 
   // Urgency logic for Watering Row
-  let waterIconColor = "rgba(255, 255, 255, 0.35)";
-  let waterTextColor = "rgba(255, 255, 255, 0.4)";
-  let waterText = `En ${planta.proximoRiego}d`;
-
-  if (isOverdue) {
-    waterIconColor = "#f87171";
-    waterTextColor = "#f87171";
-    waterText = "Regar ya";
-  } else if (isToday) {
-    waterIconColor = "#fbbf24";
-    waterTextColor = "#fbbf24";
-    waterText = "Hoy";
-  }
+  const waterIconColor = status.color === "rgba(255,255,255,0.4)" ? "rgba(255,255,255,0.35)" : status.color;
+  const waterTextColor = status.color;
+  const waterText = status.label;
 
   // Health dot color mapping
   let healthDotColor = "#4ade80"; // saludable
@@ -624,13 +621,16 @@ export default function MisPlants() {
               descripcion: enriched.description,
               cuidados: (enriched.careGuide && enriched.careGuide.join("\n")),
               latinName: enriched.latinName,
+              categoria: enriched.category || data.categoria,
+              wateringFrequencyDays: enriched.wateringFrequencyDays || 7,
+              proximoRiego: enriched.wateringFrequencyDays || data.proximoRiego || 7,
               taxonomy: {
                 family: enriched.family,
               },
               wateringDetails: {
                 max: enriched.water === 'high' ? 'Frecuente' : enriched.water === 'medium' ? 'Moderado' : 'Poco',
               },
-              sunlight: enriched.light === 'low' ? 'Sombra' : enriched.light === 'medium' ? 'Luz Indirecta' : 'Luz Directa',
+              sunlight: enriched.sunlight || (enriched.light === 'low' ? 'Sombra' : enriched.light === 'medium' ? 'Luz Indirecta' : 'Luz Directa'),
               countryCodes: enriched.countryCodes || [],
               commonNames: enriched.commonNames || "",
               origin: enriched.origin || "",
