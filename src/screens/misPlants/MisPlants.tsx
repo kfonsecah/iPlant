@@ -40,6 +40,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useSync } from "../../context/SyncContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
 import UserPlantDetailModal from "../../components/UserPlantDetailModal";
+import WateringCard from "../../components/WateringCard";
 
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
@@ -531,6 +532,8 @@ export default function MisPlants() {
         </Animated.View>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <WateringCard plants={plantas} />
+
           <Animated.View entering={FadeInUp.delay(120).duration(400)}>
             <View style={styles.summaryCard}>
               {[
