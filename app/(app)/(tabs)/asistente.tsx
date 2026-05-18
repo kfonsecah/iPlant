@@ -589,7 +589,7 @@ export default function AsistenteScreen() {
 
             {/* Model Badge */}
             <View style={styles.modelBadge}>
-              <Text style={styles.modelBadgeText}>Flora IA</Text>
+              <Text style={styles.modelBadgeText}>FloraIA</Text>
             </View>
 
             {/* Send Button */}
