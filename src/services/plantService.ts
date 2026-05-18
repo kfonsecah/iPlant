@@ -9,10 +9,6 @@ import { getItem, persistImage, saveItem } from "./storageService";
 import { addToQueue, getQueue, processQueue } from "./syncService";
 
 const getBackendUrl = (): string => {
-  if (__DEV__) {
-    // Local dev server running on Kendall's machine (allows local network access for devices and emulators)
-    return "http://192.168.100.25:3000";
-  }
   return process.env.EXPO_PUBLIC_BACKEND_URL || "https://iplant-cz8o.onrender.com";
 };
 
