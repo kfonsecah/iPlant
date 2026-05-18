@@ -728,11 +728,15 @@ const styles = StyleSheet.create({
   taxonomyLabel: {
     fontSize: 11,
     color: "rgba(255, 255, 255, 0.35)",
+    flexShrink: 0,
   },
   taxonomyValue: {
     fontSize: 13,
     color: "white",
     fontWeight: "500",
+    textAlign: "right",
+    flex: 1,
+    marginLeft: 16,
   },
   // MODAL EDIT SYSTEM
   modalOverlay: {
