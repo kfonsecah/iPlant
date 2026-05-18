@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { getPlantById, updatePlant, deletePlant } from "../services/plantService";
+import { getPlantById, updatePlant, deletePlant, enrichPlant } from "../services/plantService";
 import { PlantaCompletaInterface } from "../types-dtos/plant.types";
 import { useAuth } from "../context/AuthContext";
 import { useConnectivity } from "../context/ConnectivityContext";
@@ -77,6 +77,45 @@ export default function UserPlantDetailModal({
           setEditName(data.nombre);
           setEditCategory(data.categoria);
           setEditFreq(data.proximoRiego);
+
+          // Self-healing: if the plant is missing enriched fields and we are online, enrich it now!
+          if (isConnected && !data.commonNames) {
+            console.log("Self-healing: Enriching missing botanical details for", data.nombre);
+            try {
+              const enriched = await enrichPlant(data.nombre, data.latinName);
+              if (enriched) {
+                const enrichedFields = {
+                  descripcion: enriched.description || data.descripcion,
+                  cuidados: (enriched.careGuide && enriched.careGuide.join("\n")) || data.cuidados,
+                  latinName: enriched.latinName || data.latinName,
+                  taxonomy: {
+                    family: enriched.family || data.taxonomy?.family,
+                  },
+                  wateringDetails: {
+                    max: enriched.water === 'high' ? 'Frecuente' : enriched.water === 'medium' ? 'Moderado' : 'Poco',
+                  },
+                  sunlight: enriched.light === 'low' ? 'Sombra' : enriched.light === 'medium' ? 'Luz Indirecta' : 'Luz Directa',
+                  countryCodes: enriched.countryCodes || [],
+                  commonNames: enriched.commonNames || "",
+                  origin: enriched.origin || "",
+                  climate: enriched.climate || "",
+                  maxHeight: enriched.maxHeight || "",
+                  bloomSeason: enriched.bloomSeason || "",
+                  toxicity: enriched.toxicity || "",
+                };
+                
+                // Update local state so it immediately renders
+                setPlant(prev => prev ? { ...prev, ...enrichedFields } : null);
+                
+                // Save to Firestore
+                await updatePlant(plantId, enrichedFields);
+                console.log("Self-healing: Successfully enriched plant inside detail modal!");
+                onRefresh(); // Refresh parent grid too
+              }
+            } catch (enrichErr) {
+              console.warn("Self-healing enrichment failed:", enrichErr);
+            }
+          }
         }
       } catch (error) {
         console.error("Error loading user plant details:", error);
@@ -463,6 +502,28 @@ export default function UserPlantDetailModal({
                     </View>
                   ) : null}
 
+                  {/* COMMON NAMES */}
+                  {plant.commonNames ? (
+                    <View style={styles.sectionContainer}>
+                      <Text style={styles.sectionTitle}>Nombres comunes por país</Text>
+                      <View style={styles.careCard}>
+                        <Ionicons name="globe-outline" size={18} color="#4ade80" style={{ marginRight: 8, marginTop: 2 }} />
+                        <Text style={styles.tipText}>{plant.commonNames}</Text>
+                      </View>
+                    </View>
+                  ) : null}
+
+                  {/* TOXICITY WARNING */}
+                  {plant.toxicity ? (
+                    <View style={styles.sectionContainer}>
+                      <Text style={styles.sectionTitle}>Toxicidad y Seguridad</Text>
+                      <View style={[styles.careCard, { backgroundColor: "rgba(245, 158, 11, 0.08)", borderColor: "rgba(245, 158, 11, 0.2)", borderWidth: 1 }]}>
+                        <Ionicons name="warning-outline" size={20} color="#F59E0B" style={{ marginRight: 8, marginTop: 2 }} />
+                        <Text style={[styles.tipText, { color: "#F59E0B", fontWeight: "500" }]}>{plant.toxicity}</Text>
+                      </View>
+                    </View>
+                  ) : null}
+
                   {/* TAXONOMY / SPEC DETAILS */}
                   <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>Ficha Técnica</Text>
@@ -477,12 +538,45 @@ export default function UserPlantDetailModal({
                       <Text style={styles.taxonomyValue}>Cada {plant.proximoRiego} días</Text>
                     </View>
                     
-                    {plant.taxonomy?.family && (
+                    {plant.taxonomy?.family ? (
                       <View style={styles.taxonomyRow}>
                         <Text style={styles.taxonomyLabel}>Familia</Text>
                         <Text style={styles.taxonomyValue}>{plant.taxonomy.family}</Text>
                       </View>
-                    )}
+                    ) : plant.family ? (
+                      <View style={styles.taxonomyRow}>
+                        <Text style={styles.taxonomyLabel}>Familia</Text>
+                        <Text style={styles.taxonomyValue}>{plant.family}</Text>
+                      </View>
+                    ) : null}
+
+                    {plant.origin ? (
+                      <View style={styles.taxonomyRow}>
+                        <Text style={styles.taxonomyLabel}>Origen</Text>
+                        <Text style={styles.taxonomyValue}>{plant.origin}</Text>
+                      </View>
+                    ) : null}
+
+                    {plant.climate ? (
+                      <View style={styles.taxonomyRow}>
+                        <Text style={styles.taxonomyLabel}>Clima</Text>
+                        <Text style={styles.taxonomyValue}>{plant.climate}</Text>
+                      </View>
+                    ) : null}
+
+                    {plant.maxHeight ? (
+                      <View style={styles.taxonomyRow}>
+                        <Text style={styles.taxonomyLabel}>Altura Máxima</Text>
+                        <Text style={styles.taxonomyValue}>{plant.maxHeight}</Text>
+                      </View>
+                    ) : null}
+
+                    {plant.bloomSeason ? (
+                      <View style={styles.taxonomyRow}>
+                        <Text style={styles.taxonomyLabel}>Floración</Text>
+                        <Text style={styles.taxonomyValue}>{plant.bloomSeason}</Text>
+                      </View>
+                    ) : null}
 
                     {plant.wateringDetails?.max && (
                       <View style={styles.taxonomyRow}>

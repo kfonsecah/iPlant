@@ -9,7 +9,11 @@ import { getItem, persistImage, saveItem } from "./storageService";
 import { addToQueue, getQueue, processQueue } from "./syncService";
 
 const getBackendUrl = (): string => {
-  return process.env.EXPO_PUBLIC_BACKEND_URL || "http://localhost:3000";
+  if (__DEV__) {
+    // Local dev server running on Kendall's machine (allows local network access for devices and emulators)
+    return "http://192.168.100.25:3000";
+  }
+  return process.env.EXPO_PUBLIC_BACKEND_URL || "https://iplant-cz8o.onrender.com";
 };
 
 async function imageToDataUri(uri: string): Promise<string> {
@@ -118,6 +122,33 @@ export async function identifyPlant(imageUri: string): Promise<PlantIdentificati
   };
 }
 
+export async function enrichPlant(plantName: string, latinName?: string): Promise<any> {
+  const isConnected = (await NetInfo.fetch()).isConnected;
+  if (!isConnected) {
+    throw new Error("Sin conexión a internet. El enriquecimiento por IA no está disponible sin conexión.");
+  }
+
+  const backendUrl = getBackendUrl();
+  console.log(`[enrichPlant] Fetching from: ${backendUrl}/api/enrich-plant`);
+
+  const response = await fetch(`${backendUrl}/api/enrich-plant`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      plantName,
+      latinName,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo enriquecer la información de la planta");
+  }
+
+  return await response.json();
+}
+
 function formatUltimoRiego(value: unknown): string {
   if (value instanceof Timestamp) {
     const date = value.toDate();
@@ -165,6 +196,13 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
           soil: data.soil,
           propagationMethods: data.propagationMethods,
           wikiExtract: data.wikiExtract,
+          countryCodes: data.countryCodes,
+          commonNames: data.commonNames,
+          origin: data.origin,
+          climate: data.climate,
+          maxHeight: data.maxHeight,
+          bloomSeason: data.bloomSeason,
+          toxicity: data.toxicity,
         } as PlantaCompletaInterface;
       });
 
@@ -226,6 +264,13 @@ export async function addPlant(
     soil: data.soil,
     propagationMethods: data.propagationMethods,
     wikiExtract: data.wikiExtract,
+    countryCodes: data.countryCodes,
+    commonNames: data.commonNames,
+    origin: data.origin,
+    climate: data.climate,
+    maxHeight: data.maxHeight,
+    bloomSeason: data.bloomSeason,
+    toxicity: data.toxicity,
   };
 
   // 1. Save to local cache
@@ -277,6 +322,13 @@ async function pushPlantToFirestore(plant: PlantaCompletaInterface): Promise<str
     ...(plant.soil && { soil: plant.soil }),
     ...(plant.propagationMethods && { propagationMethods: plant.propagationMethods }),
     ...(plant.wikiExtract && { wikiExtract: plant.wikiExtract }),
+    ...(plant.countryCodes && { countryCodes: plant.countryCodes }),
+    ...(plant.commonNames && { commonNames: plant.commonNames }),
+    ...(plant.origin && { origin: plant.origin }),
+    ...(plant.climate && { climate: plant.climate }),
+    ...(plant.maxHeight && { maxHeight: plant.maxHeight }),
+    ...(plant.bloomSeason && { bloomSeason: plant.bloomSeason }),
+    ...(plant.toxicity && { toxicity: plant.toxicity }),
   };
 
   // 1. Notify Backend (Phase 4 Requirement: "Plant creation endpoint works end-to-end")
@@ -329,9 +381,24 @@ export async function syncPlants(userId: string): Promise<void> {
 
 export async function updatePlant(
   plantId: string,
-  data: Partial<Pick<PlantaInterface, "nombre" | "categoria" | "salud" | "proximoRiego">>
+  data: Partial<PlantaCompletaInterface>
 ): Promise<void> {
-  await withTimeout(updateDoc(doc(db, "plants", plantId), data));
+  // 1. Update Firestore
+  await withTimeout(updateDoc(doc(db, "plants", plantId), data as any));
+
+  // 2. Sync changes to local offline cache
+  try {
+    const { auth } = await import("../config/firebase");
+    const userId = data.userId || auth.currentUser?.uid;
+    if (userId) {
+      const cacheKey = `PLANTS_CACHE_${userId}`;
+      const currentCache = (await getItem<PlantaCompletaInterface[]>(cacheKey)) || [];
+      const updatedCache = currentCache.map(p => p.id === plantId ? { ...p, ...data } : p);
+      await saveItem(cacheKey, updatedCache);
+    }
+  } catch (err) {
+    console.warn("Failed to update local cache on plant update:", err);
+  }
 }
 
 export async function deletePlant(userId: string, plantId: string, isConnected: boolean): Promise<void> {

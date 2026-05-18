@@ -31,7 +31,7 @@ import { useRouter } from "expo-router";
 import AppInput from "../../components/ui/appInput/AppInput";
 import Toast, { ToastType } from "../../components/ui/toast/Toast";
 import WateringFrequencyPicker from "../../components/ui/wateringFrequencyPicker/WateringFrequencyPicker";
-import { addPlant, getPlantsByUserId, updatePlant } from "../../services/plantService";
+import { addPlant, getPlantsByUserId, updatePlant, enrichPlant } from "../../services/plantService";
 import { getUserById } from "../../services/userService";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
 import { PlantaCompletaInterface, SaludPlanta } from "../../types-dtos/plant.types";
@@ -422,9 +422,45 @@ export default function MisPlants() {
 
   const handleAddPlanta = async (data: Omit<PlantaCompletaInterface, "id" | "userId" | "imagen" | "ultimoRiego" | "salud">) => {
     try {
-      const nueva = await addPlant({ userId, ...data });
+      let enrichedFields: Partial<PlantaCompletaInterface> = {};
+      if (isConnected) {
+        try {
+          showToast("success", "Generando ficha botánica con IA...");
+          const enriched = await enrichPlant(data.nombre);
+          if (enriched) {
+            enrichedFields = {
+              descripcion: enriched.description,
+              cuidados: (enriched.careGuide && enriched.careGuide.join("\n")),
+              latinName: enriched.latinName,
+              taxonomy: {
+                family: enriched.family,
+              },
+              wateringDetails: {
+                max: enriched.water === 'high' ? 'Frecuente' : enriched.water === 'medium' ? 'Moderado' : 'Poco',
+              },
+              sunlight: enriched.light === 'low' ? 'Sombra' : enriched.light === 'medium' ? 'Luz Indirecta' : 'Luz Directa',
+              countryCodes: enriched.countryCodes || [],
+              commonNames: enriched.commonNames || "",
+              origin: enriched.origin || "",
+              climate: enriched.climate || "",
+              maxHeight: enriched.maxHeight || "",
+              bloomSeason: enriched.bloomSeason || "",
+              toxicity: enriched.toxicity || "",
+            };
+          }
+        } catch (enrichErr) {
+          console.warn("Failed to enrich manual plant:", enrichErr);
+        }
+      }
+
+      const nueva = await addPlant({ 
+        userId, 
+        ...data, 
+        ...enrichedFields,
+        identificadoConIA: true
+      });
       setPlantas((prev) => [...prev, nueva]);
-      showToast("success", "Planta agregada correctamente");
+      showToast("success", "Planta y ficha botánica guardadas");
     } catch {
       showToast("error", "No se pudo guardar. Verifica tu conexión.");
     }

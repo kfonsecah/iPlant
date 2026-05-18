@@ -34,6 +34,13 @@ export interface PlantIdentificationResult {
     title: string;
     extract: string;
   };
+  countryCodes?: string[];
+  commonNames?: string;
+  origin?: string;
+  climate?: string;
+  maxHeight?: string;
+  bloomSeason?: string;
+  toxicity?: string;
 }
 
 export interface PlantAIFields {
@@ -57,6 +64,13 @@ export interface PlantAIFields {
   soil?: string;
   propagationMethods?: string[];
   wikiExtract?: string;
+  countryCodes?: string[];
+  commonNames?: string;
+  origin?: string;
+  climate?: string;
+  maxHeight?: string;
+  bloomSeason?: string;
+  toxicity?: string;
   // Sync metadata
   isPending?: boolean;
   syncError?: string;

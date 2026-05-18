@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
-import { identifyPlant, addPlant } from "../../services/plantService";
+import { identifyPlant, addPlant, enrichPlant } from "../../services/plantService";
 import { PlantIdentificationResult } from "../../types-dtos/plant.types";
 import { useAuth } from "../../context/AuthContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
@@ -109,6 +109,43 @@ export default function CameraScreen() {
     
     try {
       const result = await identifyPlant(previewUri);
+      
+      // Enrich plant details with Gemini
+      try {
+        console.log("Enriching plant with Gemini...");
+        const enriched = await enrichPlant(result.plantName, result.latinName);
+        if (enriched) {
+          result.description = enriched.description || result.description;
+          result.sunlight = enriched.light 
+            ? (enriched.light === 'low' ? 'Sombra' : enriched.light === 'medium' ? 'Luz Indirecta' : 'Luz Directa') 
+            : result.sunlight;
+          result.careInstructions = (enriched.careGuide && enriched.careGuide.join("\n")) || result.careInstructions;
+          
+          if (enriched.family) {
+            result.taxonomy = {
+              ...result.taxonomy,
+              family: enriched.family,
+            };
+          }
+          if (enriched.water) {
+            result.watering = {
+              ...result.watering,
+              max: enriched.water === 'high' ? 'Frecuente' : enriched.water === 'medium' ? 'Moderado' : 'Poco',
+            };
+          }
+          
+          result.countryCodes = enriched.countryCodes || [];
+          result.commonNames = enriched.commonNames || "";
+          result.origin = enriched.origin || "";
+          result.climate = enriched.climate || "";
+          result.maxHeight = enriched.maxHeight || "";
+          result.bloomSeason = enriched.bloomSeason || "";
+          result.toxicity = enriched.toxicity || "";
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini enrichment failed, using basic Plant.id details:", geminiErr);
+      }
+
       setAiResult(result);
     } catch (error) {
       console.error("Identification failed:", error);
@@ -142,6 +179,13 @@ export default function CameraScreen() {
         soil: editData.soil,
         propagationMethods: editData.propagationMethods,
         wikiExtract: editData.wikiExtract,
+        countryCodes: editData.countryCodes,
+        commonNames: editData.commonNames,
+        origin: editData.origin,
+        climate: editData.climate,
+        maxHeight: editData.maxHeight,
+        bloomSeason: editData.bloomSeason,
+        toxicity: editData.toxicity,
       });
       
       router.back();

@@ -223,6 +223,98 @@ Ayudas a identificar plantas, diagnosticar enfermedades, dar consejos de cuidado
   }
 });
 
+app.post('/api/enrich-plant', async (req, res) => {
+  try {
+    const { plantName, latinName } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server' });
+    }
+
+    if (!plantName) {
+      return res.status(400).json({ error: 'plantName is required' });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const prompt = `Eres un experto botánico de iPlant.
+Analiza la siguiente planta identificada:
+- Nombre común: ${plantName}
+- Nombre científico/especie: ${latinName || 'Desconocido'}
+
+Tu tarea es generar y completar toda la información botánica y de cuidados de esta planta en un formato JSON estructurado EXACTAMENTE como se detalla a continuación. Debes responder SOLO con el objeto JSON, sin código de bloque, sin explicaciones ni markdown.
+
+Formato JSON esperado:
+{
+  "latinName": "Nombre científico correcto",
+  "light": "low",
+  "water": "low",
+  "humidity": "low",
+  "difficulty": "facil",
+  "description": "Una descripción detallada de unos 2 párrafos sobre la planta, su belleza y cuidado.",
+  "funFact": "Un dato curioso e interesante sobre esta planta que sorprenda al usuario.",
+  "careGuide": [
+    "Consejo de riego detallado (frecuencia, método).",
+    "Consejo de iluminación y ubicación idónea.",
+    "Consejo de suelo, abono o poda."
+  ],
+  "family": "Familia botánica a la que pertenece",
+  "origin": "Región o países de origen geográfico nativo",
+  "climate": "Tipo de clima idóneo (ej: Tropical húmedo, Templado, etc.)",
+  "maxHeight": "Altura máxima promedio (ej: 1.5m)",
+  "bloomSeason": "Época de floración (ej: Primavera - Verano, No florece, etc.)",
+  "countryCodes": ["MX", "CO"],
+  "commonNames": "Nombres comunes ordenados por país de la siguiente forma:\\n- México: Cuna de Moisés\\n- Colombia: Espatifilo\\n- España: Lirio de la paz\\n(Genera al menos 3 países diferentes de habla hispana)",
+  "toxicity": "Especifica si es tóxica para perros, gatos u otras mascotas y humanos, o si es 100% segura (Pet-Friendly)."
+}
+
+Asegúrate de que los valores de light, water y humidity sean exactamente "low", "medium" o "high", y que difficulty sea "facil", "moderada" o "dificil". El campo countryCodes debe ser un array de strings conteniendo de 1 a 4 códigos de país válidos de 2 letras ISO (ej: MX, CO, ES, BR, US, AR) correspondientes a sus zonas geográficas nativas.`;
+
+    const modelsToTry = [
+      { name: 'gemini-2.5-flash' },
+      { name: 'gemini-2.0-flash' },
+      { name: 'gemini-1.5-flash' },
+      { name: 'gemini-pro' }
+    ];
+
+    let responseText = '';
+    let lastError: any = null;
+
+    for (const modelConfig of modelsToTry) {
+      try {
+        console.log(`Enriching plant using model: ${modelConfig.name}`);
+        const model = genAI.getGenerativeModel({ model: modelConfig.name });
+        const result = await model.generateContent(prompt);
+        responseText = result.response.text();
+        if (responseText) {
+          console.log(`Successfully enriched using ${modelConfig.name}`);
+          break;
+        }
+      } catch (err: any) {
+        console.warn(`Model ${modelConfig.name} enrichment failed:`, err.message);
+        lastError = err;
+      }
+    }
+
+    if (!responseText) {
+      throw lastError || new Error('All models failed to respond');
+    }
+
+    // Clean response text to ensure parseable JSON
+    let cleanJson = responseText.trim();
+    const markdownMatch = cleanJson.match(/```json\s*([\s\S]*?)\s*```/) || cleanJson.match(/```\s*([\s\S]*?)\s*```/);
+    if (markdownMatch) {
+      cleanJson = markdownMatch[1];
+    }
+
+    const parsedData = JSON.parse(cleanJson.trim());
+    res.json(parsedData);
+  } catch (error: any) {
+    console.error('Error enriching plant info:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

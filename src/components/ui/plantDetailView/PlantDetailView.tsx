@@ -45,6 +45,13 @@ export interface PlantEditData {
   soil?: string;
   propagationMethods?: string[];
   wikiExtract?: string;
+  countryCodes?: string[];
+  commonNames?: string;
+  origin?: string;
+  climate?: string;
+  maxHeight?: string;
+  bloomSeason?: string;
+  toxicity?: string;
 }
 
 interface PlantDetailViewProps {
@@ -75,6 +82,13 @@ const PlantDetailView = ({ result, imageUri, onConfirm, onCancel }: PlantDetailV
     soil: result.soil,
     propagationMethods: result.propagationMethods,
     wikiExtract: result.wikiDescription?.extract,
+    countryCodes: result.countryCodes,
+    commonNames: result.commonNames,
+    origin: result.origin,
+    climate: result.climate,
+    maxHeight: result.maxHeight,
+    bloomSeason: result.bloomSeason,
+    toxicity: result.toxicity,
   });
 
   const headerTranslateY = scrollY.interpolate({
