@@ -9,8 +9,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -122,6 +126,9 @@ export default function AsistenteScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedPlant, setSelectedPlant] = useState<any | null>(null);
   const [plants, setPlants] = useState<any[]>([]);
+  const [isPremium, setIsPremium] = useState(false);
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
 
   const [toast, setToast] = useState<{ visible: boolean; type: "success" | "error" | "warning"; message: string }>({
     visible: false,
@@ -147,8 +154,12 @@ export default function AsistenteScreen() {
         if (saved) {
           setMessages(JSON.parse(saved));
         }
+        const premiumStatus = await AsyncStorage.getItem('IPLANT_PREMIUM_STATUS');
+        if (premiumStatus === 'true') {
+          setIsPremium(true);
+        }
       } catch (e) {
-        console.error('Failed to load chat history:', e);
+        console.error('Failed to load chat history/premium status:', e);
       }
     };
     loadChatHistory();
@@ -225,31 +236,75 @@ export default function AsistenteScreen() {
   };
 
   const handleMenuPress = () => {
-    Alert.alert(
-      "Opciones de Chat",
-      "Elige una opción para continuar",
-      [
-        {
-          text: "Limpiar conversación",
-          style: "destructive",
-          onPress: async () => {
-            setMessages([]);
-            await AsyncStorage.removeItem('IPLANT_CHAT_HISTORY');
-            showToast("Conversación limpiada.", "success");
-          }
-        },
-        {
-          text: "Cancelar",
-          style: "cancel"
+    const options: any[] = [
+      {
+        text: "Limpiar conversación",
+        style: "destructive",
+        onPress: async () => {
+          setMessages([]);
+          await AsyncStorage.removeItem('IPLANT_CHAT_HISTORY');
+          showToast("Conversación limpiada.", "success");
         }
-      ]
-    );
+      }
+    ];
+
+    if (isPremium) {
+      options.unshift({
+        text: "Cancelar Suscripción Premium (Simulación)",
+        style: "destructive",
+        onPress: async () => {
+          setIsPremium(false);
+          await AsyncStorage.setItem('IPLANT_PREMIUM_STATUS', 'false');
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          showToast("Suscripción cancelada.", "warning");
+        }
+      });
+    }
+
+    options.push({
+      text: "Cancelar",
+      style: "cancel"
+    });
+
+    Alert.alert("Opciones de Chat", "Elige una opción para continuar", options);
   };
 
   const handleCopyMessage = async (text: string) => {
     await Clipboard.setStringAsync(text);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     showToast("Texto copiado al portapapeles", "success");
+  };
+
+  const handleUpgradePurchase = async () => {
+    setPurchasing(true);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    // Simulate secure 1.5 second purchase transaction
+    setTimeout(async () => {
+      try {
+        setIsPremium(true);
+        await AsyncStorage.setItem('IPLANT_PREMIUM_STATUS', 'true');
+        setUpgradeModalVisible(false);
+        setPurchasing(false);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        showToast("¡Suscripción Premium Activada! 🌿✨", "success");
+      } catch (e) {
+        console.error("Failed to upgrade:", e);
+        setPurchasing(false);
+        showToast("Error al procesar la compra.", "error");
+      }
+    }, 1500);
+  };
+
+  const handleDeactivatePremium = async () => {
+    try {
+      setIsPremium(false);
+      await AsyncStorage.setItem('IPLANT_PREMIUM_STATUS', 'false');
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      showToast("Premium desactivado (Simulación) 🌿", "warning");
+    } catch (e) {
+      console.error("Failed to deactivate premium:", e);
+    }
   };
 
   const openPlantPicker = () => {
@@ -435,9 +490,33 @@ export default function AsistenteScreen() {
             <Text style={styles.headerSubtitle}>En línea</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.headerMenuBtn} onPress={handleMenuPress}>
-          <Ionicons name="ellipsis-horizontal" size={20} color="rgba(255,255,255,0.4)" />
-        </TouchableOpacity>
+        
+        {/* Header Right Action Area */}
+        <View style={styles.headerRight}>
+          {!isPremium ? (
+            <TouchableOpacity 
+              style={styles.upgradeBtn} 
+              onPress={() => setUpgradeModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="sparkles" size={11} color="#fbbf24" style={{ marginRight: 3 }} />
+              <Text style={styles.upgradeBtnText}>Upgrade</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.premiumBadge} 
+              onPress={handleDeactivatePremium}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="ribbon" size={11} color="#4ade80" style={{ marginRight: 3 }} />
+              <Text style={styles.premiumBadgeText}>Premium</Text>
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity style={styles.headerMenuBtn} onPress={handleMenuPress}>
+            <Ionicons name="ellipsis-horizontal" size={20} color="rgba(255,255,255,0.4)" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* MESSAGES LIST */}
@@ -587,10 +666,6 @@ export default function AsistenteScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Model Badge */}
-            <View style={styles.modelBadge}>
-              <Text style={styles.modelBadgeText}>FloraIA</Text>
-            </View>
 
             {/* Send Button */}
             <Animated.View style={sendAnimatedStyle}>
@@ -670,6 +745,126 @@ export default function AsistenteScreen() {
           )}
         </View>
       </BottomSheet>
+
+      {/* PREMIUM PAYWALL MODAL */}
+      <Modal
+        visible={upgradeModalVisible}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setUpgradeModalVisible(false)}
+      >
+        <View style={styles.premiumOverlay}>
+          {/* Backdrop overlay */}
+          <TouchableOpacity
+            style={styles.premiumBackdrop}
+            activeOpacity={1}
+            onPress={() => setUpgradeModalVisible(false)}
+            disabled={purchasing}
+          />
+
+          {/* Bottom sheet container */}
+          <View style={styles.premiumBottomSheet}>
+            
+            {/* 3D POP-OUT HERO CONTAINER (Rendered absolutely behind the ScrollView) */}
+            <View style={styles.premiumHeroContainer}>
+              <ExpoImage
+                source={require('../../../assets/images/plantapremium.png')}
+                style={styles.premiumHeroImage}
+                contentFit="contain"
+              />
+              <LinearGradient
+                colors={["transparent", "#121212"]}
+                style={styles.premiumHeroGradient}
+              />
+            </View>
+
+            {/* SCROLLVIEW RENDERED ABOVE THE HERO */}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.premiumScrollView}
+              contentContainerStyle={styles.premiumScrollContent}
+            >
+              {/* HERO PLACEHOLDER & TEXTS */}
+              <View style={styles.premiumHeroPlaceholder}>
+                <View style={styles.premiumHeroTextContainer}>
+                  <Text style={styles.premiumLatinName}>FLORA IA PRO</Text>
+                  <Text style={styles.premiumPlantName}>iPlant Premium</Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.premiumCloseButton} 
+                  onPress={() => setUpgradeModalVisible(false)}
+                  disabled={purchasing}
+                >
+                  <Ionicons name="close" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              {/* MAIN SOLID CONTENT WRAPPER */}
+              <View style={styles.premiumMainContentContainer}>
+                
+                {/* Benefits List */}
+                <View style={styles.premiumBenefitsContainer}>
+                  <View style={styles.premiumBenefitRow}>
+                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <View style={styles.premiumBenefitTextContainer}>
+                      <Text style={styles.premiumBenefitTitle}>Identificaciones con IA Ilimitadas</Text>
+                      <Text style={styles.premiumBenefitDesc}>Escanea todas las plantas que quieras sin límites diarios ni anuncios molestos.</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.premiumBenefitRow}>
+                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <View style={styles.premiumBenefitTextContainer}>
+                      <Text style={styles.premiumBenefitTitle}>Diagnóstico Médico Botánico</Text>
+                      <Text style={styles.premiumBenefitDesc}>Detecta plagas y enfermedades al instante con tratamientos detallados y recetas botánicas.</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.premiumBenefitRow}>
+                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <View style={styles.premiumBenefitTextContainer}>
+                      <Text style={styles.premiumBenefitTitle}>Flora Pro Supercargada</Text>
+                      <Text style={styles.premiumBenefitDesc}>Respuestas instantáneas y análisis botánicos ultra detallados basados en Gemini 2.5 Pro.</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.premiumBenefitRow}>
+                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <View style={styles.premiumBenefitTextContainer}>
+                      <Text style={styles.premiumBenefitTitle}>Alertas Inteligentes de Clima</Text>
+                      <Text style={styles.premiumBenefitDesc}>Optimiza el riego de acuerdo al clima en tiempo real de tu ciudad para evitar ahogamientos.</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Price details */}
+                <View style={styles.premiumPricingCard}>
+                  <Text style={styles.premiumPricingAmount}>$4.99 / mes</Text>
+                  <Text style={styles.premiumPricingSub}>Cancela en cualquier momento. Incluye 7 días de prueba gratis.</Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* BOTTOM FIXED CTA BUTTON */}
+            <View style={styles.premiumBottomCtaContainer}>
+              <TouchableOpacity
+                style={[styles.premiumCtaButton, purchasing && styles.premiumCtaButtonDisabled]}
+                onPress={handleUpgradePurchase}
+                disabled={purchasing}
+                activeOpacity={0.8}
+              >
+                {purchasing ? (
+                  <ActivityIndicator color="#000" size="small" />
+                ) : (
+                  <Text style={styles.premiumCtaButtonText}>Iniciar Suscripción por $4.99</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* TOAST OVERLAY */}
       <Toast
@@ -924,20 +1119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modelBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modelBadgeText: {
-    color: 'rgba(255, 255, 255, 0.35)',
-    fontSize: 11,
-    fontWeight: '500',
-    letterSpacing: 0.2,
-  },
+
   sendButton: {
     width: 32,
     height: 32,
@@ -994,5 +1176,209 @@ const styles = StyleSheet.create({
   healthText: {
     fontSize: 10,
     fontWeight: '600',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  upgradeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(251, 191, 36, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginRight: 6,
+  },
+  upgradeBtnText: {
+    color: '#fbbf24',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(74, 222, 128, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.25)',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginRight: 6,
+  },
+  premiumBadgeText: {
+    color: '#4ade80',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  premiumOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  premiumBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  premiumBottomSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '84%',
+    backgroundColor: '#121212',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'visible',
+  },
+  premiumHeroContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: -65,
+    height: 280,
+    overflow: 'visible',
+    zIndex: 1,
+  },
+  premiumHeroImage: {
+    width: '100%',
+    height: 280,
+  },
+  premiumHeroGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 100,
+  },
+  premiumScrollView: {
+    flex: 1,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+    zIndex: 5,
+  },
+  premiumScrollContent: {
+    paddingBottom: 110,
+  },
+  premiumHeroPlaceholder: {
+    height: 200,
+    position: 'relative',
+  },
+  premiumHeroTextContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 20,
+    right: 20,
+  },
+  premiumLatinName: {
+    fontSize: 11,
+    color: '#fbbf24',
+    letterSpacing: 2,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  premiumPlantName: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: 'white',
+    letterSpacing: -0.5,
+  },
+  premiumCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 8,
+    zIndex: 50,
+  },
+  premiumMainContentContainer: {
+    backgroundColor: '#121212',
+    paddingTop: 12,
+    paddingHorizontal: 20,
+  },
+  premiumBenefitsContainer: {
+    width: '100%',
+    gap: 16,
+    marginBottom: 24,
+  },
+  premiumBenefitRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  premiumBenefitTextContainer: {
+    flex: 1,
+  },
+  premiumBenefitTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  premiumBenefitDesc: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+    marginTop: 3,
+    lineHeight: 16,
+  },
+  premiumPricingCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  premiumPricingAmount: {
+    color: '#fbbf24',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  premiumPricingSub: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 11,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  premiumBottomCtaContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    backgroundColor: '#121212',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    paddingTop: 12,
+    zIndex: 10,
+  },
+  premiumCtaButton: {
+    backgroundColor: '#4ade80',
+    borderRadius: 16,
+    height: 52,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumCtaButtonDisabled: {
+    backgroundColor: 'rgba(74, 222, 128, 0.4)',
+  },
+  premiumCtaButtonText: {
+    color: '#000',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
