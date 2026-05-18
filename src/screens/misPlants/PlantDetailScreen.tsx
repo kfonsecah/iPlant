@@ -241,7 +241,7 @@ export default function PlantDetailScreen() {
               transform: [{ translateY: baseTranslateY }, { scale: imageScale }],
             },
           ]}
-          resizeMode="contain"
+          resizeMode="cover"
         />
         
         <LinearGradient
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   heroImage: {
     width: "100%",
     height: 320,
-    resizeMode: "contain",
+    resizeMode: "cover",
   },
   heroGradient: {
     position: "absolute",
