@@ -614,7 +614,7 @@ export default function AsistenteScreen() {
       />
 
       {/* INPUT CARD CONTAINER (Claude/Gemini style) */}
-      <View style={[styles.inputSection, { paddingBottom: Math.max(insets.bottom + 8, 12) }]}>
+      <View style={[styles.inputSection, { paddingBottom: 80 + Math.max(insets.bottom, 12) }]}>
         <View style={styles.inputCard}>
           {/* Integrated Attachments Row */}
           {(selectedImage || selectedPlant) && (

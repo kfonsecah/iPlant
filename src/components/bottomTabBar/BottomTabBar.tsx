@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { BlurView } from "expo-blur";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -70,11 +71,11 @@ function TabButton({ tab, isActive, onPress, tabStyles, theme }: TabButtonProps)
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
     >
-      <Animated.View className="items-center justify-center" style={animStyle}>
+      <Animated.View style={[animStyle, { alignItems: 'center', justifyContent: 'center' }]}>
         <Ionicons
           name={isActive ? tab.iconActive : tab.icon}
-          size={theme.dimensions.tabBarIconSize}
-          color={isActive ? theme.colors.tabBarActive : theme.colors.tabBarInactive}
+          size={theme.dimensions.tabBarIconSize - 1}
+          color={isActive ? "#4ade80" : "rgba(255,255,255,0.4)"}
         />
         <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>
           {tab.label}
@@ -94,35 +95,34 @@ type CenterButtonProps = {
 };
 
 function CenterButton({ tabStyles, theme, onPress }: CenterButtonProps) {
-  const pulse = useSharedValue(1);
+  const scaleValue = useSharedValue(1);
 
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1.07, { duration: 900 }),
-        withTiming(1.0,  { duration: 900 }),
-      ),
-      -1,
-      false,
-    );
-  }, []);
-
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
+  const bounceStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleValue.value }],
   }));
 
+  const handlePressIn = () => {
+    scaleValue.value = withSpring(0.85, { damping: 10, stiffness: 300 });
+  };
+
+  const handlePressOut = () => {
+    scaleValue.value = withSpring(1, { damping: 10, stiffness: 300 });
+  };
+
   return (
-    <View style={tabStyles.centerButtonWrapper} pointerEvents="box-none">
-      <Animated.View style={pulseStyle}>
+    <View style={tabStyles.centerButtonContainer}>
+      <Animated.View style={bounceStyle}>
         <TouchableOpacity
           style={tabStyles.centerButton}
-          activeOpacity={theme.opacity.pressableCenterButton}
+          activeOpacity={0.8}
           onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
         >
           <Ionicons
             name="camera"
-            size={theme.dimensions.cameraIconSize}
-            color={theme.colors.textOnAccent}
+            size={22}
+            color="#000"
           />
         </TouchableOpacity>
       </Animated.View>
@@ -152,37 +152,38 @@ export default function BottomTabBar() {
   };
 
   return (
-    <View style={[tabStyles.root, { paddingBottom: insets.bottom }]}>
-      <View style={tabStyles.bar}>
-        {LEFT_TABS.map((tab) => (
-          <TabButton
-            key={tab.key}
-            tab={tab}
-            isActive={activeTab === tab.key}
-            onPress={handleTabPress}
-            tabStyles={tabStyles}
-            theme={theme}
-          />
-        ))}
-        <View style={tabStyles.centerSpacer} />
-        {RIGHT_TABS.map((tab) => (
-          <TabButton
-            key={tab.key}
-            tab={tab}
-            isActive={activeTab === tab.key}
-            onPress={handleTabPress}
-            tabStyles={tabStyles}
-            theme={theme}
-          />
-        ))}
-      </View>
-
-      {/* Arco curvo que engloba el botón central */}
-      <View style={tabStyles.arcWrapper} pointerEvents="none">
-        <View style={tabStyles.arcBump} />
-      </View>
-
-      <CenterButton tabStyles={tabStyles} theme={theme} onPress={handleCameraPress} />
+    <View style={[tabStyles.root, { bottom: Math.max(insets.bottom, 12) }]}>
+      <BlurView
+        intensity={30}
+        tint="dark"
+        style={tabStyles.blurContainer}
+      >
+        <View style={tabStyles.bar}>
+          {LEFT_TABS.map((tab) => (
+            <TabButton
+              key={tab.key}
+              tab={tab}
+              isActive={activeTab === tab.key}
+              onPress={handleTabPress}
+              tabStyles={tabStyles}
+              theme={theme}
+            />
+          ))}
+          
+          <CenterButton tabStyles={tabStyles} theme={theme} onPress={handleCameraPress} />
+          
+          {RIGHT_TABS.map((tab) => (
+            <TabButton
+              key={tab.key}
+              tab={tab}
+              isActive={activeTab === tab.key}
+              onPress={handleTabPress}
+              tabStyles={tabStyles}
+              theme={theme}
+            />
+          ))}
+        </View>
+      </BlurView>
     </View>
   );
 }
