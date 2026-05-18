@@ -242,7 +242,7 @@ Analiza la siguiente planta identificada:
 - Nombre común: ${plantName}
 - Nombre científico/especie: ${latinName || 'Desconocido'}
 
-Tu tarea es generar y completar toda la información botánica y de cuidados de esta planta en un formato JSON estructurado EXACTAMENTE como se detalla a continuación. Debes responder SOLO con el objeto JSON, sin código de bloque, sin explicaciones ni markdown.
+Tu tarea es generar y completar toda la información botánica y de cuidados de esta planta en un formato JSON estructurado EXACTAMENTE como se detalla a continuación. Debes responder SOLO con el objeto JSON, sin código de bloque, sin explicaciones ni markdown. Mantén todas las respuestas de texto extremadamente cortas, concisas, directas y breves para que se lean de un vistazo.
 
 Formato JSON esperado:
 {
@@ -251,12 +251,12 @@ Formato JSON esperado:
   "water": "low",
   "humidity": "low",
   "difficulty": "facil",
-  "description": "Una descripción detallada de unos 2 párrafos sobre la planta, su belleza y cuidado.",
-  "funFact": "Un dato curioso e interesante sobre esta planta que sorprenda al usuario.",
+  "description": "Una descripción muy corta, concisa y directa de máximo 2 a 3 líneas sobre la planta.",
+  "funFact": "Un dato curioso muy breve de máximo 1 línea.",
   "careGuide": [
-    "Consejo de riego detallado (frecuencia, método).",
-    "Consejo de iluminación y ubicación idónea.",
-    "Consejo de suelo, abono o poda."
+    "Consejo breve de riego de 1 línea.",
+    "Consejo breve de luz de 1 línea.",
+    "Consejo breve de suelo o poda de 1 línea."
   ],
   "family": "Familia botánica a la que pertenece",
   "origin": "Región o países de origen geográfico nativo",
