@@ -242,7 +242,7 @@ Analiza la siguiente planta identificada:
 - Nombre común: ${plantName}
 - Nombre científico/especie: ${latinName || 'Desconocido'}
 
-Tu tarea es generar y completar toda la información botánica y de cuidados de esta planta en un formato JSON estructurado EXACTAMENTE como se detalla a continuación. Debes responder SOLO con el objeto JSON, sin código de bloque, sin explicaciones ni markdown. Mantén todas las respuestas de texto extremadamente cortas, concisas, directas y breves para que se lean de un vistazo.
+Tu tarea es generar y completar toda la información botánica y de cuidados de esta planta en un formato JSON estructurado EXACTAMENTE como se detalla a continuación. Debes responder SOLO con el objeto JSON, sin código de bloque, sin explicaciones ni markdown. Mantén el tono ameno, profesional y los textos en una longitud moderada y equilibrada, ideal para lectura en móvil (ni muy largos que abrumen, ni tan cortos que carezcan de valor).
 
 Formato JSON esperado:
 {
@@ -251,12 +251,12 @@ Formato JSON esperado:
   "water": "low",
   "humidity": "low",
   "difficulty": "facil",
-  "description": "Una descripción muy corta, concisa y directa de máximo 2 a 3 líneas sobre la planta.",
-  "funFact": "Un dato curioso muy breve de máximo 1 línea.",
+  "description": "Un párrafo descriptivo interesante de unas 4 a 5 líneas que detalle las características principales de la planta y su atractivo.",
+  "funFact": "Un dato curioso e interesante sobre la planta de unas 2 líneas.",
   "careGuide": [
-    "Consejo breve de riego de 1 línea.",
-    "Consejo breve de luz de 1 línea.",
-    "Consejo breve de suelo o poda de 1 línea."
+    "Consejo de riego claro y práctico de unas 2 a 3 líneas.",
+    "Consejo de iluminación y ubicación idónea de unas 2 a 3 líneas.",
+    "Consejo de abono, poda o mantenimiento general de unas 2 a 3 líneas."
   ],
   "family": "Familia botánica a la que pertenece",
   "origin": "Región o países de origen geográfico nativo",
@@ -265,7 +265,7 @@ Formato JSON esperado:
   "bloomSeason": "Época de floración (ej: Primavera - Verano, No florece, etc.)",
   "countryCodes": ["MX", "CO"],
   "commonNames": "Nombres comunes ordenados por país de la siguiente forma:\\n- México: Cuna de Moisés\\n- Colombia: Espatifilo\\n- España: Lirio de la paz\\n(Genera al menos 3 países diferentes de habla hispana)",
-  "toxicity": "Especifica si es tóxica para perros, gatos u otras mascotas y humanos, o si es 100% segura (Pet-Friendly)."
+  "toxicity": "Especifica de forma concisa si es tóxica para perros, gatos o humanos, indicando el nivel de riesgo de forma breve."
 }
 
 Asegúrate de que los valores de light, water y humidity sean exactamente "low", "medium" o "high", y que difficulty sea "facil", "moderada" o "dificil". El campo countryCodes debe ser un array de strings conteniendo de 1 a 4 códigos de país válidos de 2 letras ISO (ej: MX, CO, ES, BR, US, AR) correspondientes a sus zonas geográficas nativas.`;
