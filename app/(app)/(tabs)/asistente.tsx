@@ -534,69 +534,85 @@ export default function AsistenteScreen() {
         }
       />
 
-      {/* SELECTED PLANT CHIP */}
-      {selectedPlant && (
-        <View style={styles.selectedPlantChip}>
-          <ExpoImage source={{ uri: selectedPlant.imagen }} style={styles.selectedPlantThumb} />
-          <Text style={styles.selectedPlantText}>{selectedPlant.nombre}</Text>
-          <TouchableOpacity onPress={() => setSelectedPlant(null)} style={{ padding: 2 }}>
-            <Ionicons name="close" size={16} color="#4ade80" />
-          </TouchableOpacity>
+      {/* INPUT CARD CONTAINER (Claude/Gemini style) */}
+      <View style={[styles.inputSection, { paddingBottom: Math.max(insets.bottom + 8, 12) }]}>
+        <View style={styles.inputCard}>
+          {/* Integrated Attachments Row */}
+          {(selectedImage || selectedPlant) && (
+            <View style={styles.attachmentsRow}>
+              {selectedImage && (
+                <View style={styles.selectedImageContainer}>
+                  <ExpoImage source={{ uri: selectedImage }} style={styles.selectedImagePreview} />
+                  <TouchableOpacity style={styles.clearImageBtn} onPress={() => setSelectedImage(null)}>
+                    <Ionicons name="close" size={12} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {selectedPlant && (
+                <View style={styles.selectedPlantBadge}>
+                  <ExpoImage source={{ uri: selectedPlant.imagen }} style={styles.selectedPlantThumb} />
+                  <Text style={styles.selectedPlantText}>{selectedPlant.nombre}</Text>
+                  <TouchableOpacity onPress={() => setSelectedPlant(null)} style={{ padding: 2 }}>
+                    <Ionicons name="close" size={12} color="#4ade80" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Text Input */}
+          <TextInput
+            style={styles.textInput}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Pregúntale a Flora..."
+            placeholderTextColor="rgba(255,255,255,0.3)"
+            multiline
+            maxLength={1000}
+          />
+
+          {/* Actions Bottom Bar */}
+          <View style={styles.inputActionsRow}>
+            {/* Left Icons */}
+            <View style={styles.leftActions}>
+              <TouchableOpacity onPress={() => handlePickImage(true)} style={styles.iconButton}>
+                <Ionicons name="camera-outline" size={18} color="rgba(255,255,255,0.45)" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handlePickImage(false)} style={styles.iconButton}>
+                <Ionicons name="image-outline" size={18} color="rgba(255,255,255,0.45)" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={openPlantPicker} style={styles.iconButton}>
+                <Ionicons name="leaf-outline" size={18} color="rgba(255,255,255,0.45)" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Model Badge */}
+            <View style={styles.modelBadge}>
+              <Text style={styles.modelBadgeText}>Flora IA</Text>
+            </View>
+
+            {/* Send Button */}
+            <Animated.View style={sendAnimatedStyle}>
+              <TouchableOpacity
+                onPress={handleSendPress}
+                disabled={(!input.trim() && !selectedImage) || loading}
+                style={[
+                  styles.sendButton,
+                  (input.trim() || selectedImage) && !loading
+                    ? styles.sendButtonActive
+                    : styles.sendButtonDisabled,
+                ]}
+              >
+                <Ionicons
+                  name="arrow-up"
+                  size={18}
+                  color={(input.trim() || selectedImage) && !loading ? '#000' : 'rgba(255,255,255,0.25)'}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
         </View>
-      )}
-
-      {/* SELECTED IMAGE PREVIEW */}
-      {selectedImage && (
-        <View style={styles.selectedImagePreviewContainer}>
-          <ExpoImage source={{ uri: selectedImage }} style={styles.selectedImagePreview} />
-          <TouchableOpacity style={styles.clearImageBtn} onPress={() => setSelectedImage(null)}>
-            <Ionicons name="close-circle" size={22} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* INPUT BAR */}
-      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom + 12, 16) }]}>
-        <View style={styles.leftActions}>
-          <TouchableOpacity onPress={() => handlePickImage(true)} style={styles.iconButton}>
-            <Ionicons name="camera-outline" size={22} color="rgba(255,255,255,0.4)" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePickImage(false)} style={styles.iconButton}>
-            <Ionicons name="image-outline" size={22} color="rgba(255,255,255,0.4)" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={openPlantPicker} style={styles.iconButton}>
-            <Ionicons name="leaf-outline" size={22} color="rgba(255,255,255,0.4)" />
-          </TouchableOpacity>
-        </View>
-
-        <TextInput
-          style={styles.textInput}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Escribe un mensaje..."
-          placeholderTextColor="rgba(255,255,255,0.3)"
-          multiline
-          maxLength={500}
-        />
-
-        <Animated.View style={sendAnimatedStyle}>
-          <TouchableOpacity
-            onPress={handleSendPress}
-            disabled={(!input.trim() && !selectedImage) || loading}
-            style={[
-              styles.sendButton,
-              (input.trim() || selectedImage) && !loading
-                ? styles.sendButtonActive
-                : styles.sendButtonDisabled,
-            ]}
-          >
-            <Ionicons
-              name="send"
-              size={16}
-              color={(input.trim() || selectedImage) && !loading ? '#000' : 'rgba(255,255,255,0.2)'}
-            />
-          </TouchableOpacity>
-        </Animated.View>
       </View>
 
       {/* PLANT PICKER BOTTOM SHEET */}
@@ -810,80 +826,122 @@ const styles = StyleSheet.create({
     backgroundColor: '#4ade80',
     marginHorizontal: 1,
   },
-  selectedPlantChip: {
+  inputSection: {
+    backgroundColor: '#000',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  inputCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 22,
+    padding: 10,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  attachmentsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+  },
+  selectedImageContainer: {
+    position: 'relative',
+    width: 52,
+    height: 52,
+  },
+  selectedImagePreview: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  clearImageBtn: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  selectedPlantBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(74, 222, 128, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.15)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    alignSelf: 'flex-start',
+    borderColor: 'rgba(74, 222, 128, 0.2)',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     gap: 6,
+    alignSelf: 'flex-start',
   },
   selectedPlantThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 3,
   },
   selectedPlantText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#4ade80',
+    fontWeight: '500',
   },
-  selectedImagePreviewContainer: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    alignSelf: 'flex-start',
-    position: 'relative',
+  textInput: {
+    width: '100%',
+    color: '#fff',
+    fontSize: 14,
+    paddingHorizontal: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
+    maxHeight: 150,
+    textAlignVertical: 'top',
   },
-  selectedImagePreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-  },
-  clearImageBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 11,
-  },
-  inputBar: {
+  inputActionsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0a0a0a',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: 2,
+    paddingTop: 2,
   },
   leftActions: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    gap: 8,
   },
   iconButton: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  textInput: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    color: '#fff',
-    fontSize: 14,
-    maxHeight: 100,
+  modelBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modelBadgeText: {
+    color: 'rgba(255, 255, 255, 0.35)',
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -891,7 +949,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4ade80',
   },
   sendButtonDisabled: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   bottomSheetBackground: {
     backgroundColor: '#0a0a0a',
