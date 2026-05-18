@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -72,49 +73,239 @@ function healthColor(salud: SaludPlanta, theme: AppTheme) {
 
 type PlantCardProps = {
   planta: PlantaCompletaInterface;
-  styles: ReturnType<typeof createMisPlantasStyles>;
-  theme: AppTheme;
+  styles?: ReturnType<typeof createMisPlantasStyles>;
+  theme?: AppTheme;
   onPress: () => void;
 };
 
-function PlantCard({ planta, styles, theme, onPress }: PlantCardProps) {
+function PlantCard({ planta, onPress }: PlantCardProps) {
   const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const isOverdue = planta.proximoRiego < 0;
+  const isToday = planta.proximoRiego === 0;
+  const needsWater = isOverdue || isToday;
+  const accentColor = isOverdue ? "#f87171" : "#fbbf24";
+
+  // Urgency logic for Watering Row
+  let waterIconColor = "rgba(255, 255, 255, 0.35)";
+  let waterTextColor = "rgba(255, 255, 255, 0.4)";
+  let waterText = `En ${planta.proximoRiego}d`;
+
+  if (isOverdue) {
+    waterIconColor = "#f87171";
+    waterTextColor = "#f87171";
+    waterText = "Regar ya";
+  } else if (isToday) {
+    waterIconColor = "#fbbf24";
+    waterTextColor = "#fbbf24";
+    waterText = "Hoy";
+  }
+
+  // Health dot color mapping
+  let healthDotColor = "#4ade80"; // saludable
+  if (planta.salud === "atención") {
+    healthDotColor = "#fbbf24";
+  } else if (planta.salud === "riesgo") {
+    healthDotColor = "#f87171";
+  }
+
+  // Helper for category small icon
+  const getCategoryIcon = (cat: string) => {
+    const lower = cat.toLowerCase();
+    if (lower.includes("suculenta")) return "water-outline";
+    if (lower.includes("tropical")) return "sunny-outline";
+    if (lower.includes("frutal")) return "nutrition-outline";
+    if (lower.includes("ornamental")) return "flower-outline";
+    if (lower.includes("aromática") || lower.includes("aromatica")) return "leaf-outline";
+    return "leaf-outline";
+  };
 
   return (
-    <Animated.View style={[styles.plantCard, animStyle]}>
+    <Animated.View
+      style={[
+        {
+          width: "48%",
+          backgroundColor: "rgba(255, 255, 255, 0.05)",
+          borderWidth: 1,
+          borderColor: "rgba(255, 255, 255, 0.08)",
+          borderRadius: 20,
+          overflow: "hidden",
+          marginBottom: 12,
+          position: "relative",
+        },
+        animStyle,
+      ]}
+    >
       <Pressable
         style={{ flex: 1 }}
         onPress={onPress}
-        onPressIn={() => { scale.value = withSpring(0.95, { damping: 15, stiffness: 300 }); }}
-        onPressOut={() => { scale.value = withSpring(1.0,  { damping: 15, stiffness: 300 }); }}
+        onPressIn={() => {
+          scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1.0, { damping: 15, stiffness: 300 });
+        }}
       >
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: planta.imagen }} style={styles.plantImage} resizeMode="cover" />
-          <View style={styles.plantChip}>
-            <Text style={styles.plantChipText}>{planta.categoria}</Text>
+        {/* Urgent Watering Accent left border */}
+        {needsWater && (
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 3,
+              backgroundColor: accentColor,
+              borderTopLeftRadius: 20,
+              borderBottomLeftRadius: 20,
+              zIndex: 20,
+            }}
+          />
+        )}
+
+        {/* IMAGE CONTAINER */}
+        <View
+          style={{
+            height: 160,
+            width: "100%",
+            overflow: "hidden",
+            backgroundColor: "#0d1f0f",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            position: "relative",
+          }}
+        >
+          {planta.imagen ? (
+            <Image
+              source={{ uri: planta.imagen }}
+              style={{ width: "100%", height: "100%" }}
+              resizeMode="cover"
+            />
+          ) : null}
+
+          {/* Linear gradient at bottom of image */}
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.7)"]}
+            style={{
+              height: 60,
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+            }}
+          />
+
+          {/* CATEGORY BADGE */}
+          <View
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              backgroundColor: "rgba(0,0,0,0.55)",
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.12)",
+              borderRadius: 20,
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              zIndex: 10,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.7)",
+                letterSpacing: 0.5,
+              }}
+            >
+              {planta.categoria}
+            </Text>
           </View>
 
+          {/* HEALTH DOT */}
+          <View
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: healthDotColor,
+              borderWidth: 1.5,
+              borderColor: "rgba(0,0,0,0.4)",
+              zIndex: 10,
+            }}
+          />
+
+          {/* PENDING SYNC BADGE */}
           {planta.isPending && (
-            <View style={styles.pendingBadge}>
-              <Ionicons name="cloud-upload-outline" size={10} color="#FFFFFF" />
-              <Text style={styles.pendingText}>Pendiente</Text>
+            <View
+              style={{
+                position: "absolute",
+                bottom: 8,
+                left: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "rgba(0,0,0,0.65)",
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.1)",
+                zIndex: 15,
+              }}
+            >
+              <Ionicons name="cloud-upload-outline" size={10} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 9, color: "#FFFFFF", fontWeight: "600" }}>Pendiente</Text>
             </View>
           )}
         </View>
 
-        <View style={styles.plantInfoContainer}>
-          <Text style={styles.plantName} numberOfLines={1}>{planta.nombre}</Text>
-          <View style={styles.waterRow}>
-            <View style={[styles.healthDot, { backgroundColor: healthColor(planta.salud, theme) }]} />
-            <Ionicons name="water" size={11} color="#4ade80" />
-            <Text style={styles.waterText}>
-              {planta.proximoRiego < 0
-                ? `${Math.abs(planta.proximoRiego)}d retraso`
-                : planta.proximoRiego === 0
-                ? "Regar hoy"
-                : `En ${planta.proximoRiego}d`}
+        {/* BOTTOM CONTENT */}
+        <View style={{ padding: 12 }}>
+          {/* Plant Name */}
+          <Text
+            style={{
+              fontSize: 15,
+              fontWeight: "500",
+              color: "white",
+              marginBottom: 6,
+            }}
+            numberOfLines={1}
+          >
+            {planta.nombre}
+          </Text>
+
+          {/* Watering Row */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <Ionicons name="water-outline" size={12} color={waterIconColor} />
+            <Text style={{ fontSize: 12, color: waterTextColor }}>
+              {waterText}
             </Text>
+          </View>
+
+          {/* Bottom Row */}
+          <View
+            style={{
+              marginTop: 8,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name={getCategoryIcon(planta.categoria) as any}
+              size={12}
+              color="rgba(255,255,255,0.25)"
+            />
+            <Ionicons
+              name="chevron-forward"
+              size={12}
+              color="rgba(255,255,255,0.2)"
+            />
           </View>
         </View>
       </Pressable>
@@ -594,10 +785,36 @@ export default function MisPlants() {
                 />
               ))
             ) : (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="leaf-outline" size={48} color={theme.colors.textSecondary} />
-                <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-                  {searchQuery ? "No se encontraron plantas" : "Aún no tienes plantas"}
+              <View
+                style={{
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 80,
+                  paddingHorizontal: 20,
+                }}
+              >
+                <Ionicons name="leaf-outline" size={64} color="rgba(255,255,255,0.06)" />
+                <Text
+                  style={{
+                    fontSize: 17,
+                    fontWeight: "300",
+                    color: "rgba(255,255,255,0.3)",
+                    marginTop: 16,
+                    textAlign: "center",
+                  }}
+                >
+                  {searchQuery ? "No se encontraron plantas" : "Tu colección está vacía"}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: "rgba(255,255,255,0.2)",
+                    marginTop: 6,
+                    textAlign: "center",
+                  }}
+                >
+                  {searchQuery ? "Intenta con otra búsqueda" : "Agrega tu primera planta con el botón +"}
                 </Text>
               </View>
             )}
