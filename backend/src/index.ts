@@ -87,6 +87,35 @@ app.get('/api/test-models', async (req, res) => {
   }
 });
 
+app.get('/api/list-models', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server' });
+    
+    const results: any = {};
+    
+    // Test v1beta endpoint
+    try {
+      const v1betaRes = await axios.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      results.v1beta = v1betaRes.data;
+    } catch (e: any) {
+      results.v1betaError = e.response?.data || e.message;
+    }
+
+    // Test v1 endpoint
+    try {
+      const v1Res = await axios.get(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+      results.v1 = v1Res.data;
+    } catch (e: any) {
+      results.v1Error = e.response?.data || e.message;
+    }
+
+    res.json(results);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, imageBase64 } = req.body;
