@@ -39,6 +39,7 @@ import { createMisPlantasStyles } from "./MisPlants.styles";
 import { useAuth } from "../../context/AuthContext";
 import { useSync } from "../../context/SyncContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
+import UserPlantDetailModal from "../../components/UserPlantDetailModal";
 
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
@@ -82,31 +83,33 @@ function PlantCard({ planta, styles, theme, onPress }: PlantCardProps) {
   return (
     <Animated.View style={[styles.plantCard, animStyle]}>
       <Pressable
-        className="flex-1"
+        style={{ flex: 1 }}
         onPress={onPress}
         onPressIn={() => { scale.value = withSpring(0.95, { damping: 15, stiffness: 300 }); }}
         onPressOut={() => { scale.value = withSpring(1.0,  { damping: 15, stiffness: 300 }); }}
       >
-        <Image source={{ uri: planta.imagen }} style={styles.plantImage} resizeMode="cover" />
-        <View className="absolute top-2 left-2 rounded-full flex-row items-center" style={styles.plantChip}>
-          <Text style={styles.plantChipText}>{planta.categoria}</Text>
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: planta.imagen }} style={styles.plantImage} resizeMode="cover" />
+          <View style={styles.plantChip}>
+            <Text style={styles.plantChipText}>{planta.categoria}</Text>
+          </View>
+
+          {planta.isPending && (
+            <View style={styles.pendingBadge}>
+              <Ionicons name="cloud-upload-outline" size={10} color="#FFFFFF" />
+              <Text style={styles.pendingText}>Pendiente</Text>
+            </View>
+          )}
         </View>
 
-        {planta.isPending && (
-          <View style={styles.pendingBadge}>
-            <Ionicons name="cloud-upload-outline" size={10} color={theme.colors.textOnAccent} />
-            <Text style={styles.pendingText}>Pendiente</Text>
-          </View>
-        )}
-
-        <View className="absolute bottom-0 left-0 right-0" style={styles.plantCardOverlay}>
+        <View style={styles.plantInfoContainer}>
           <Text style={styles.plantName} numberOfLines={1}>{planta.nombre}</Text>
           <View style={styles.waterRow}>
             <View style={[styles.healthDot, { backgroundColor: healthColor(planta.salud, theme) }]} />
-            <Ionicons name="water" size={11} color={theme.colors.primary} />
+            <Ionicons name="water" size={11} color="#4ade80" />
             <Text style={styles.waterText}>
               {planta.proximoRiego < 0
-                ? `${Math.abs(planta.proximoRiego)}d de retraso`
+                ? `${Math.abs(planta.proximoRiego)}d retraso`
                 : planta.proximoRiego === 0
                 ? "Regar hoy"
                 : `En ${planta.proximoRiego}d`}
@@ -379,6 +382,8 @@ export default function MisPlants() {
   const [racha, setRacha] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingPlanta, setEditingPlanta] = useState<PlantaCompletaInterface | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [toast, setToast] = useState<{ visible: boolean; type: ToastType; message: string }>({
@@ -543,7 +548,10 @@ export default function MisPlants() {
                   planta={planta}
                   styles={styles}
                   theme={theme}
-                  onPress={() => router.push(`/(app)/plants/${planta.id}`)}
+                  onPress={() => {
+                    setSelectedPlantId(planta.id);
+                    setShowDetailModal(true);
+                  }}
                 />
               ))
             ) : (
@@ -568,6 +576,17 @@ export default function MisPlants() {
         onSave={handleAddPlanta}
         styles={styles}
         theme={theme}
+      />
+
+      <UserPlantDetailModal
+        visible={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedPlantId(null);
+        }}
+        plantId={selectedPlantId}
+        userId={userId}
+        onRefresh={() => fetchData(false)}
       />
 
       {editingPlanta && (
