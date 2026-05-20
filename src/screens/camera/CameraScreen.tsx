@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../theme/desingSystem";
 import { identifyPlant, addPlant, enrichPlant } from "../../services/plantService";
+import { getCommonNameForNameField } from "../../utils/plantNameUtils";
 import { PlantIdentificationResult } from "../../types-dtos/plant.types";
 import { useAuth } from "../../context/AuthContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
@@ -136,6 +137,9 @@ export default function CameraScreen() {
           
           result.countryCodes = enriched.countryCodes || [];
           result.commonNames = enriched.commonNames || "";
+          if (enriched.commonNames) {
+            result.plantName = getCommonNameForNameField(enriched.commonNames, result.plantName);
+          }
           result.origin = enriched.origin || "";
           result.climate = enriched.climate || "";
           result.maxHeight = enriched.maxHeight || "";

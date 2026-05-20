@@ -479,17 +479,17 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]} edges={["top"]}>
+      <View style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]}>
         <ActivityIndicator size="large" color="#4ade80" />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!user) {
     return (
-      <SafeAreaView style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]} edges={["top"]}>
+      <View style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]}>
         <Text style={{ color: "#f87171" }}>No se pudo cargar el perfil.</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -503,7 +503,7 @@ export default function UserProfile() {
   const displayedPlants = plants.slice(0, hasMore ? 5 : 6);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <View style={styles.safeArea}>
       <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
 
       <Toast
@@ -784,7 +784,7 @@ export default function UserProfile() {
                               <Image source={{ uri: plant.imagen }} style={styles.plantCellImage} resizeMode="cover" />
                             )}
                             <LinearGradient
-                              colors={["transparent", "rgba(0,0,0,0.6)"]}
+                              colors={["transparent", "rgba(0,0,0,0.85)"]}
                               style={styles.plantCellOverlay}
                             />
                             <View
@@ -800,6 +800,11 @@ export default function UserProfile() {
                                 },
                               ]}
                             />
+                            <View style={styles.plantCellInfo}>
+                              <Text style={styles.plantCellName} numberOfLines={1}>
+                                {plant.nombre}
+                              </Text>
+                            </View>
                           </View>
                         );
                       } else {
@@ -829,7 +834,7 @@ export default function UserProfile() {
                               <Image source={{ uri: plant.imagen }} style={styles.plantCellImage} resizeMode="cover" />
                             )}
                             <LinearGradient
-                              colors={["transparent", "rgba(0,0,0,0.6)"]}
+                              colors={["transparent", "rgba(0,0,0,0.85)"]}
                               style={styles.plantCellOverlay}
                             />
                             <View
@@ -845,6 +850,11 @@ export default function UserProfile() {
                                 },
                               ]}
                             />
+                            <View style={styles.plantCellInfo}>
+                              <Text style={styles.plantCellName} numberOfLines={1}>
+                                {plant.nombre}
+                              </Text>
+                            </View>
                           </View>
                         );
                       } else {
@@ -891,7 +901,7 @@ export default function UserProfile() {
           onError={(msg) => showToast("error", msg)}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -1318,7 +1328,23 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: "40%",
+    height: "45%",
+  },
+  plantCellInfo: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 8,
+    paddingBottom: 10,
+  },
+  plantCellName: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   plantCellDot: {
     position: "absolute",

@@ -28,6 +28,7 @@ import { useTheme } from "../theme/desingSystem";
 import Toast from "./ui/toast/Toast";
 import { calcularProximoRiego } from "../utils/wateringUtils";
 import { regarPlanta } from "../utils/waterPlant";
+import { getCommonNameForNameField } from "../utils/plantNameUtils";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -100,7 +101,12 @@ export default function UserPlantDetailModal({
             try {
               const enriched = await enrichPlant(data.nombre, data.latinName);
               if (enriched) {
+                const parsedName = enriched.commonNames 
+                  ? getCommonNameForNameField(enriched.commonNames, data.nombre) 
+                  : data.nombre;
+
                 const enrichedFields = {
+                  nombre: parsedName,
                   descripcion: enriched.description || data.descripcion,
                   cuidados: (enriched.careGuide && enriched.careGuide.join("\n")) || data.cuidados,
                   latinName: enriched.latinName || data.latinName,
@@ -122,6 +128,7 @@ export default function UserPlantDetailModal({
                 
                 // Update local state so it immediately renders
                 setPlant(prev => prev ? { ...prev, ...enrichedFields } : null);
+                setEditName(parsedName);
                 
                 // Save to Firestore
                 await updatePlant(plantId, enrichedFields);

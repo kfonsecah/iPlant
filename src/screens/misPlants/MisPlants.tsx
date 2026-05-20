@@ -26,7 +26,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
 import { useRouter } from "expo-router";
 import AppInput from "../../components/ui/appInput/AppInput";
@@ -43,6 +43,7 @@ import { useConnectivity } from "../../context/ConnectivityContext";
 import UserPlantDetailModal from "../../components/UserPlantDetailModal";
 import WateringCard from "../../components/WateringCard";
 import { calcularProximoRiego, getWateringStatus } from "../../utils/wateringUtils";
+import { getCommonNameForNameField } from "../../utils/plantNameUtils";
 
 const CATEGORIAS = ["Suculenta", "Tropical", "Frutales", "Ornamental", "Aromática"];
 const SALUD_OPTS: { value: SaludPlanta; label: string }[] = [
@@ -562,6 +563,7 @@ export default function MisPlants() {
   const theme  = useTheme();
   const styles = createMisPlantasStyles(theme);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
   const userId = authUser?.uid ?? "";
   const { isSyncing, queueLength } = useSync(); // Get sync status and queue length
@@ -617,7 +619,12 @@ export default function MisPlants() {
           showToast("success", "Generando ficha botánica con IA...");
           const enriched = await enrichPlant(data.nombre);
           if (enriched) {
+            let parsedName = data.nombre;
+            if (enriched.commonNames) {
+              parsedName = getCommonNameForNameField(enriched.commonNames, data.nombre);
+            }
             enrichedFields = {
+              nombre: parsedName,
               descripcion: enriched.description,
               cuidados: (enriched.careGuide && enriched.careGuide.join("\n")),
               latinName: enriched.latinName,
@@ -665,9 +672,9 @@ export default function MisPlants() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]} edges={["top"]}>
+      <View style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -680,8 +687,8 @@ export default function MisPlants() {
   const alertPlantas = filteredPlantas.filter((p) => p.salud !== "saludable");
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+    <View style={styles.safeArea}>
+      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
 
       <Toast
         visible={toast.visible}
@@ -695,35 +702,36 @@ export default function MisPlants() {
         style={styles.container}
         imageStyle={styles.bgImage}
       >
-        <Animated.View entering={FadeInDown.duration(400)}>
-          <View style={styles.header}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.headerTitle}>Mis Plantas</Text>
-            </View>
-            <TouchableOpacity style={styles.filterBtn} onPress={() => {/* Toggle Filter Modal */}}>
-              <Ionicons name="options-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.searchBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-            <Ionicons name="search" size={18} color={theme.colors.textSecondary} />
-            <TextInput
-              style={[styles.searchInput, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.regular }]}
-              placeholder="Buscar por nombre o especie..."
-              placeholderTextColor={theme.colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")}>
-                <Ionicons name="close-circle" size={18} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </Animated.View>
-
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <WateringCard plants={plantas} />
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <View style={[styles.header, { marginTop: insets.top + 8 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.headerTitle}>Mis Plantas</Text>
+              </View>
+              <TouchableOpacity style={styles.filterBtn} onPress={() => {/* Toggle Filter Modal */}}>
+                <Ionicons name="options-outline" size={theme.dimensions.settingsIconSize} color={theme.colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.searchBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+              <Ionicons name="search" size={18} color={theme.colors.textSecondary} />
+              <TextInput
+                style={[styles.searchInput, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.regular }]}
+                placeholder="Buscar por nombre o especie..."
+                placeholderTextColor={theme.colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons name="close-circle" size={18} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </Animated.View>
+
+          <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+            <WateringCard plants={plantas} />
 
           <Animated.View entering={FadeInUp.delay(120).duration(400)}>
             <View style={styles.summaryCard}>
@@ -819,6 +827,7 @@ export default function MisPlants() {
               </View>
             )}
           </Animated.View>
+          </View>
         </ScrollView>
       </ImageBackground>
 
@@ -857,6 +866,6 @@ export default function MisPlants() {
           onError={(msg) => showToast("error", msg)}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }

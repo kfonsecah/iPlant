@@ -12,6 +12,7 @@ import {
   Modal,
   ActivityIndicator,
   ScrollView,
+  StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -475,6 +476,7 @@ export default function AsistenteScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: '#000' }}
     >
+      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
       {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <View style={styles.headerLeft}>

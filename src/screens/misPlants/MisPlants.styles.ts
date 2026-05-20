@@ -67,8 +67,8 @@ export const createMisPlantasStyles = (theme: AppTheme) => ({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: 0,
+    paddingTop: 0,
     paddingBottom: 130, // Account for the floating tab bar height at the bottom
   },
   summaryCard: {

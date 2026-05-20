@@ -140,7 +140,7 @@ export default function HomeIndex() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
 
       <ScrollView
         style={{ flex: 1, backgroundColor: "#000" }}

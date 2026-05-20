@@ -62,7 +62,7 @@ export default function WateringCard({ plants }: WateringCardProps) {
         <View style={styles.countRow}>
           {pendingCount === 0 && totalPlants > 0 ? (
             <Text style={[styles.boldNumber, { fontSize: 14, fontWeight: "500", letterSpacing: 0 }]}>
-              Todas tus plantas están regadas 🌿
+              Todas tus plantas están regadas
             </Text>
           ) : (
             <>

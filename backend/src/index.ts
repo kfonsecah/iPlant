@@ -274,7 +274,7 @@ Formato JSON esperado:
   "maxHeight": "Altura máxima promedio (ej: 1.5m)",
   "bloomSeason": "Época de floración (ej: Primavera - Verano, o 'No florece')",
   "countryCodes": ["MX", "CO"],
-  "commonNames": "Nombres comunes ordenados por país de la siguiente forma:\\n- México: Cuna de Moisés\\n- Colombia: Espatifilo\\n- España: Lirio de la paz\\n(Genera al menos 3 países diferentes de habla hispana)",
+  "commonNames": "Nombres comunes ordenados por país de la siguiente forma:\\n- Costa Rica: Cuna de Moisés (Prioriza siempre Costa Rica de primero si el nombre común es conocido o existe en ese país)\\n- México: Cuna de Moisés\\n- Colombia: Espatifilo\\n- España: Lirio de la paz\\n(Es fundamental que si la planta tiene un nombre común conocido en Costa Rica, este aparezca de primero en la lista, seguido de al menos 2 países de habla hispana)",
   "toxicity": "Especifica de forma concisa si es tóxica para perros, gatos o humanos, indicando el nivel de riesgo de forma breve.",
   "wateringFrequencyDays": 7,
   "category": "Suculenta",
