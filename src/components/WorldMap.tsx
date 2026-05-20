@@ -7,7 +7,7 @@ interface WorldMapProps {
 }
 
 export default function WorldMap({ countryCodes = [] }: WorldMapProps) {
-  const highlighted = useMemo(() => countryCodes.map(code => code.toLowerCase()), [countryCodes]);
+  const highlighted = useMemo(() => (countryCodes || []).map(code => (code || "").toLowerCase()), [countryCodes]);
 
   return (
     <View style={styles.container}>

@@ -10,6 +10,7 @@ export interface UserInterface {
   apodo: string;
   image: string;
   bannerImage?: string;
+  bannerIdentifier?: string;
   descripcion: string;
   privacidad: PrivacidadPerfil;
   cumpleanos: string;

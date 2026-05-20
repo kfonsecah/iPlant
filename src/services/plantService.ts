@@ -21,7 +21,7 @@ async function imageToDataUri(uri: string): Promise<string> {
     // Use the file's native type or fallback to extension check
     let mimeType = file.type;
     if (!mimeType || mimeType === "") {
-      const isPng = uri.toLowerCase().includes('.png') || uri.includes('png');
+      const isPng = (uri || "").toLowerCase().includes('.png') || (uri || "").includes('png');
       mimeType = isPng ? 'image/png' : 'image/jpeg';
     }
     
@@ -201,11 +201,34 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
         } as PlantaCompletaInterface;
       });
 
-      // Merge with pending items from queue to ensure they remain visible in the UI
+      // Merge with pending items from queue to ensure they remain visible/updated in the UI
       const queue = await getQueue(userId);
-      const pendingPlants = queue.map(action => action.data as PlantaCompletaInterface);
-      
-      loadedPlants = [...pendingPlants, ...remotePlants.filter(rp => !pendingPlants.some(pp => pp.id === rp.id))];
+      const createdPlants = queue
+        .filter(action => action.type === 'CREATE')
+        .map(action => action.data as PlantaCompletaInterface);
+      const deletedIds = queue
+        .filter(action => action.type === 'DELETE')
+        .map(action => action.id);
+      const updatedPlantsMap = new Map<string, any>();
+      queue
+        .filter(action => action.type === 'UPDATE')
+        .forEach(action => {
+          if (action.id) {
+            updatedPlantsMap.set(action.id, action.data);
+          }
+        });
+
+      // Filter out deleted plants from remote list and apply any pending updates
+      const activeRemotePlants = remotePlants
+        .filter(rp => !deletedIds.includes(rp.id))
+        .map(rp => {
+          if (updatedPlantsMap.has(rp.id)) {
+            return { ...rp, ...updatedPlantsMap.get(rp.id) };
+          }
+          return rp;
+        });
+
+      loadedPlants = [...createdPlants, ...activeRemotePlants];
       await saveItem(cacheKey, loadedPlants);
     } catch (e) {
       console.warn("Fallback: Cargando plantas desde el caché local por inestabilidad de red.");

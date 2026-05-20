@@ -37,6 +37,7 @@ interface UserPlantDetailModalProps {
   plantId: string | null;
   userId: string | null;
   onRefresh: () => void;
+  onDeleteSuccess?: () => void;
 }
 
 export default function UserPlantDetailModal({
@@ -45,6 +46,7 @@ export default function UserPlantDetailModal({
   plantId,
   userId,
   onRefresh,
+  onDeleteSuccess,
 }: UserPlantDetailModalProps) {
   const theme = useTheme();
   const { isConnected } = useConnectivity();
@@ -228,6 +230,9 @@ export default function UserPlantDetailModal({
             try {
               await deletePlant(userId, plantId, isConnected);
               animateClose();
+              if (onDeleteSuccess) {
+                onDeleteSuccess();
+              }
               onRefresh();
             } catch (error) {
               console.error("Error deleting plant:", error);

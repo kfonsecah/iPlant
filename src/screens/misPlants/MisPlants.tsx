@@ -110,8 +110,8 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
   }
 
   // Helper for category small icon
-  const getCategoryIcon = (cat: string) => {
-    const lower = cat.toLowerCase();
+  const getCategoryIcon = (cat?: string) => {
+    const lower = (cat || "").toLowerCase();
     if (lower.includes("suculenta")) return "water-outline";
     if (lower.includes("tropical")) return "sunny-outline";
     if (lower.includes("frutal")) return "nutrition-outline";
@@ -673,9 +673,9 @@ export default function MisPlants() {
 
   const categorias = [...new Set(plantas.map((p) => p.categoria))];
   const filteredPlantas = plantas.filter(p => 
-    p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.categoria.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.latinName?.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.nombre || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
+    (p.categoria || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
+    (p.latinName || "").toLowerCase().includes((searchQuery || "").toLowerCase())
   );
   const alertPlantas = filteredPlantas.filter((p) => p.salud !== "saludable");
 
@@ -843,6 +843,7 @@ export default function MisPlants() {
         plantId={selectedPlantId}
         userId={userId}
         onRefresh={() => fetchData(false)}
+        onDeleteSuccess={() => showToast("success", "Planta eliminada con éxito 🗑️")}
       />
 
       {editingPlanta && (

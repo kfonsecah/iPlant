@@ -133,8 +133,8 @@ export default function HomeIndex() {
   }
 
   const filteredPlantas = plantas.filter((p) =>
-    p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.categoria.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.nombre || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
+    (p.categoria || "").toLowerCase().includes((searchQuery || "").toLowerCase())
   );
   const alertPlantas = filteredPlantas.filter((p) => p.salud !== "saludable");
 

@@ -16,7 +16,7 @@ export async function getUserById(userId: string): Promise<UserInterface | null>
 
 export async function updateUser(
   userId: string,
-  data: Partial<Pick<UserInterface, "nombre" | "apodo" | "descripcion" | "privacidad">>
+  data: Partial<UserInterface>
 ): Promise<void> {
   await withTimeout(updateDoc(doc(db, "users", userId), data));
 }
