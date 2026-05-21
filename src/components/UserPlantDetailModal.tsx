@@ -15,6 +15,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getPlantById, updatePlant, deletePlant, enrichPlant } from "../services/plantService";
 import { PlantaCompletaInterface } from "../types-dtos/plant.types";
 import { useAuth } from "../context/AuthContext";
@@ -24,6 +26,7 @@ import WorldMap from "./WorldMap";
 import * as Speech from "expo-speech";
 import AppInput from "./ui/appInput/AppInput";
 import WateringFrequencyPicker from "./ui/wateringFrequencyPicker/WateringFrequencyPicker";
+import HealthCard from "./ui/healthCard/HealthCard";
 import { useTheme, AppTheme } from "../theme/desingSystem";
 import Toast from "./ui/toast/Toast";
 import { calcularProximoRiego } from "../utils/wateringUtils";
@@ -51,8 +54,10 @@ export default function UserPlantDetailModal({
 }: UserPlantDetailModalProps) {
   const theme = useTheme();
   const styles = createStyles(theme);
+  const router = useRouter();
   const { isConnected } = useConnectivity();
-  
+
+  const [isPremium, setIsPremium] = useState(false);
   const [plant, setPlant] = useState<PlantaCompletaInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -74,6 +79,12 @@ export default function UserPlantDetailModal({
     setToastMessage(msg);
     setToastVisible(true);
   };
+
+  useEffect(() => {
+    AsyncStorage.getItem("IPLANT_PREMIUM_STATUS").then((val) => {
+      setIsPremium(val === "true");
+    });
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -200,7 +211,7 @@ export default function UserPlantDetailModal({
     }
   }, [isSpeaking]);
 
-  const animateClose = useCallback(() => {
+  const animateClose = useCallback((afterClose?: () => void) => {
     if (isSpeaking) {
       Speech.stop();
       setIsSpeaking(false);
@@ -221,6 +232,7 @@ export default function UserPlantDetailModal({
     ]).start(() => {
       setShowModal(false);
       onClose();
+      afterClose?.();
     });
   }, [fadeAnim, slideAnim, onClose, isSpeaking]);
 
@@ -373,7 +385,7 @@ export default function UserPlantDetailModal({
       transparent
       visible={showModal}
       animationType="none"
-      onRequestClose={animateClose}
+      onRequestClose={() => animateClose()}
       statusBarTranslucent
     >
       <View style={styles.mainOverlay}>
@@ -382,7 +394,7 @@ export default function UserPlantDetailModal({
           <TouchableOpacity
             style={styles.backdropPressable}
             activeOpacity={1}
-            onPress={animateClose}
+            onPress={() => animateClose()}
           />
         </Animated.View>
 
@@ -403,7 +415,7 @@ export default function UserPlantDetailModal({
             <View style={styles.errorContainer}>
               <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
               <Text style={styles.errorText}>No se pudo cargar la planta</Text>
-              <TouchableOpacity style={styles.closeModalBtn} onPress={animateClose}>
+              <TouchableOpacity style={styles.closeModalBtn} onPress={() => animateClose()}>
                 <Text style={{ color: theme.colors.primary, fontWeight: "600" }}>Cerrar</Text>
               </TouchableOpacity>
             </View>
@@ -439,9 +451,9 @@ export default function UserPlantDetailModal({
 
               {/* Floating Header Actions inside Bottom Sheet */}
               <View style={styles.topActions}>
-                <TouchableOpacity 
-                  style={styles.backButton} 
-                  onPress={animateClose}
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => animateClose()}
                 >
                   <Ionicons name="close" size={20} color="white" />
                 </TouchableOpacity>
@@ -545,6 +557,15 @@ export default function UserPlantDetailModal({
                     </View>
                   </View>
 
+                  {/* HEALTH CARD */}
+                  <HealthCard
+                    score={plant.healthScore ?? null}
+                    lastUpdated={plant.healthLastUpdated ?? null}
+                    isPremium={isPremium}
+                    onPress={() => animateClose(() => router.push(`/(app)/health-journal/${plant.id}`))}
+                    onUpgrade={() => animateClose(() => router.push("/(app)/(tabs)/asistente?openPremium=true"))}
+                  />
+
                   {/* ABOUT SECTION */}
                   <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>Sobre esta planta</Text>
@@ -634,7 +655,9 @@ export default function UserPlantDetailModal({
                     <View style={styles.sectionContainer}>
                       <Text style={styles.sectionTitle}>Guía de cuidados</Text>
                       <View style={styles.careCard}>
-                        <View style={styles.tipDot} />
+                        <View style={styles.careIconBadge}>
+                          <Ionicons name="leaf-outline" size={16} color={theme.colors.primary} />
+                        </View>
                         <Text style={styles.tipText}>{plant.cuidados}</Text>
                       </View>
                     </View>
@@ -859,7 +882,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    overflow: "visible",
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -1058,22 +1081,24 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     lineHeight: 22,
   },
   careCard: {
-    backgroundColor: theme.mode === 'dark' ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.02)",
+    backgroundColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.04)" : "#F0FDF4",
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.12)" : "#BBF7D0",
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
-    ...theme.shadows,
+    gap: 12,
   },
-  tipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.primary,
-    marginTop: 7,
+  careIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.1)" : "#DCFCE7",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginTop: 2,
   },
   tipText: {
     flex: 1,

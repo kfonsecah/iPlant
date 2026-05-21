@@ -37,6 +37,7 @@ import Animated, {
 import Markdown from 'react-native-markdown-display';
 import BottomSheet, { BottomSheetFlatList, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
+import { useLocalSearchParams } from 'expo-router';
 import { AppTheme, useTheme } from '../../../src/theme/desingSystem';
 import { useAuth } from '../../../src/context/AuthContext';
 import { getPlantsByUserId } from '../../../src/services/plantService';
@@ -124,6 +125,7 @@ export default function AsistenteScreen() {
   const theme = useTheme();
   const styles = createStyles(theme);
   const { user } = useAuth();
+  const { openPremium } = useLocalSearchParams<{ openPremium?: string }>();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -150,6 +152,13 @@ export default function AsistenteScreen() {
   const showToast = (message: string, type: "success" | "error" | "warning" = "success") => {
     setToast({ visible: true, type, message });
   };
+
+  // Auto-open premium modal when navigated with ?openPremium=true
+  useEffect(() => {
+    if (openPremium === 'true') {
+      setUpgradeModalVisible(true);
+    }
+  }, [openPremium]);
 
   // Load chat history and user plants
   useEffect(() => {

@@ -176,7 +176,9 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
           categoria: data.categoria,
           imagen: data.imagen,
           ultimoRiego: formatUltimoRiego(data.ultimoRiego),
-          salud: data.salud,
+          salud: data.healthScore != null
+            ? (data.healthScore >= 70 ? "saludable" : data.healthScore >= 40 ? "atención" : "riesgo")
+            : (data.salud ?? "saludable"),
           proximoRiego: data.proximoRiego,
           wateringFrequencyDays: data.wateringFrequencyDays,
           confianza: data.confianza,
@@ -198,6 +200,8 @@ export async function getPlantsByUserId(userId: string, isConnected: boolean): P
           maxHeight: data.maxHeight,
           bloomSeason: data.bloomSeason,
           toxicity: data.toxicity,
+          healthScore: data.healthScore ?? null,
+          healthLastUpdated: data.healthLastUpdated,
         } as PlantaCompletaInterface;
       });
 
