@@ -75,12 +75,12 @@ function healthColor(salud: SaludPlanta, theme: AppTheme) {
 
 type PlantCardProps = {
   planta: PlantaCompletaInterface;
-  styles?: ReturnType<typeof createMisPlantasStyles>;
-  theme?: AppTheme;
+  styles: ReturnType<typeof createMisPlantasStyles>;
+  theme: AppTheme;
   onPress: () => void;
 };
 
-function PlantCard({ planta, onPress }: PlantCardProps) {
+function PlantCard({ planta, onPress, styles, theme }: PlantCardProps) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -95,19 +95,20 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
   const isOverdue = diasRestantes < 0;
   const isToday = diasRestantes === 0;
   const needsWater = isOverdue || isToday;
-  const accentColor = isOverdue ? "#f87171" : "#fbbf24";
+  const accentColor = isOverdue ? theme.colors.error : theme.colors.warning;
 
   // Urgency logic for Watering Row
-  const waterIconColor = status.color === "rgba(255,255,255,0.4)" ? "rgba(255,255,255,0.35)" : status.color;
-  const waterTextColor = status.color;
+  const isDefaultColor = status.color === "rgba(255,255,255,0.4)";
+  const waterTextColor = isDefaultColor ? theme.colors.disabledText : status.color;
+  const waterIconColor = isDefaultColor ? theme.colors.disabledText : status.color;
   const waterText = status.label;
 
   // Health dot color mapping
-  let healthDotColor = "#4ade80"; // saludable
+  let healthDotColor = theme.colors.primary; // saludable
   if (planta.salud === "atención") {
-    healthDotColor = "#fbbf24";
+    healthDotColor = theme.colors.warning;
   } else if (planta.salud === "riesgo") {
-    healthDotColor = "#f87171";
+    healthDotColor = theme.colors.error;
   }
 
   // Helper for category small icon
@@ -126,13 +127,14 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
       style={[
         {
           width: "48%",
-          backgroundColor: "rgba(255, 255, 255, 0.05)",
+          backgroundColor: theme.colors.backgroundCard,
           borderWidth: 1,
-          borderColor: "rgba(255, 255, 255, 0.08)",
+          borderColor: theme.colors.border,
           borderRadius: 20,
           overflow: "hidden",
           marginBottom: 12,
           position: "relative",
+          ...theme.shadows,
         },
         animStyle,
       ]}
@@ -202,9 +204,9 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
               position: "absolute",
               top: 10,
               left: 10,
-              backgroundColor: "rgba(0,0,0,0.55)",
+              backgroundColor: theme.mode === "dark" ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.85)",
               borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.12)",
+              borderColor: theme.colors.border,
               borderRadius: 20,
               paddingHorizontal: 10,
               paddingVertical: 4,
@@ -214,7 +216,7 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
             <Text
               style={{
                 fontSize: 10,
-                color: "rgba(255,255,255,0.7)",
+                color: theme.colors.textSecondary,
                 letterSpacing: 0.5,
               }}
             >
@@ -269,7 +271,7 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
             style={{
               fontSize: 15,
               fontWeight: "500",
-              color: "white",
+              color: theme.colors.textPrimary,
               marginBottom: 6,
             }}
             numberOfLines={1}
@@ -297,12 +299,12 @@ function PlantCard({ planta, onPress }: PlantCardProps) {
             <Ionicons
               name={getCategoryIcon(planta.categoria) as any}
               size={12}
-              color="rgba(255,255,255,0.25)"
+              color={theme.colors.disabledText}
             />
             <Ionicons
               name="chevron-forward"
               size={12}
-              color="rgba(255,255,255,0.2)"
+              color={theme.colors.disabledText}
             />
           </View>
         </View>
@@ -403,9 +405,9 @@ function EditPlantModal({
                     <View style={styles.chipsRow}>
                       {CATEGORIAS.map((cat) => (
                         <TouchableOpacity
-                          key={cat}
-                          style={[styles.chip, categoria === cat && styles.chipSelected]}
-                          onPress={() => setValue("categoria", cat)}
+                           key={cat}
+                           style={[styles.chip, categoria === cat && styles.chipSelected]}
+                           onPress={() => setValue("categoria", cat)}
                         >
                           <Text style={[styles.chipText, categoria === cat && styles.chipTextSelected]}>
                             {cat}
@@ -688,7 +690,7 @@ export default function MisPlants() {
 
   return (
     <View style={styles.safeArea}>
-      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
+      <StatusBar translucent barStyle={theme.mode === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
 
       <Toast
         visible={toast.visible}
@@ -713,12 +715,12 @@ export default function MisPlants() {
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.searchBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <View style={[styles.searchBar, { backgroundColor: theme.colors.backgroundCard, borderColor: theme.colors.border }]}>
               <Ionicons name="search" size={18} color={theme.colors.textSecondary} />
               <TextInput
                 style={[styles.searchInput, { color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.regular }]}
                 placeholder="Buscar por nombre o especie..."
-                placeholderTextColor={theme.colors.textSecondary}
+                placeholderTextColor={theme.colors.disabledText}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -802,12 +804,12 @@ export default function MisPlants() {
                   paddingHorizontal: 20,
                 }}
               >
-                <Ionicons name="leaf-outline" size={64} color="rgba(255,255,255,0.06)" />
+                <Ionicons name="leaf-outline" size={64} color={theme.colors.border} />
                 <Text
                   style={{
                     fontSize: 17,
                     fontWeight: "300",
-                    color: "rgba(255,255,255,0.3)",
+                    color: theme.colors.textSecondary,
                     marginTop: 16,
                     textAlign: "center",
                   }}
@@ -817,7 +819,7 @@ export default function MisPlants() {
                 <Text
                   style={{
                     fontSize: 13,
-                    color: "rgba(255,255,255,0.2)",
+                    color: theme.colors.disabledText,
                     marginTop: 6,
                     textAlign: "center",
                   }}

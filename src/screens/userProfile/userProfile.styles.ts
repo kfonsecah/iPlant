@@ -41,7 +41,7 @@ export const createStyles = (theme: AppTheme) => ({
     elevation: theme.shadows.card.elevation,
   },
   headerTitle: {
-    color: "#FFFFFF",
+    color: theme.colors.textPrimary,
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["5xl"],
     fontWeight: "300" as const,
@@ -324,9 +324,9 @@ export const createStyles = (theme: AppTheme) => ({
     justifyContent: "center",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: theme.colors.border,
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.07)",
+    backgroundColor: theme.colors.surfaceElevated,
   },
   editBtnText: {
     color: theme.colors.textPrimary,
@@ -338,7 +338,9 @@ export const createStyles = (theme: AppTheme) => ({
     width: 52,
     height: 52,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: theme.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -524,7 +526,7 @@ export const createStyles = (theme: AppTheme) => ({
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.fontSizes["5xl"],
     fontWeight: "300" as const,
-    color: "#FFFFFF",
+    color: theme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   modalCloseBtn: {
@@ -582,6 +584,6 @@ export const createStyles = (theme: AppTheme) => ({
     fontFamily: theme.typography.fontFamily.semibold,
     fontSize: theme.typography.fontSizes["2xl"],
     fontWeight: theme.typography.fontWeights.semibold,
-    color: "#000000",
+    color: theme.colors.textOnAccent,
   },
 } as const);

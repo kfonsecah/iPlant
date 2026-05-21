@@ -53,7 +53,7 @@ export default function AppInput({
 
         <TextInput
           style={[styles.input, multiline && styles.inputMultiline, style]}
-          placeholderTextColor="rgba(255,255,255,0.3)"
+          placeholderTextColor={theme.colors.disabledText}
           multiline={multiline}
           numberOfLines={numberOfLines}
           onFocus={(e) => {

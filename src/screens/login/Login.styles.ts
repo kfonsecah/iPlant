@@ -25,7 +25,7 @@ export const createStyles = (theme: AppTheme) =>
     },
     logoContainer: {
       marginBottom: 12,
-      shadowColor: "#4ade80",
+      shadowColor: theme.colors.primary,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.5,
       shadowRadius: 15,
@@ -34,12 +34,12 @@ export const createStyles = (theme: AppTheme) =>
     brandName: {
       fontSize: 38,
       fontWeight: "300",
-      color: "#fff",
+      color: theme.colors.textPrimary,
       letterSpacing: -1,
     },
     tagline: {
       fontSize: 13,
-      color: "rgba(255,255,255,0.5)",
+      color: theme.colors.textSecondary,
       letterSpacing: 3,
       textTransform: "uppercase",
       marginTop: 4,
@@ -50,9 +50,9 @@ export const createStyles = (theme: AppTheme) =>
       gap: 16,
     },
     inputWrapper: {
-      backgroundColor: "rgba(255,255,255,0.12)",
+      backgroundColor: theme.colors.surfaceElevated,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
+      borderColor: theme.colors.border,
       borderRadius: 14,
       height: 52,
       flexDirection: "row",
@@ -64,7 +64,7 @@ export const createStyles = (theme: AppTheme) =>
     },
     input: {
       flex: 1,
-      color: "#fff",
+      color: theme.colors.textPrimary,
       fontSize: 16,
       height: "100%",
     },
@@ -72,7 +72,7 @@ export const createStyles = (theme: AppTheme) =>
       padding: 4,
     },
     errorText: {
-      color: "#f87171",
+      color: theme.colors.error,
       fontSize: 12,
       marginTop: 4,
       marginLeft: 4,
@@ -82,26 +82,26 @@ export const createStyles = (theme: AppTheme) =>
       marginTop: -4,
     },
     forgotText: {
-      color: "rgba(255,255,255,0.45)",
+      color: theme.colors.disabledText,
       fontSize: 14,
     },
 
     // ── Buttons ───────────────────────────────────────────
     loginBtn: {
-      backgroundColor: "#4ade80",
+      backgroundColor: theme.colors.primary,
       borderRadius: 14,
       height: 52,
       alignItems: "center",
       justifyContent: "center",
       marginTop: 8,
-      shadowColor: "#4ade80",
+      shadowColor: theme.colors.primary,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 6,
     },
     loginBtnText: {
-      color: "#000",
+      color: theme.colors.textOnAccent,
       fontSize: 16,
       fontWeight: "600",
     },
@@ -114,18 +114,18 @@ export const createStyles = (theme: AppTheme) =>
     dividerLine: {
       flex: 1,
       height: 1,
-      backgroundColor: "rgba(255,255,255,0.12)",
+      backgroundColor: theme.colors.border,
     },
     dividerText: {
-      color: "rgba(255,255,255,0.35)",
+      color: theme.colors.disabledText,
       fontSize: 12,
       marginHorizontal: 16,
     },
 
     googleBtn: {
-      backgroundColor: "rgba(255,255,255,0.08)",
+      backgroundColor: theme.colors.surfaceElevated,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      borderColor: theme.colors.border,
       borderRadius: 14,
       height: 52,
       flexDirection: "row",
@@ -134,7 +134,7 @@ export const createStyles = (theme: AppTheme) =>
       gap: 12,
     },
     googleBtnText: {
-      color: "#fff",
+      color: theme.colors.textPrimary,
       fontSize: 15,
       fontWeight: "500",
     },
@@ -150,27 +150,21 @@ export const createStyles = (theme: AppTheme) =>
       elevation: 21,
     },
     registerText: {
-      color: "rgba(255,255,255,0.85)",
+      color: theme.colors.textSecondary,
       fontSize: 15,
-      textShadowColor: "rgba(0,0,0,0.5)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
     },
     registerLink: {
-      color: "#4ade80",
+      color: theme.colors.primary,
       fontWeight: "700",
       fontSize: 15,
-      textShadowColor: "rgba(0,0,0,0.5)",
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
     },
 
     registerFormWrapper: {
-      backgroundColor: "rgba(0, 0, 0, 0.55)",
+      backgroundColor: theme.colors.backgroundCard,
       borderRadius: 24,
       marginHorizontal: 20,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.08)",
+      borderColor: theme.colors.border,
       overflow: 'hidden',
     },
     registerFormInner: {
@@ -178,21 +172,21 @@ export const createStyles = (theme: AppTheme) =>
       gap: 16,
     },
     registerTitle: {
-      color: "#fff",
+      color: theme.colors.textPrimary,
       fontSize: 28,
       fontWeight: "700",
       letterSpacing: -0.5,
       marginBottom: 6,
     },
     registerSubtitle: {
-      color: "rgba(255,255,255,0.5)",
+      color: theme.colors.textSecondary,
       fontSize: 14,
       marginBottom: 16,
     },
     inputWrapperFocus: {
-      borderColor: "#4ade80",
-      backgroundColor: "rgba(74, 222, 128, 0.08)",
-      shadowColor: "#4ade80",
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.08)" : "rgba(74, 222, 128, 0.12)",
+      shadowColor: theme.colors.primary,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.2,
       shadowRadius: 10,
@@ -204,4 +198,3 @@ export const createStyles = (theme: AppTheme) =>
       marginTop: 20,
     },
   });
-

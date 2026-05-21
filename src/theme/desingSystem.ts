@@ -55,6 +55,10 @@ interface ThemeColors {
     tabBarActive: string;
     tabBarInactive: string;
     tabBarCenterButton: string;
+    // ── Input Fields ──────────────────────────────────────────────────────────
+    inputBackground: string;
+    inputBorder: string;
+    inputLabel: string;
     // ── Backward-compatible alias ─────────────────────────────────────────────
     chip: string;
 }
@@ -305,13 +309,68 @@ const darkColors: ThemeColors = {
     tabBarActive: "#4ADE80",
     tabBarInactive: "rgba(255,255,255,0.35)",
     tabBarCenterButton: "#4ADE80",
+    inputBackground: "rgba(255,255,255,0.07)",
+    inputBorder: "rgba(255,255,255,0.12)",
+    inputLabel: "rgba(255,255,255,0.4)",
     chip: "rgba(255,255,255,0.07)",
 };
 
 // ─── Light Colors ─────────────────────────────────────────────────────────────
-// The prompt specifies a pure dark design system everywhere, so lightColors mirrors darkColors
 const lightColors: ThemeColors = {
-    ...darkColors,
+    // Backgrounds
+    background: "#FAF9F6", // warm off-white
+    backgroundCard: "#FFFFFF", // white card
+    backgroundChip: "#F2F2EC", // light grey/warm chip
+    // Semantic surfaces
+    surface: "#FFFFFF",
+    surfaceElevated: "#FFFFFF",
+    // Border
+    border: "#E0DFD8", // light grey
+    // Brand – Primary
+    primary: "#4ADE80", // primary green stays same
+    primaryPressed: "#22C55E",
+    primaryDisabled: "rgba(74,222,128,0.3)",
+    // Brand – Secondary
+    secondary: "#EAEAE2",
+    secondaryPressed: "#DFDFD8",
+    secondaryDisabled: "#F5F5F0",
+    // Accent (legacy alias)
+    accent: "#4ADE80",
+    accentDim: "rgba(74,222,128,0.1)",
+    accentWithAlpha: "rgba(74,222,128,0.6)",
+    // Feedback – Error
+    error: "#EF4444",
+    errorPressed: "#DC2626",
+    errorDisabled: "rgba(239,68,68,0.3)",
+    errorDim: "#FEE2E2",
+    // Feedback – Warning
+    warning: "#F59E0B",
+    warningDim: "#FEF3C7",
+    warningWithAlpha: "#F59E0B52",
+    // Feedback – Success
+    success: "#22C55E",
+    successPressed: "#16A34A",
+    successDisabled: "rgba(34,197,94,0.3)",
+    successDim: "#DCFCE7",
+    // Interaction States
+    disabled: "#EAEAE2",
+    disabledText: "#9CA3AF",
+    hover: "#F3F4F6",
+    overlay: "rgba(0,0,0,0.5)",
+    // Text
+    textPrimary: "#2D2D2A", // dark charcoal
+    textSecondary: "#6B6B66",
+    textOnAccent: "#000000",
+    // Tab Bar
+    tabBarBackground: "rgba(255, 255, 255, 0.85)", // white tab bar with transparency for blur
+    tabBarBorder: "#E0DFD8", // light border
+    tabBarActive: "#4ADE80",
+    tabBarInactive: "#9CA3AF",
+    tabBarCenterButton: "#4ADE80",
+    inputBackground: "#F2F2EC", // light grey/warm background for inputs
+    inputBorder: "#E0DFD8", // light border for inputs
+    inputLabel: "#6B6B66", // grey label
+    chip: "#EAEAE2",
 };
 
 // ─── Shared Tokens ────────────────────────────────────────────────────────────
@@ -401,7 +460,24 @@ const sharedTypography: ThemeTypography = {
     },
 };
 
-const sharedShadows: ThemeShadows = {
+const lightShadows: ThemeShadows = {
+    card: {
+        color: "#000000",
+        opacity: 0.05,
+        radius: 8,
+        offset: { width: 0, height: 4 },
+        elevation: 2,
+    },
+    centerButton: {
+        color: "#000000",
+        opacity: 0.15,
+        radius: 10,
+        offset: { width: 0, height: 5 },
+        elevation: 5,
+    },
+};
+
+const darkShadows: ThemeShadows = {
     card: {
         color: "transparent",
         opacity: 0,
@@ -481,7 +557,7 @@ const themes: Record<ThemeMode, AppTheme> = {
         spacing: sharedSpacing,
         scale: sharedScale,
         typography: sharedTypography,
-        shadows: sharedShadows,
+        shadows: lightShadows,
         opacity: sharedOpacity,
         dimensions: sharedDimensions,
         borders: sharedBorders,
@@ -494,7 +570,7 @@ const themes: Record<ThemeMode, AppTheme> = {
         spacing: sharedSpacing,
         scale: sharedScale,
         typography: sharedTypography,
-        shadows: sharedShadows,
+        shadows: darkShadows,
         opacity: sharedOpacity,
         dimensions: sharedDimensions,
         borders: sharedBorders,

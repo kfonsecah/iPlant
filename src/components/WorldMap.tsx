@@ -1,13 +1,20 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import Svg, { Path } from "react-native-svg";
+import { useTheme, AppTheme } from "../theme/desingSystem";
+
 
 interface WorldMapProps {
   countryCodes: string[];
 }
 
 export default function WorldMap({ countryCodes = [] }: WorldMapProps) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const highlighted = useMemo(() => (countryCodes || []).map(code => (code || "").toLowerCase()), [countryCodes]);
+
+  const defaultFill = theme.mode === 'dark' ? "rgba(255, 255, 255, 0.07)" : "rgba(0, 0, 0, 0.05)";
+  const defaultStroke = theme.mode === 'dark' ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)";
 
   return (
     <View style={styles.container}>
@@ -18,8 +25,8 @@ export default function WorldMap({ countryCodes = [] }: WorldMapProps) {
             <Path
               key={idx}
               d={path.d}
-              fill={isHighlighted ? "rgba(74, 222, 128, 0.4)" : "rgba(255, 255, 255, 0.07)"}
-              stroke={isHighlighted ? "#4ade80" : "rgba(255, 255, 255, 0.12)"}
+              fill={isHighlighted ? "rgba(74, 222, 128, 0.4)" : defaultFill}
+              stroke={isHighlighted ? "#4ade80" : defaultStroke}
               strokeWidth={isHighlighted ? 0.8 : 0.5}
             />
           );
@@ -34,6 +41,7 @@ export default function WorldMap({ countryCodes = [] }: WorldMapProps) {
     </View>
   );
 }
+
 
 const pathsData = [
   {
@@ -1918,17 +1926,18 @@ const pathsData = [
   }
 ];
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: theme.colors.border,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
     alignItems: "center",
     marginTop: 10,
+    ...theme.shadows,
   },
   legendRow: {
     flexDirection: "row",
@@ -1947,6 +1956,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.4)",
+    color: theme.colors.disabledText,
   },
 });
+

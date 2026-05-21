@@ -27,6 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedProps,
   withSpring,
   withSequence,
   withTiming,
@@ -36,7 +37,7 @@ import Animated, {
 import Markdown from 'react-native-markdown-display';
 import BottomSheet, { BottomSheetFlatList, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
-import { useTheme } from '../../../src/theme/desingSystem';
+import { AppTheme, useTheme } from '../../../src/theme/desingSystem';
 import { useAuth } from '../../../src/context/AuthContext';
 import { getPlantsByUserId } from '../../../src/services/plantService';
 import Toast from '../../../src/components/ui/toast/Toast';
@@ -68,6 +69,8 @@ function AnimatedMessageBubble({ children }: { children: React.ReactNode }) {
 }
 
 function TypingIndicator() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const dot1 = useSharedValue(0.3);
   const dot2 = useSharedValue(0.3);
   const dot3 = useSharedValue(0.3);
@@ -119,6 +122,7 @@ function TypingIndicator() {
 export default function AsistenteScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const styles = createStyles(theme);
   const { user } = useAuth();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -409,12 +413,12 @@ export default function AsistenteScreen() {
   const getHealthColor = (salud: string) => {
     switch (salud?.toLowerCase()) {
       case 'saludable':
-        return { bg: 'rgba(74, 222, 128, 0.15)', text: '#4ade80' };
+        return { bg: 'rgba(74, 222, 128, 0.15)', text: theme.colors.primary };
       case 'enferma':
       case 'enfermo':
-        return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' };
+        return { bg: 'rgba(245, 158, 11, 0.15)', text: theme.colors.warning };
       default:
-        return { bg: 'rgba(248, 113, 113, 0.15)', text: '#f87171' };
+        return { bg: 'rgba(248, 113, 113, 0.15)', text: theme.colors.error };
     }
   };
 
@@ -438,45 +442,45 @@ export default function AsistenteScreen() {
   };
 
   // Markdown Display Custom Styles
-  const markdownStyles = StyleSheet.create({
+  const markdownStyles = useMemo(() => StyleSheet.create({
     body: {
-      color: "rgba(255,255,255,0.85)",
+      color: theme.mode === "dark" ? "rgba(255,255,255,0.85)" : "#2D2D2A",
       fontSize: 14,
       lineHeight: 21,
     },
     strong: {
-      color: "white",
+      color: theme.mode === "dark" ? "white" : "#1A1A1A",
       fontWeight: "600",
     },
     bullet_list: {
-      color: "rgba(255,255,255,0.7)",
+      color: theme.mode === "dark" ? "rgba(255,255,255,0.7)" : "#4B4B44",
       marginVertical: 4,
     },
     list_item: {
       marginVertical: 2,
     },
     heading2: {
-      color: "#4ade80",
+      color: theme.colors.primary,
       fontWeight: "500",
       marginTop: 8,
       marginBottom: 4,
       fontSize: 16,
     },
     code_inline: {
-      backgroundColor: "rgba(255,255,255,0.08)",
-      color: "#4ade80",
+      backgroundColor: theme.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+      color: theme.colors.primary,
       borderRadius: 4,
       paddingHorizontal: 4,
       fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     },
-  });
+  }), [theme]);
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1, backgroundColor: '#000' }}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
-      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
+      <StatusBar translucent barStyle={theme.mode === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
       {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <View style={styles.headerLeft}>
@@ -510,13 +514,13 @@ export default function AsistenteScreen() {
               onPress={handleDeactivatePremium}
               activeOpacity={0.8}
             >
-              <Ionicons name="ribbon" size={11} color="#4ade80" style={{ marginRight: 3 }} />
+              <Ionicons name="ribbon" size={11} color={theme.colors.primary} style={{ marginRight: 3 }} />
               <Text style={styles.premiumBadgeText}>Premium</Text>
             </TouchableOpacity>
           )}
           
           <TouchableOpacity style={styles.headerMenuBtn} onPress={handleMenuPress}>
-            <Ionicons name="ellipsis-horizontal" size={20} color="rgba(255,255,255,0.4)" />
+            <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -548,7 +552,7 @@ export default function AsistenteScreen() {
                   handlePickImage(false);
                 }}
               >
-                <Ionicons name="scan-outline" size={14} color="#4ade80" />
+                <Ionicons name="scan-outline" size={14} color={theme.colors.primary} />
                 <Text style={styles.quickActionText}>Identificar planta</Text>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -558,7 +562,7 @@ export default function AsistenteScreen() {
                   handlePickImage(false);
                 }}
               >
-                <Ionicons name="medical-outline" size={14} color="#f87171" />
+                <Ionicons name="medical-outline" size={14} color={theme.colors.error} />
                 <Text style={styles.quickActionText}>Diagnosticar enfermedad</Text>
               </TouchableOpacity>
             </View>
@@ -635,7 +639,7 @@ export default function AsistenteScreen() {
                   <ExpoImage source={{ uri: selectedPlant.imagen }} style={styles.selectedPlantThumb} />
                   <Text style={styles.selectedPlantText}>{selectedPlant.nombre}</Text>
                   <TouchableOpacity onPress={() => setSelectedPlant(null)} style={{ padding: 2 }}>
-                    <Ionicons name="close" size={12} color="#4ade80" />
+                    <Ionicons name="close" size={12} color={theme.colors.primary} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -648,7 +652,7 @@ export default function AsistenteScreen() {
             value={input}
             onChangeText={setInput}
             placeholder="Pregúntale a Flora..."
-            placeholderTextColor="rgba(255,255,255,0.3)"
+            placeholderTextColor={theme.colors.disabledText}
             multiline
             maxLength={1000}
           />
@@ -658,13 +662,13 @@ export default function AsistenteScreen() {
             {/* Left Icons */}
             <View style={styles.leftActions}>
               <TouchableOpacity onPress={() => handlePickImage(true)} style={styles.iconButton}>
-                <Ionicons name="camera-outline" size={18} color="rgba(255,255,255,0.45)" />
+                <Ionicons name="camera-outline" size={18} color={theme.colors.textSecondary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handlePickImage(false)} style={styles.iconButton}>
-                <Ionicons name="image-outline" size={18} color="rgba(255,255,255,0.45)" />
+                <Ionicons name="image-outline" size={18} color={theme.colors.textSecondary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={openPlantPicker} style={styles.iconButton}>
-                <Ionicons name="leaf-outline" size={18} color="rgba(255,255,255,0.45)" />
+                <Ionicons name="leaf-outline" size={18} color={theme.colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -684,7 +688,7 @@ export default function AsistenteScreen() {
                 <Ionicons
                   name="arrow-up"
                   size={18}
-                  color={(input.trim() || selectedImage) && !loading ? '#000' : 'rgba(255,255,255,0.25)'}
+                  color={(input.trim() || selectedImage) && !loading ? theme.colors.textOnAccent : theme.colors.disabledText}
                 />
               </TouchableOpacity>
             </Animated.View>
@@ -700,13 +704,13 @@ export default function AsistenteScreen() {
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         backgroundStyle={styles.bottomSheetBackground}
-        handleIndicatorStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+        handleIndicatorStyle={{ backgroundColor: theme.colors.border }}
       >
         <View style={{ flex: 1, padding: 16 }}>
           <Text style={styles.bottomSheetTitle}>Selecciona una Planta</Text>
           {plants.length === 0 ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>
+              <Text style={{ color: theme.colors.textSecondary, fontSize: 14 }}>
                 Aún no tienes plantas agregadas
               </Text>
             </View>
@@ -776,7 +780,7 @@ export default function AsistenteScreen() {
                 contentFit="contain"
               />
               <LinearGradient
-                colors={["transparent", "#121212"]}
+                colors={["transparent", theme.mode === 'dark' ? "#121212" : "#FAF9F6"]}
                 style={styles.premiumHeroGradient}
               />
             </View>
@@ -809,7 +813,7 @@ export default function AsistenteScreen() {
                 {/* Benefits List */}
                 <View style={styles.premiumBenefitsContainer}>
                   <View style={styles.premiumBenefitRow}>
-                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
                     <View style={styles.premiumBenefitTextContainer}>
                       <Text style={styles.premiumBenefitTitle}>Identificaciones con IA Ilimitadas</Text>
                       <Text style={styles.premiumBenefitDesc}>Escanea todas las plantas que quieras sin límites diarios ni anuncios molestos.</Text>
@@ -817,7 +821,7 @@ export default function AsistenteScreen() {
                   </View>
 
                   <View style={styles.premiumBenefitRow}>
-                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
                     <View style={styles.premiumBenefitTextContainer}>
                       <Text style={styles.premiumBenefitTitle}>Diagnóstico Médico Botánico</Text>
                       <Text style={styles.premiumBenefitDesc}>Detecta plagas y enfermedades al instante con tratamientos detallados y recetas botánicas.</Text>
@@ -825,7 +829,7 @@ export default function AsistenteScreen() {
                   </View>
 
                   <View style={styles.premiumBenefitRow}>
-                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
                     <View style={styles.premiumBenefitTextContainer}>
                       <Text style={styles.premiumBenefitTitle}>Flora Pro Supercargada</Text>
                       <Text style={styles.premiumBenefitDesc}>Respuestas instantáneas y análisis botánicos ultra detallados basados en Gemini 2.5 Pro.</Text>
@@ -833,7 +837,7 @@ export default function AsistenteScreen() {
                   </View>
 
                   <View style={styles.premiumBenefitRow}>
-                    <Ionicons name="checkmark-circle" size={18} color="#4ade80" style={{ marginTop: 2 }} />
+                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
                     <View style={styles.premiumBenefitTextContainer}>
                       <Text style={styles.premiumBenefitTitle}>Alertas Inteligentes de Clima</Text>
                       <Text style={styles.premiumBenefitDesc}>Optimiza el riego de acuerdo al clima en tiempo real de tu ciudad para evitar ahogamientos.</Text>
@@ -858,7 +862,7 @@ export default function AsistenteScreen() {
                 activeOpacity={0.8}
               >
                 {purchasing ? (
-                  <ActivityIndicator color="#000" size="small" />
+                  <ActivityIndicator color={theme.colors.textOnAccent} size="small" />
                 ) : (
                   <Text style={styles.premiumCtaButtonText}>Iniciar Suscripción por $4.99</Text>
                 )}
@@ -879,7 +883,7 @@ export default function AsistenteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -887,8 +891,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-    backgroundColor: '#000',
+    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.background,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -901,18 +905,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '300',
-    color: '#fff',
+    color: theme.colors.textPrimary,
   },
   onlineDot: {
     width: 8,
     height: 8,
-    backgroundColor: '#4ade80',
+    backgroundColor: theme.colors.primary,
     borderRadius: 4,
     marginLeft: 6,
   },
   headerSubtitle: {
     fontSize: 11,
-    color: 'rgba(255,255,255,0.4)',
+    color: theme.colors.textSecondary,
     marginTop: 1,
   },
   headerMenuBtn: {
@@ -925,7 +929,7 @@ const styles = StyleSheet.create({
   dateSeparator: {
     textAlign: 'center',
     fontSize: 11,
-    color: 'rgba(255,255,255,0.25)',
+    color: theme.colors.disabledText,
     marginVertical: 12,
   },
   welcomeContainer: {
@@ -941,11 +945,11 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 20,
     fontWeight: '300',
-    color: '#fff',
+    color: theme.colors.textPrimary,
   },
   welcomeSubtitle: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.4)',
+    color: theme.colors.textSecondary,
     marginTop: 4,
   },
   quickActionsContainer: {
@@ -957,16 +961,17 @@ const styles = StyleSheet.create({
   quickActionPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: theme.colors.border,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 6,
+    ...theme.shadows,
   },
   quickActionText: {
-    color: 'rgba(255,255,255,0.8)',
+    color: theme.colors.textSecondary,
     fontSize: 12,
   },
   assistantRow: {
@@ -982,23 +987,24 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   assistantBubble: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: theme.colors.border,
     borderRadius: 18,
     borderTopLeftRadius: 4,
     paddingHorizontal: 14,
     paddingVertical: 10,
     maxWidth: '80%',
+    ...theme.shadows,
   },
   userBubbleContainer: {
     alignItems: 'flex-end',
     marginBottom: 16,
   },
   userBubble: {
-    backgroundColor: 'rgba(74, 222, 128, 0.12)',
+    backgroundColor: theme.mode === 'dark' ? 'rgba(74, 222, 128, 0.12)' : 'rgba(74, 222, 128, 0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.2)',
+    borderColor: 'rgba(74, 222, 128, 0.25)',
     borderRadius: 18,
     borderTopRightRadius: 4,
     paddingHorizontal: 14,
@@ -1007,7 +1013,7 @@ const styles = StyleSheet.create({
   },
   userMessageText: {
     fontSize: 14,
-    color: '#fff',
+    color: theme.mode === 'dark' ? '#fff' : '#1A3A2A',
     lineHeight: 21,
   },
   messageImage: {
@@ -1020,22 +1026,23 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#4ade80',
+    backgroundColor: theme.colors.primary,
     marginHorizontal: 1,
   },
   inputSection: {
-    backgroundColor: '#000',
+    backgroundColor: theme.colors.background,
     paddingHorizontal: 16,
     paddingTop: 8,
   },
   inputCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: theme.colors.border,
     borderRadius: 22,
     padding: 10,
     flexDirection: 'column',
     gap: 8,
+    ...theme.shadows,
   },
   attachmentsRow: {
     flexDirection: 'row',
@@ -1054,7 +1061,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: theme.colors.border,
   },
   clearImageBtn: {
     position: 'absolute',
@@ -1088,12 +1095,12 @@ const styles = StyleSheet.create({
   },
   selectedPlantText: {
     fontSize: 11,
-    color: '#4ade80',
+    color: theme.colors.primary,
     fontWeight: '500',
   },
   textInput: {
     width: '100%',
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 14,
     paddingHorizontal: 8,
     paddingTop: 4,
@@ -1117,7 +1124,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1130,20 +1137,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendButtonActive: {
-    backgroundColor: '#4ade80',
+    backgroundColor: theme.colors.primary,
   },
   sendButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
   },
   bottomSheetBackground: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: theme.colors.background,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderTopColor: theme.colors.border,
   },
   bottomSheetTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: theme.colors.textPrimary,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -1152,7 +1159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: theme.colors.border,
   },
   plantRowThumb: {
     width: 40,
@@ -1161,12 +1168,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   plantRowName: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
   plantRowCat: {
-    color: 'rgba(255,255,255,0.4)',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
@@ -1211,7 +1218,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   premiumBadgeText: {
-    color: '#4ade80',
+    color: theme.colors.primary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1233,11 +1240,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '84%',
-    backgroundColor: '#121212',
+    backgroundColor: theme.mode === 'dark' ? '#121212' : '#FAF9F6',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: theme.colors.border,
     overflow: 'visible',
   },
   premiumHeroContainer: {
@@ -1292,7 +1299,7 @@ const styles = StyleSheet.create({
   premiumPlantName: {
     fontSize: 26,
     fontWeight: '700',
-    color: 'white',
+    color: theme.mode === 'dark' ? 'white' : '#2D2D2A',
     letterSpacing: -0.5,
   },
   premiumCloseButton: {
@@ -1305,7 +1312,7 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   premiumMainContentContainer: {
-    backgroundColor: '#121212',
+    backgroundColor: theme.mode === 'dark' ? '#121212' : '#FAF9F6',
     paddingTop: 12,
     paddingHorizontal: 20,
   },
@@ -1323,20 +1330,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   premiumBenefitTitle: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
   premiumBenefitDesc: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: 3,
     lineHeight: 16,
   },
   premiumPricingCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: theme.colors.border,
     borderRadius: 16,
     padding: 16,
     width: '100%',
@@ -1349,7 +1356,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   premiumPricingSub: {
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: theme.colors.textSecondary,
     fontSize: 11,
     marginTop: 4,
     textAlign: 'center',
@@ -1361,14 +1368,14 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingBottom: 30,
-    backgroundColor: '#121212',
+    backgroundColor: theme.mode === 'dark' ? '#121212' : '#FAF9F6',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: theme.colors.border,
     paddingTop: 12,
     zIndex: 10,
   },
   premiumCtaButton: {
-    backgroundColor: '#4ade80',
+    backgroundColor: theme.colors.primary,
     borderRadius: 16,
     height: 52,
     width: '100%',
@@ -1376,10 +1383,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   premiumCtaButtonDisabled: {
-    backgroundColor: 'rgba(74, 222, 128, 0.4)',
+    backgroundColor: theme.mode === 'dark' ? 'rgba(74, 222, 128, 0.4)' : 'rgba(74, 222, 128, 0.6)',
   },
   premiumCtaButtonText: {
-    color: '#000',
+    color: theme.colors.textOnAccent,
     fontSize: 15,
     fontWeight: '700',
   },

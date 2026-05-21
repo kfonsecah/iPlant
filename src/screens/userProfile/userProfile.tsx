@@ -26,6 +26,7 @@ import BottomSheet, { BottomSheetBackdrop, BottomSheetView, BottomSheetScrollVie
 import { GestureHandlerRootView, TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 
 import AppInput from "../../components/ui/appInput/AppInput";
+import { AppTheme, useTheme } from "../../theme/desingSystem";
 import Toast, { ToastType } from "../../components/ui/toast/Toast";
 import { useAuth } from "../../context/AuthContext";
 import { useConnectivity } from "../../context/ConnectivityContext";
@@ -79,6 +80,8 @@ function EditProfileModal({
   onSaved:  (updated: Partial<UserInterface>) => void;
   onError:  (msg: string) => void;
 }) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const { control, handleSubmit, formState: { errors }, reset, watch, setValue } =
     useForm<EditUserForm>({
       resolver: zodResolver(editUserSchema),
@@ -236,7 +239,7 @@ function EditProfileModal({
                 <View style={styles.modalHeader} {...panResponder.panHandlers}>
                   <Text style={styles.modalTitle}>Editar perfil</Text>
                   <TouchableOpacity style={styles.modalCloseBtn} onPress={handleClose}>
-                    <Ionicons name="close" size={18} color="rgba(255,255,255,0.6)" />
+                    <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
 
@@ -328,7 +331,7 @@ function EditProfileModal({
                             <Ionicons
                               name={op === "Público" ? "globe-outline" : "lock-closed-outline"}
                               size={13}
-                              color={privacidad === op ? "#4ade80" : "rgba(255,255,255,0.4)"}
+                              color={privacidad === op ? theme.colors.primary : theme.colors.textSecondary}
                             />
                             <Text style={[styles.modalChipText, privacidad === op && styles.modalChipTextSelected]}>
                               {op}
@@ -366,7 +369,7 @@ function EditProfileModal({
           enableOverDrag={false}
           backdropComponent={renderBackdrop}
           backgroundStyle={styles.bottomSheetBackground}
-          handleIndicatorStyle={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+          handleIndicatorStyle={{ backgroundColor: theme.colors.border }}
         >
           <Text style={styles.sheetHeader}>Elige tu banner</Text>
 
@@ -393,7 +396,7 @@ function EditProfileModal({
               </Text>
               {tempBannerIndex === 0 && (
                 <View style={styles.checkmarkBadge}>
-                  <Ionicons name="checkmark" size={12} color="#000" />
+                  <Ionicons name="checkmark" size={12} color={theme.colors.textOnAccent} />
                 </View>
               )}
             </View>
@@ -419,7 +422,7 @@ function EditProfileModal({
                   </Text>
                   {isSelected && (
                     <View style={styles.checkmarkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#000" />
+                      <Ionicons name="checkmark" size={12} color={theme.colors.textOnAccent} />
                     </View>
                   )}
                 </View>
@@ -434,6 +437,8 @@ function EditProfileModal({
 
 // ─── UserProfile ──────────────────────────────────────────────────────────────
 export default function UserProfile() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
@@ -480,7 +485,7 @@ export default function UserProfile() {
   if (loading) {
     return (
       <View style={[styles.safeArea, { alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator size="large" color="#4ade80" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -504,7 +509,7 @@ export default function UserProfile() {
 
   return (
     <View style={styles.safeArea}>
-      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
+      <StatusBar translucent barStyle={theme.mode === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
 
       <Toast
         visible={toast.visible}
@@ -542,7 +547,7 @@ export default function UserProfile() {
 
           {/* Bottom Gradient overlay */}
           <LinearGradient
-            colors={["transparent", "#000000"]}
+            colors={["transparent", theme.colors.background]}
             style={styles.bannerOverlay}
           />
 
@@ -564,7 +569,7 @@ export default function UserProfile() {
             {user.image ? (
               <Image source={{ uri: user.image }} style={styles.avatarInner} />
             ) : (
-              <Ionicons name="person-circle" size={86} color="#4ade80" />
+              <Ionicons name="person-circle" size={86} color={theme.colors.primary} />
             )}
           </View>
         </View>
@@ -581,14 +586,14 @@ export default function UserProfile() {
                   <Ionicons
                     name={user.privacidad === "Privado" ? "lock-closed" : "globe-outline"}
                     size={10}
-                    color="rgba(255,255,255,0.4)"
+                    color={theme.colors.textSecondary}
                   />
                   <Text style={styles.infoChipText}>{user.privacidad}</Text>
                 </View>
 
                 {!!user.cumpleanos && (
                   <View style={styles.infoChip}>
-                    <Ionicons name="gift-outline" size={10} color="rgba(255,255,255,0.4)" />
+                    <Ionicons name="gift-outline" size={10} color={theme.colors.textSecondary} />
                     <Text style={styles.infoChipText}>{user.cumpleanos}</Text>
                   </View>
                 )}
@@ -600,7 +605,7 @@ export default function UserProfile() {
                 <Text style={styles.editBtnText}>Editar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.shareBtn} onPress={() => showToast("success", "Enlace copiado")}>
-                <Ionicons name="share-outline" size={16} color="white" />
+                <Ionicons name="share-outline" size={16} color={theme.colors.textPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -614,19 +619,19 @@ export default function UserProfile() {
         {/* PART 3 — STATS ROW */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Ionicons name="leaf-outline" color="#4ade80" size={14} />
+            <Ionicons name="leaf-outline" color={theme.colors.primary} size={14} />
             <Text style={styles.statValue}>{user.cantidadPlantas}</Text>
             <Text style={styles.statLabel}>Plantas</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Ionicons name="people-outline" color="white" size={14} />
+            <Ionicons name="people-outline" color={theme.colors.textPrimary} size={14} />
             <Text style={styles.statValue}>{user.cantidadAmigos}</Text>
             <Text style={styles.statLabel}>Amigos</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Ionicons name="flame" color="#fbbf24" size={14} />
+            <Ionicons name="flame" color={theme.colors.warning} size={14} />
             <Text style={styles.statValue}>{user.racha}</Text>
             <Text style={styles.statLabel}>Racha</Text>
           </View>
@@ -651,14 +656,14 @@ export default function UserProfile() {
               </>
             ) : (
               <View style={styles.favEmpty}>
-                <Ionicons name="leaf-outline" size={28} color="rgba(74,222,128,0.2)" />
+                <Ionicons name="leaf-outline" size={28} color={theme.colors.primary + "40"} />
                 <Text style={styles.favEmptyText}>Sin favorita</Text>
               </View>
             )}
           </View>
 
           <View style={styles.streakCard}>
-            <Ionicons name="flame" size={24} color="#fbbf24" />
+            <Ionicons name="flame" size={24} color={theme.colors.warning} />
             <Text style={styles.streakValue}>{user.racha}</Text>
             <Text style={styles.streakLabel}>dias de racha</Text>
           </View>
@@ -707,17 +712,26 @@ export default function UserProfile() {
           <View>
             {/* Health Summary Pills */}
             <View style={styles.healthSummary}>
-              <View style={[styles.healthPill, { backgroundColor: "rgba(74,222,128,0.08)", borderColor: "rgba(74,222,128,0.18)" }]}>
-                <Ionicons name="checkmark-circle-outline" color="#4ade80" size={13} />
-                <Text style={[styles.healthText, { color: "#4ade80" }]}>{healthyCount} Sanas</Text>
+              <View style={[styles.healthPill, {
+                backgroundColor: theme.mode === "dark" ? "rgba(74,222,128,0.08)" : "rgba(74,222,128,0.12)",
+                borderColor: theme.mode === "dark" ? "rgba(74,222,128,0.18)" : "rgba(74,222,128,0.3)"
+              }]}>
+                <Ionicons name="checkmark-circle-outline" color={theme.colors.primary} size={13} />
+                <Text style={[styles.healthText, { color: theme.colors.primary }]}>{healthyCount} Sanas</Text>
               </View>
-              <View style={[styles.healthPill, { backgroundColor: "rgba(251,191,36,0.08)", borderColor: "rgba(251,191,36,0.18)" }]}>
-                <Ionicons name="warning-outline" color="#fbbf24" size={13} />
-                <Text style={[styles.healthText, { color: "#fbbf24" }]}>{attentionCount} Atencion</Text>
+              <View style={[styles.healthPill, {
+                backgroundColor: theme.mode === "dark" ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.12)",
+                borderColor: theme.mode === "dark" ? "rgba(251,191,36,0.18)" : "rgba(251,191,36,0.3)"
+              }]}>
+                <Ionicons name="warning-outline" color={theme.colors.warning} size={13} />
+                <Text style={[styles.healthText, { color: theme.colors.warning }]}>{attentionCount} Atencion</Text>
               </View>
-              <View style={[styles.healthPill, { backgroundColor: "rgba(248,113,113,0.08)", borderColor: "rgba(248,113,113,0.18)" }]}>
-                <Ionicons name="alert-circle-outline" color="#f87171" size={13} />
-                <Text style={[styles.healthText, { color: "#f87171" }]}>{riskCount} Riesgo</Text>
+              <View style={[styles.healthPill, {
+                backgroundColor: theme.mode === "dark" ? "rgba(248,113,113,0.08)" : "rgba(248,113,113,0.12)",
+                borderColor: theme.mode === "dark" ? "rgba(248,113,113,0.18)" : "rgba(248,113,113,0.3)"
+              }]}>
+                <Ionicons name="alert-circle-outline" color={theme.colors.error} size={13} />
+                <Text style={[styles.healthText, { color: theme.colors.error }]}>{riskCount} Riesgo</Text>
               </View>
             </View>
 
@@ -726,7 +740,7 @@ export default function UserProfile() {
               if (plants.length === 0) {
                 return (
                   <View style={styles.emptyGardenCard}>
-                    <Ionicons name="leaf-outline" size={24} color="rgba(255,255,255,0.15)" />
+                    <Ionicons name="leaf-outline" size={24} color={theme.colors.textSecondary} />
                     <Text style={styles.emptyGardenText}>Aun no tienes plantas</Text>
                   </View>
                 );
@@ -793,10 +807,10 @@ export default function UserProfile() {
                                 {
                                   backgroundColor:
                                     plant.salud === "riesgo"
-                                      ? "#f87171"
+                                      ? theme.colors.error
                                       : plant.salud === "atención"
-                                      ? "#fbbf24"
-                                      : "#4ade80",
+                                      ? theme.colors.warning
+                                      : theme.colors.primary,
                                 },
                               ]}
                             />
@@ -815,7 +829,7 @@ export default function UserProfile() {
                             onPress={() => router.push("/plants")}
                           >
                             <Text style={styles.moreCellText}>Ver todas</Text>
-                            <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
+                            <Ionicons name="chevron-forward" size={14} color={theme.colors.textSecondary} />
                           </TouchableOpacity>
                         );
                       }
@@ -843,10 +857,10 @@ export default function UserProfile() {
                                 {
                                   backgroundColor:
                                     plant.salud === "riesgo"
-                                      ? "#f87171"
+                                      ? theme.colors.error
                                       : plant.salud === "atención"
-                                      ? "#fbbf24"
-                                      : "#4ade80",
+                                      ? theme.colors.warning
+                                      : theme.colors.primary,
                                 },
                               ]}
                             />
@@ -865,7 +879,7 @@ export default function UserProfile() {
                             onPress={() => router.push("/plants")}
                           >
                             <Text style={styles.moreCellText}>Ver todas</Text>
-                            <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
+                            <Ionicons name="chevron-forward" size={14} color={theme.colors.textSecondary} />
                           </TouchableOpacity>
                         );
                       }
@@ -880,7 +894,7 @@ export default function UserProfile() {
         {/* PART 7B — EN VENTA TAB */}
         {activeTab === "ventas" && (
           <View style={styles.salesEmptyCard}>
-            <Ionicons name="pricetag-outline" size={36} color="rgba(255,255,255,0.1)" />
+            <Ionicons name="pricetag-outline" size={36} color={theme.colors.textSecondary} />
             <Text style={styles.salesEmptyTitle}>Proximamente</Text>
             <Text style={styles.salesEmptySub}>Pronto podras vender tus plantas</Text>
             <View style={styles.salesPill}>
@@ -905,18 +919,18 @@ export default function UserProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backgroundColor: theme.colors.overlay,
     justifyContent: "flex-end",
   },
   modalCard: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.backgroundCard,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: theme.colors.border,
     padding: 24,
     paddingTop: 12,
   },
@@ -924,7 +938,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: theme.colors.border,
     alignSelf: "center",
     marginBottom: 16,
   },
@@ -937,19 +951,19 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "white",
+    color: theme.colors.textPrimary,
   },
   modalCloseBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: theme.colors.secondary,
     justifyContent: "center",
     alignItems: "center",
   },
   fieldLabel: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   chipsRow: {
@@ -961,44 +975,44 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    backgroundColor: theme.colors.backgroundChip,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: theme.colors.border,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   modalChipSelected: {
-    backgroundColor: "rgba(74, 222, 128, 0.08)",
-    borderColor: "#4ade80",
+    backgroundColor: theme.colors.accentDim,
+    borderColor: theme.colors.primary,
   },
   modalChipText: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: theme.colors.textSecondary,
   },
   modalChipTextSelected: {
-    color: "#4ade80",
+    color: theme.colors.primary,
     fontWeight: "500",
   },
   saveButton: {
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 24,
   },
   saveButtonText: {
-    color: "#000",
+    color: theme.colors.textOnAccent,
     fontSize: 15,
     fontWeight: "600",
   },
   safeArea: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: theme.colors.background,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     paddingBottom: 120,
@@ -1043,8 +1057,8 @@ const styles = StyleSheet.create({
     height: 94,
     borderRadius: 47,
     borderWidth: 2.5,
-    borderColor: "#4ade80",
-    backgroundColor: "#000",
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.background,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
@@ -1054,7 +1068,7 @@ const styles = StyleSheet.create({
     height: 86,
     borderRadius: 43,
     borderWidth: 3,
-    borderColor: "#000",
+    borderColor: theme.colors.background,
   },
   identityContainer: {
     marginTop: 54,
@@ -1071,11 +1085,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: "500",
-    color: "white",
+    color: theme.colors.textPrimary,
   },
   apodo: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.4)",
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   infoRow: {
@@ -1087,14 +1101,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    backgroundColor: theme.colors.backgroundChip,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   infoChipText: {
     fontSize: 10,
-    color: "rgba(255, 255, 255, 0.4)",
+    color: theme.colors.textSecondary,
   },
   identityRight: {
     alignSelf: "flex-start",
@@ -1102,22 +1116,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   editBtn: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: theme.colors.secondary,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: theme.colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
   editBtnText: {
     fontSize: 12,
-    color: "white",
+    color: theme.colors.textPrimary,
     fontWeight: "500",
   },
   shareBtn: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: theme.colors.secondary,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: theme.colors.border,
     borderRadius: 10,
     width: 34,
     height: 34,
@@ -1126,19 +1140,20 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.5)",
+    color: theme.colors.textSecondary,
     lineHeight: 19,
     marginTop: 10,
   },
   statsContainer: {
     marginHorizontal: 20,
     marginTop: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.07)",
+    borderColor: theme.colors.border,
     borderRadius: 18,
     paddingVertical: 16,
     flexDirection: "row",
+    ...theme.shadows.card,
   },
   statItem: {
     flex: 1,
@@ -1147,18 +1162,18 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 19,
     fontWeight: "600",
-    color: "white",
+    color: theme.colors.textPrimary,
     marginTop: 4,
   },
   statLabel: {
     fontSize: 10,
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.textSecondary,
     letterSpacing: 0.5,
   },
   statDivider: {
     width: 1,
     height: 28,
-    backgroundColor: "rgba(255, 255, 255, 0.07)",
+    backgroundColor: theme.colors.border,
     alignSelf: "center",
   },
   rowCards: {
@@ -1169,26 +1184,27 @@ const styles = StyleSheet.create({
   },
   favCard: {
     flex: 1.4,
-    backgroundColor: "rgba(74, 222, 128, 0.06)",
+    backgroundColor: theme.colors.successDim,
     borderWidth: 1,
-    borderColor: "rgba(74, 222, 128, 0.1)",
+    borderColor: theme.colors.border,
     borderRadius: 18,
     padding: 14,
     overflow: "hidden",
     position: "relative",
     justifyContent: "center",
     minHeight: 110,
+    ...theme.shadows.card,
   },
   favTitle: {
     fontSize: 9,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#4ade80",
+    color: theme.colors.primary,
   },
   favName: {
     fontSize: 15,
     fontWeight: "500",
-    color: "white",
+    color: theme.colors.textPrimary,
     marginTop: 4,
     paddingRight: 60,
   },
@@ -1207,27 +1223,28 @@ const styles = StyleSheet.create({
   },
   favEmptyText: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.25)",
+    color: theme.colors.textSecondary,
   },
   streakCard: {
     flex: 1,
-    backgroundColor: "rgba(251, 191, 36, 0.06)",
+    backgroundColor: theme.colors.warningDim,
     borderWidth: 1,
-    borderColor: "rgba(251, 191, 36, 0.1)",
+    borderColor: theme.colors.border,
     borderRadius: 18,
     padding: 14,
     justifyContent: "center",
     minHeight: 110,
+    ...theme.shadows.card,
   },
   streakValue: {
     fontSize: 22,
     fontWeight: "600",
-    color: "white",
+    color: theme.colors.textPrimary,
     marginTop: 4,
   },
   streakLabel: {
     fontSize: 10,
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   categoriesContainer: {
@@ -1238,16 +1255,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1.5,
     textTransform: "uppercase",
-    color: "rgba(255, 255, 255, 0.3)",
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   categoryScroll: {
     flexDirection: "row",
   },
   categoryChip: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: theme.colors.backgroundChip,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: theme.colors.border,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -1255,14 +1272,14 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: theme.colors.textSecondary,
   },
   tabContainer: {
     marginHorizontal: 20,
     marginTop: 22,
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.07)",
+    borderBottomColor: theme.colors.border,
   },
   tabButton: {
     flex: 1,
@@ -1271,17 +1288,17 @@ const styles = StyleSheet.create({
   },
   tabButtonActive: {
     borderBottomWidth: 2,
-    borderBottomColor: "#4ade80",
+    borderBottomColor: theme.colors.primary,
   },
   tabText: {
     fontSize: 14,
   },
   tabTextActive: {
     fontWeight: "500",
-    color: "white",
+    color: theme.colors.textPrimary,
   },
   tabTextInactive: {
-    color: "rgba(255, 255, 255, 0.3)",
+    color: theme.colors.textSecondary,
   },
   healthSummary: {
     marginTop: 16,
@@ -1357,21 +1374,23 @@ const styles = StyleSheet.create({
   moreCell: {
     width: "100%",
     borderRadius: 14,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    backgroundColor: theme.colors.backgroundChip,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     justifyContent: "center",
     alignItems: "center",
     gap: 4,
   },
   moreCellText: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.5)",
+    color: theme.colors.textSecondary,
   },
   emptyGardenCard: {
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: "rgba(255, 255, 255, 0.15)",
+    borderColor: theme.colors.border,
     borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    backgroundColor: theme.colors.backgroundCard,
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 20,
@@ -1380,33 +1399,34 @@ const styles = StyleSheet.create({
   },
   emptyGardenText: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.25)",
+    color: theme.colors.textSecondary,
     marginTop: 6,
   },
   salesEmptyCard: {
     height: 180,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: theme.colors.border,
     borderRadius: 20,
     marginHorizontal: 20,
     marginTop: 20,
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    ...theme.shadows.card,
   },
   salesEmptyTitle: {
     fontSize: 15,
     fontWeight: "300",
-    color: "rgba(255, 255, 255, 0.3)",
+    color: theme.colors.textSecondary,
   },
   salesEmptySub: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.2)",
+    color: theme.colors.textSecondary,
   },
   salesPill: {
-    backgroundColor: "rgba(74, 222, 128, 0.07)",
-    borderColor: "rgba(74, 222, 128, 0.15)",
+    backgroundColor: theme.colors.successDim,
+    borderColor: theme.colors.border,
     borderWidth: 1,
     borderRadius: 20,
     paddingHorizontal: 14,
@@ -1415,7 +1435,7 @@ const styles = StyleSheet.create({
   },
   salesPillText: {
     fontSize: 11,
-    color: "rgba(74, 222, 128, 0.7)",
+    color: theme.colors.primary,
   },
   // Banner Preview Styles
   bannerPreviewContainer: {
@@ -1463,7 +1483,7 @@ const styles = StyleSheet.create({
 
   // Bottom Sheet Styles
   bottomSheetBackground: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.backgroundCard,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
@@ -1474,7 +1494,7 @@ const styles = StyleSheet.create({
   sheetHeader: {
     fontSize: 16,
     fontWeight: "300",
-    color: "white",
+    color: theme.colors.textPrimary,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
@@ -1503,7 +1523,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bannerOptionSelected: {
-    borderColor: "#4ade80",
+    borderColor: theme.colors.primary,
   },
   bannerOptionGradient: {
     width: "100%",
@@ -1513,20 +1533,20 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.4)",
+    color: theme.colors.textSecondary,
     textAlign: "left",
     marginTop: 4,
     paddingLeft: 4,
   },
   optionLabelSelected: {
-    color: "#4ade80",
+    color: theme.colors.primary,
     fontWeight: "500",
   },
   checkmarkBadge: {
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     borderRadius: 12,
     padding: 4,
     zIndex: 10,
@@ -1534,7 +1554,7 @@ const styles = StyleSheet.create({
   applyButton: {
     marginHorizontal: 20,
     marginTop: 16,
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     borderRadius: 14,
     height: 48,
     justifyContent: "center",
@@ -1543,6 +1563,6 @@ const styles = StyleSheet.create({
   applyButtonText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#000",
+    color: theme.colors.textOnAccent,
   },
 });

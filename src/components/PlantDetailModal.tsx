@@ -16,7 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { FeaturedPlant } from "../data/featuredPlants";
 import WorldMap from "./WorldMap";
-import { useTheme } from "../theme/desingSystem";
+import { AppTheme, useTheme } from "../theme/desingSystem";
 
 interface PlantDetailModalProps {
   visible: boolean;
@@ -28,7 +28,7 @@ const { height: screenHeight } = Dimensions.get("window");
 
 export default function PlantDetailModal({ visible, onClose, plant }: PlantDetailModalProps) {
   const theme = useTheme();
-  const iconSize = theme?.dimensions?.shareIconSize || 20;
+  const styles = createStyles(theme);
 
   const [showModal, setShowModal] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -191,7 +191,7 @@ export default function PlantDetailModal({ visible, onClose, plant }: PlantDetai
             />
             
             <LinearGradient
-              colors={["transparent", "#0a0a0a"]}
+              colors={["transparent", theme.colors.background]}
               style={styles.heroGradient}
             />
           </Animated.View>
@@ -347,7 +347,7 @@ export default function PlantDetailModal({ visible, onClose, plant }: PlantDetai
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   mainOverlay: {
     flex: 1,
     justifyContent: "flex-end",
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: "88%",
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     overflow: "visible", // Enable overflow so 3D image can pop out of the top!
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: theme.colors.border,
     marginTop: 12,
     alignSelf: "center",
     zIndex: 100, // Stay on top of absolutely positioned items
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   },
   latinName: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.4)",
+    color: theme.colors.textSecondary,
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   plantName: {
     fontSize: 28,
     fontWeight: "300",
-    color: "white",
+    color: theme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   closeButton: {
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   mainContentContainer: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     paddingTop: 12,
   },
   // STATS SECTION
@@ -461,9 +461,9 @@ const styles = StyleSheet.create({
   },
   statPill: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: theme.colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: theme.colors.border,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: "center",
@@ -472,13 +472,13 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 12,
     fontWeight: "500",
-    color: "white",
+    color: theme.colors.textPrimary,
     marginTop: 4,
     textAlign: "center",
   },
   statLabel: {
     fontSize: 10,
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.textSecondary,
     letterSpacing: 0.5,
     marginTop: 2,
   },
@@ -491,32 +491,32 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.textSecondary,
     marginBottom: 10,
   },
   aboutDescription: {
     fontSize: 15,
-    color: "rgba(255, 255, 255, 0.7)",
+    color: theme.colors.textPrimary,
     lineHeight: 24,
   },
   funFactCard: {
-    backgroundColor: "rgba(74, 222, 128, 0.06)",
+    backgroundColor: theme.colors.successDim,
     borderWidth: 1,
-    borderColor: "rgba(74, 222, 128, 0.12)",
+    borderColor: theme.colors.border,
     borderRadius: 16,
     padding: 16,
     marginTop: 12,
   },
   funFactTitle: {
     fontSize: 11,
-    color: "#4ade80",
+    color: theme.colors.primary,
     letterSpacing: 1,
     marginBottom: 6,
     fontWeight: "600",
   },
   funFactText: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: theme.colors.textSecondary,
     lineHeight: 20,
   },
   // CARE GUIDE ROW
@@ -529,14 +529,14 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     marginRight: 10,
     marginTop: 8,
   },
   tipText: {
     flex: 1,
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.65)",
+    color: theme.colors.textSecondary,
     lineHeight: 22,
   },
   // TAXONOMY ROW
@@ -546,15 +546,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: theme.colors.border,
   },
   taxonomyLabel: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.3)",
+    color: theme.colors.textSecondary,
   },
   taxonomyValue: {
     fontSize: 13,
-    color: "white",
+    color: theme.colors.textPrimary,
     fontWeight: "500",
   },
   // ADDITIONAL INFO CARDS
@@ -564,7 +564,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   infoCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    backgroundColor: theme.colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     borderRadius: 16,
     padding: 16,
     flex: 1,
@@ -572,12 +574,12 @@ const styles = StyleSheet.create({
   infoCardValue: {
     fontSize: 20,
     fontWeight: "300",
-    color: "white",
+    color: theme.colors.textPrimary,
     marginTop: 8,
   },
   infoCardLabel: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   // BOTTOM CTA CONTAINER
@@ -588,14 +590,14 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingBottom: 34,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.04)",
+    borderTopColor: theme.colors.border,
     paddingTop: 12,
     zIndex: 10,
   },
   ctaButton: {
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     borderRadius: 14,
     height: 52,
     width: "100%",
@@ -603,7 +605,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ctaButtonText: {
-    color: "#000",
+    color: theme.colors.textOnAccent,
     fontSize: 16,
     fontWeight: "600",
   },
@@ -611,7 +613,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   iosShadow: {
-    shadowColor: "#4ade80",
+    shadowColor: theme.colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },

@@ -246,7 +246,7 @@ export default function LoginScreen() {
             showsVerticalScrollIndicator={false}
           >
             <Animated.View style={[styles.registerFormWrapper, registerAnimatedStyle]}>
-              <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+              <BlurView intensity={theme.mode === 'dark' ? 20 : 60} tint={theme.mode} style={StyleSheet.absoluteFill} />
               <View style={styles.registerFormInner}>
                 <Text style={styles.registerTitle}>Crear cuenta</Text>
                 <Text style={styles.registerSubtitle}>Únete a iPlant y comienza tu jardín</Text>
@@ -258,14 +258,14 @@ export default function LoginScreen() {
                   render={({ field: { onChange, value, onBlur } }) => (
                     <View>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="person-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <Ionicons name="person-outline" size={20} color={theme.colors.disabledText} style={styles.inputIcon} />
                         <TextInput
                           style={styles.input}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
                           placeholder="Nombre completo"
-                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          placeholderTextColor={theme.colors.disabledText}
                           autoCapitalize="words"
                         />
                       </View>
@@ -281,14 +281,14 @@ export default function LoginScreen() {
                   render={({ field: { onChange, value, onBlur } }) => (
                     <View>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <Ionicons name="mail-outline" size={20} color={theme.colors.disabledText} style={styles.inputIcon} />
                         <TextInput
                           style={styles.input}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
                           placeholder="Correo electrónico"
-                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          placeholderTextColor={theme.colors.disabledText}
                           keyboardType="email-address"
                           autoCapitalize="none"
                           autoCorrect={false}
@@ -306,14 +306,14 @@ export default function LoginScreen() {
                   render={({ field: { onChange, value, onBlur } }) => (
                     <View>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <Ionicons name="lock-closed-outline" size={20} color={theme.colors.disabledText} style={styles.inputIcon} />
                         <TextInput
                           style={styles.input}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
                           placeholder="Contraseña"
-                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          placeholderTextColor={theme.colors.disabledText}
                           secureTextEntry={!showRegisterPassword}
                           autoCapitalize="none"
                         />
@@ -324,7 +324,7 @@ export default function LoginScreen() {
                           <Ionicons
                             name={showRegisterPassword ? "eye-off-outline" : "eye-outline"}
                             size={20}
-                            color="rgba(255,255,255,0.35)"
+                            color={theme.colors.disabledText}
                           />
                         </TouchableOpacity>
                       </View>
@@ -340,14 +340,14 @@ export default function LoginScreen() {
                   render={({ field: { onChange, value, onBlur } }) => (
                     <View>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="shield-checkmark-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                        <Ionicons name="shield-checkmark-outline" size={20} color={theme.colors.disabledText} style={styles.inputIcon} />
                         <TextInput
                           style={styles.input}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
                           placeholder="Confirmar contraseña"
-                          placeholderTextColor="rgba(255,255,255,0.35)"
+                          placeholderTextColor={theme.colors.disabledText}
                           secureTextEntry={!showRegisterConfirmPassword}
                           autoCapitalize="none"
                         />
@@ -358,7 +358,7 @@ export default function LoginScreen() {
                           <Ionicons
                             name={showRegisterConfirmPassword ? "eye-off-outline" : "eye-outline"}
                             size={20}
-                            color="rgba(255,255,255,0.35)"
+                            color={theme.colors.disabledText}
                           />
                         </TouchableOpacity>
                       </View>
@@ -374,7 +374,7 @@ export default function LoginScreen() {
                   disabled={registerLoading}
                 >
                   {registerLoading ? (
-                    <ActivityIndicator color="#000" />
+                    <ActivityIndicator color={theme.colors.textOnAccent} />
                   ) : (
                     <Text style={styles.loginBtnText}>Registrarse</Text>
                   )}
@@ -406,7 +406,7 @@ export default function LoginScreen() {
             {/* Brand */}
             <View style={styles.brandContainer}>
               <View style={styles.logoContainer}>
-                <Ionicons name="leaf" size={52} color="#4ade80" />
+                <Ionicons name="leaf" size={52} color={theme.colors.primary} />
               </View>
               <Text style={styles.brandName}>iPlant</Text>
               <Text style={styles.tagline}>Tu jardín inteligente</Text>
@@ -421,7 +421,7 @@ export default function LoginScreen() {
                 render={({ field: { onChange, value, onBlur } }) => (
                   <View>
                     <View style={styles.inputWrapper}>
-                      <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                      <Ionicons name="mail-outline" size={20} color={theme.colors.disabledText} style={styles.inputIcon} />
                       <TextInput
                         ref={emailRef}
                         style={styles.input}
@@ -429,7 +429,7 @@ export default function LoginScreen() {
                         onChangeText={onChange}
                         onBlur={onBlur}
                         placeholder="Correo electrónico"
-                        placeholderTextColor="rgba(255,255,255,0.35)"
+                        placeholderTextColor={theme.colors.disabledText}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -447,7 +447,7 @@ export default function LoginScreen() {
                 render={({ field: { onChange, value, onBlur } }) => (
                   <View>
                     <View style={styles.inputWrapper}>
-                      <Ionicons name="lock-closed-outline" size={20} color="rgba(255,255,255,0.35)" style={styles.inputIcon} />
+                      <Ionicons name="lock-closed-outline" size={20} color={theme.colors.disabledText} style={styles.inputIcon} />
                       <TextInput
                         ref={passwordRef}
                         style={styles.input}
@@ -455,7 +455,7 @@ export default function LoginScreen() {
                         onChangeText={onChange}
                         onBlur={onBlur}
                         placeholder="Contraseña"
-                        placeholderTextColor="rgba(255,255,255,0.35)"
+                        placeholderTextColor={theme.colors.disabledText}
                         secureTextEntry={!showPassword}
                         autoCapitalize="none"
                       />
@@ -466,7 +466,7 @@ export default function LoginScreen() {
                         <Ionicons
                           name={showPassword ? "eye-off-outline" : "eye-outline"}
                           size={20}
-                          color="rgba(255,255,255,0.35)"
+                          color={theme.colors.disabledText}
                         />
                       </TouchableOpacity>
                     </View>
@@ -488,7 +488,7 @@ export default function LoginScreen() {
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator color="#000" />
+                  <ActivityIndicator color={theme.colors.textOnAccent} />
                 ) : (
                   <Text style={styles.loginBtnText}>Iniciar sesión</Text>
                 )}
@@ -509,10 +509,10 @@ export default function LoginScreen() {
                 disabled={googleLoading}
               >
                 {googleLoading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={theme.colors.textPrimary} />
                 ) : (
                   <>
-                    <Ionicons name="logo-google" size={20} color="#fff" />
+                    <Ionicons name="logo-google" size={20} color={theme.colors.textPrimary} />
                     <Text style={styles.googleBtnText}>Continuar con Google</Text>
                   </>
                 )}
@@ -525,3 +525,4 @@ export default function LoginScreen() {
     </ParallaxBackground>
   );
 }
+

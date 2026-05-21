@@ -1,5 +1,6 @@
 import React from "react";
 import { Dimensions, Image, ImageSourcePropType, ImageStyle, StyleProp, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { AppTheme, useTheme } from "../theme/desingSystem";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 30;
@@ -23,6 +24,9 @@ export default function PlantOfDayCard({
   imageStyle,
   onPress,
 }: PlantOfDayCardProps) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+
   return (
     <View style={styles.container}>
       {/* LEFT SIDE */}
@@ -51,17 +55,18 @@ export default function PlantOfDayCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     marginTop: 20,
     width: CARD_WIDTH,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: theme.colors.border,
     borderRadius: 24,
     height: 140,
     overflow: "visible",
     position: "relative",
+    ...theme.shadows,
   },
   leftSide: {
     padding: 16,
@@ -73,18 +78,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#4ade80",
+    color: theme.colors.primary,
     marginBottom: 6,
   },
   title: {
     fontSize: 18,
     fontWeight: "300",
-    color: "white",
+    color: theme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   description: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.45)",
+    color: theme.colors.textSecondary,
     marginTop: 4,
     maxWidth: "65%",
     lineHeight: 17,
@@ -94,7 +99,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 11,
-    color: "#4ade80",
+    color: theme.colors.primary,
   },
   rightSide: {
     position: "absolute",

@@ -75,7 +75,7 @@ function TabButton({ tab, isActive, onPress, tabStyles, theme }: TabButtonProps)
         <Ionicons
           name={isActive ? tab.iconActive : tab.icon}
           size={theme.dimensions.tabBarIconSize - 1}
-          color={isActive ? "#4ade80" : "rgba(255,255,255,0.4)"}
+          color={isActive ? theme.colors.tabBarActive : theme.colors.tabBarInactive}
         />
         <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>
           {tab.label}
@@ -122,7 +122,7 @@ function CenterButton({ tabStyles, theme, onPress }: CenterButtonProps) {
           <Ionicons
             name="camera"
             size={22}
-            color="#000"
+            color={theme.colors.textOnAccent}
           />
         </TouchableOpacity>
       </Animated.View>
@@ -155,7 +155,7 @@ export default function BottomTabBar() {
     <View style={[tabStyles.root, { bottom: Math.max(insets.bottom, 12) }]}>
       <BlurView
         intensity={30}
-        tint="dark"
+        tint={theme.mode === "dark" ? "dark" : "light"}
         style={tabStyles.blurContainer}
       >
         <View style={tabStyles.bar}>

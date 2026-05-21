@@ -24,7 +24,7 @@ import WorldMap from "./WorldMap";
 import * as Speech from "expo-speech";
 import AppInput from "./ui/appInput/AppInput";
 import WateringFrequencyPicker from "./ui/wateringFrequencyPicker/WateringFrequencyPicker";
-import { useTheme } from "../theme/desingSystem";
+import { useTheme, AppTheme } from "../theme/desingSystem";
 import Toast from "./ui/toast/Toast";
 import { calcularProximoRiego } from "../utils/wateringUtils";
 import { regarPlanta } from "../utils/waterPlant";
@@ -50,6 +50,7 @@ export default function UserPlantDetailModal({
   onDeleteSuccess,
 }: UserPlantDetailModalProps) {
   const theme = useTheme();
+  const styles = createStyles(theme);
   const { isConnected } = useConnectivity();
   
   const [plant, setPlant] = useState<PlantaCompletaInterface | null>(null);
@@ -396,14 +397,14 @@ export default function UserPlantDetailModal({
         >
           {loading ? (
             <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#4ade80" />
+              <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
           ) : !plant ? (
             <View style={styles.errorContainer}>
-              <Ionicons name="alert-circle-outline" size={48} color="#f87171" />
+              <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
               <Text style={styles.errorText}>No se pudo cargar la planta</Text>
               <TouchableOpacity style={styles.closeModalBtn} onPress={animateClose}>
-                <Text style={{ color: "#4ade80", fontWeight: "600" }}>Cerrar</Text>
+                <Text style={{ color: theme.colors.primary, fontWeight: "600" }}>Cerrar</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -431,7 +432,7 @@ export default function UserPlantDetailModal({
                 />
                 
                 <LinearGradient
-                  colors={["transparent", "#0a0a0a"]}
+                  colors={["transparent", theme.colors.background]}
                   style={styles.heroGradient}
                 />
               </Animated.View>
@@ -456,7 +457,7 @@ export default function UserPlantDetailModal({
                     style={styles.deleteButton} 
                     onPress={handleDelete}
                   >
-                    <Ionicons name="trash-outline" size={18} color="#f87171" />
+                    <Ionicons name="trash-outline" size={18} color={theme.colors.error} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -466,10 +467,10 @@ export default function UserPlantDetailModal({
                 style={[
                   styles.narrateFab, 
                   { 
-                    backgroundColor: isSpeaking ? "rgba(255,255,255,0.08)" : "#4ade80",
+                    backgroundColor: isSpeaking ? "rgba(255,255,255,0.08)" : theme.colors.primary,
                     bottom: 24,
                     transform: [{ scale: pulseAnim }],
-                    borderColor: isSpeaking ? "rgba(255,255,255,0.15)" : "#4ade80",
+                    borderColor: isSpeaking ? "rgba(255,255,255,0.15)" : theme.colors.primary,
                     borderWidth: isSpeaking ? 1 : 0
                   }
                 ]}
@@ -482,7 +483,7 @@ export default function UserPlantDetailModal({
                   <Ionicons 
                     name={isSpeaking ? "stop" : "volume-high"} 
                     size={22} 
-                    color={isSpeaking ? "#4ade80" : "#000"} 
+                    color={isSpeaking ? theme.colors.primary : theme.colors.textOnAccent} 
                   />
                 </TouchableOpacity>
               </Animated.View>
@@ -529,7 +530,7 @@ export default function UserPlantDetailModal({
 
                     {/* Freq Pill */}
                     <View style={styles.statPill}>
-                      <Ionicons name="calendar-outline" size={18} color="#4ade80" />
+                      <Ionicons name="calendar-outline" size={18} color={theme.colors.primary} />
                       <Text style={styles.statValue}>Cada {plant.proximoRiego}d</Text>
                       <Text style={styles.statLabel}>Frecuencia</Text>
                     </View>
@@ -565,18 +566,19 @@ export default function UserPlantDetailModal({
                         <Text style={styles.sectionTitle}>Seguimiento de Riego</Text>
                         <View
                           style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.04)",
+                            backgroundColor: theme.colors.backgroundCard,
                             borderRadius: 16,
                             borderWidth: 1,
-                            borderColor: "rgba(255, 255, 255, 0.08)",
+                            borderColor: theme.colors.border,
                             padding: 16,
                             position: "relative",
+                            ...theme.shadows,
                           }}
                         >
                           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                               <Ionicons name="water-outline" size={16} color="#60a5fa" />
-                              <Text style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.6)" }}>Estado de Riego</Text>
+                              <Text style={{ fontSize: 13, color: theme.colors.textSecondary }}>Estado de Riego</Text>
                             </View>
                             <Text style={{ fontSize: 13, fontWeight: "600", color: isWatered ? "#4ade80" : diasRestantes <= 0 ? "#f87171" : "#fbbf24" }}>
                               {isWatered ? "Regada hoy" : diasRestantes < 0 ? `${Math.abs(diasRestantes)}d de retraso` : diasRestantes === 0 ? "Regar hoy" : `En ${diasRestantes} días`}
@@ -584,7 +586,7 @@ export default function UserPlantDetailModal({
                           </View>
 
                           {/* Progress Bar showing days until next watering */}
-                          <View style={{ height: 6, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
+                          <View style={{ height: 6, backgroundColor: theme.colors.border, borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
                             <View
                               style={{
                                 height: "100%",
@@ -643,7 +645,7 @@ export default function UserPlantDetailModal({
                     <View style={styles.sectionContainer}>
                       <Text style={styles.sectionTitle}>Nombres comunes por país</Text>
                       <View style={styles.careCard}>
-                        <Ionicons name="globe-outline" size={18} color="#4ade80" style={{ marginRight: 8, marginTop: 2 }} />
+                        <Ionicons name="globe-outline" size={18} color={theme.colors.primary} style={{ marginRight: 8, marginTop: 2 }} />
                         <Text style={styles.tipText}>{plant.commonNames}</Text>
                       </View>
                     </View>
@@ -752,7 +754,7 @@ export default function UserPlantDetailModal({
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Editar Planta</Text>
               <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowEdit(false)}>
-                <Ionicons name="close" size={18} color="rgba(255,255,255,0.6)" />
+                <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
               </TouchableOpacity>
             </View>
             
@@ -778,7 +780,7 @@ export default function UserPlantDetailModal({
                     >
                       <Text style={[
                         styles.chipText, 
-                        { color: editCategory === cat ? "#4ade80" : "rgba(255,255,255,0.4)" }
+                        { color: editCategory === cat ? theme.colors.primary : theme.colors.disabledText }
                       ]}>{cat}</Text>
                     </TouchableOpacity>
                   ))}
@@ -832,7 +834,7 @@ export default function UserPlantDetailModal({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   mainOverlay: {
     flex: 1,
     justifyContent: "flex-end",
@@ -854,18 +856,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: "88%",
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     overflow: "visible",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: theme.colors.border,
   },
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
   },
@@ -873,14 +875,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     gap: 16,
     padding: 24,
   },
   errorText: {
-    color: "#fff",
+    color: theme.colors.textPrimary,
     fontSize: 15,
   },
   closeModalBtn: {
@@ -928,7 +930,7 @@ const styles = StyleSheet.create({
   },
   latinName: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.4)",
+    color: theme.mode === 'dark' ? "rgba(255, 255, 255, 0.4)" : "rgba(45, 45, 42, 0.65)",
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -936,7 +938,7 @@ const styles = StyleSheet.create({
   plantName: {
     fontSize: 26,
     fontWeight: "300",
-    color: "white",
+    color: theme.colors.textPrimary,
     letterSpacing: -0.5,
     marginTop: 2,
   },
@@ -966,9 +968,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "rgba(248, 113, 113, 0.1)",
+    backgroundColor: "rgba(248, 113, 113, 0.15)",
     borderWidth: 1,
-    borderColor: "rgba(248, 113, 113, 0.18)",
+    borderColor: "rgba(248, 113, 113, 0.3)",
   },
   editHeaderButton: {
     width: 34,
@@ -976,7 +978,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
   },
@@ -990,7 +992,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: '#4ade80',
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1004,7 +1006,7 @@ const styles = StyleSheet.create({
   },
   // SOLID CONTENT WRAPPER
   mainContentContainer: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: theme.colors.background,
     paddingTop: 12,
   },
   // STATS SECTION
@@ -1016,24 +1018,25 @@ const styles = StyleSheet.create({
   },
   statPill: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: theme.colors.border,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
+    ...theme.shadows,
   },
   statValue: {
     fontSize: 11,
     fontWeight: "600",
-    color: "white",
+    color: theme.colors.textPrimary,
     marginTop: 4,
     textAlign: "center",
   },
   statLabel: {
     fontSize: 9,
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.disabledText,
     letterSpacing: 0.5,
     marginTop: 2,
   },
@@ -1046,35 +1049,36 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.disabledText,
     marginBottom: 10,
   },
   aboutDescription: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.65)",
+    color: theme.colors.textSecondary,
     lineHeight: 22,
   },
   careCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    backgroundColor: theme.mode === 'dark' ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.02)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: theme.colors.border,
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
+    ...theme.shadows,
   },
   tipDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     marginTop: 7,
   },
   tipText: {
     flex: 1,
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.65)",
+    color: theme.colors.textSecondary,
     lineHeight: 22,
   },
   // TAXONOMY ROW
@@ -1084,16 +1088,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: theme.colors.border,
   },
   taxonomyLabel: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.35)",
+    color: theme.colors.disabledText,
     flexShrink: 0,
   },
   taxonomyValue: {
     fontSize: 13,
-    color: "white",
+    color: theme.colors.textPrimary,
     fontWeight: "500",
     textAlign: "right",
     flex: 1,
@@ -1106,11 +1110,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalCard: {
-    backgroundColor: "#121212",
+    backgroundColor: theme.colors.backgroundCard,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: theme.colors.border,
     paddingHorizontal: 20,
     paddingBottom: 30,
     paddingTop: 12,
@@ -1120,7 +1124,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: theme.colors.border,
     alignSelf: "center",
     marginBottom: 4,
   },
@@ -1132,15 +1136,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: theme.colors.textPrimary,
   },
   modalCloseBtn: {
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: theme.colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1150,7 +1154,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: "600",
-    color: "rgba(255, 255, 255, 0.7)",
+    color: theme.colors.textSecondary,
     marginBottom: 6,
   },
   chipsContainer: {
@@ -1163,12 +1167,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.backgroundCard,
   },
   chipSelected: {
-    backgroundColor: "rgba(74, 222, 128, 0.08)",
-    borderColor: "#4ade80",
+    backgroundColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.08)" : "rgba(74, 222, 128, 0.12)",
+    borderColor: theme.colors.primary,
   },
   chipText: {
     fontSize: 12,
@@ -1177,13 +1181,13 @@ const styles = StyleSheet.create({
   saveBtn: {
     height: 48,
     borderRadius: 14,
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 10,
   },
   saveBtnText: {
-    color: "#000000",
+    color: theme.colors.textOnAccent,
     fontSize: 14,
     fontWeight: "700",
   },

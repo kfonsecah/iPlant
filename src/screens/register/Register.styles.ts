@@ -166,8 +166,8 @@ export const createStyles = (theme: AppTheme) =>
       height: 52,
       gap: theme.spacing.s10,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)",
-      backgroundColor: "rgba(255,255,255,0.07)",
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.surfaceElevated,
     },
     googleBtnText: {
       color: theme.colors.textPrimary,
@@ -183,8 +183,8 @@ export const createStyles = (theme: AppTheme) =>
       borderRadius: 14,
       height: 52,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)",
-      backgroundColor: "rgba(255,255,255,0.07)",
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.surfaceElevated,
     },
     secondaryBtnText: {
       color: theme.colors.textPrimary,
@@ -194,3 +194,4 @@ export const createStyles = (theme: AppTheme) =>
       letterSpacing: theme.typography.letterSpacing.xs,
     },
   });
+

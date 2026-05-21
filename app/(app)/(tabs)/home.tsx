@@ -3,31 +3,33 @@ import { useFocusEffect } from "@react-navigation/native";
 import { ResizeMode, Video } from "expo-av";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   ImageBackground,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Dimensions,
-  Animated,
-  Easing,
+  View
 } from "react-native";
-import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import PlantDetailModal from "../../../src/components/PlantDetailModal";
-import { featuredPlants, FeaturedPlant } from "../../../src/data/featuredPlants";
+import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
 import { useSync } from "../../../src/context/SyncContext";
+import { FeaturedPlant, featuredPlants } from "../../../src/data/featuredPlants";
 import { getPlantsByUserId } from "../../../src/services/plantService";
+import { AppTheme, useTheme } from "../../../src/theme/desingSystem";
 import { PlantaCompletaInterface } from "../../../src/types-dtos/plant.types";
 
 export default function HomeIndex() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const { user: authUser } = useAuth();
   const userId = authUser?.uid ?? "";
@@ -47,20 +49,20 @@ export default function HomeIndex() {
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    
+
     const { width: windowWidth } = Dimensions.get("window");
-    const cardWidth = windowWidth - 30; 
-    const gap = 24; 
+    const cardWidth = windowWidth - 30;
+    const gap = 24;
     const step = cardWidth + gap;
-    
+
     timerRef.current = setInterval(() => {
       const nextIndex = activeIndexRef.current + 1;
-      
+
       carouselRef.current?.scrollTo({
         x: nextIndex * step,
         animated: true,
       });
-      
+
       if (nextIndex === 5) {
         setTimeout(() => {
           carouselRef.current?.scrollTo({
@@ -81,15 +83,15 @@ export default function HomeIndex() {
     const cardWidth = windowWidth - 30;
     const gap = 24;
     const step = cardWidth + gap;
-    
+
     let index = Math.round(contentOffsetX / step);
-    
+
     if (index >= 5) {
       carouselRef.current?.scrollTo({ x: 0, animated: false });
       index = 0;
     }
     activeIndexRef.current = index;
-    
+
     // Reiniciar temporizador al scrollear manualmente
     startTimer();
   };
@@ -126,8 +128,8 @@ export default function HomeIndex() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#000", alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator size="large" color="#4ade80" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -139,25 +141,25 @@ export default function HomeIndex() {
   const alertPlantas = filteredPlantas.filter((p) => p.salud !== "saludable");
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
+    <View style={styles.container}>
+      <StatusBar translucent barStyle={theme.mode === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
 
       <ScrollView
-        style={{ flex: 1, backgroundColor: "#000" }}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER BANNER */}
-        <View style={{ position: "relative", width: "100%", height: 220, overflow: "hidden", borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        <View style={styles.headerBanner}>
           <Image
             source={require("../../../assets/images/banner.jpeg")}
-            style={{ width: "100%", height: "100%", resizeMode: "cover", position: "absolute" }}
+            style={styles.bannerImage}
           />
 
-          <View style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
+          <View style={styles.bannerContent}>
             <View style={{ marginBottom: 16 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Text style={{ fontSize: 22, fontWeight: "600", color: "#fff", textShadowColor: "rgba(0,0,0,0.4)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
+                <Text style={styles.welcomeText}>
                   Hola, {authUser?.displayName || "Usuario"}!
                 </Text>
 
@@ -165,7 +167,7 @@ export default function HomeIndex() {
                   {authUser?.photoURL ? (
                     <Image
                       source={{ uri: authUser.photoURL }}
-                      style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: "#fff" }}
+                      style={styles.avatarImage}
                     />
                   ) : (
                     <Ionicons name="person-circle-outline" size={42} color="#fff" />
@@ -173,9 +175,9 @@ export default function HomeIndex() {
                 </View>
               </View>
 
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 4 }}>
+              <View style={styles.weatherContainer}>
                 <Ionicons name="partly-sunny-outline" size={13} color="rgba(255,255,255,0.85)" />
-                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Nublado 22°</Text>
+                <Text style={styles.weatherText}>Nublado 22°</Text>
               </View>
             </View>
 
@@ -183,17 +185,11 @@ export default function HomeIndex() {
             <BlurView
               intensity={20}
               tint="light"
-              style={{
-                backgroundColor: "transparent",
-                borderWidth: 1, borderColor: "rgba(255,255,255,0.15)",
-                borderRadius: 14, height: 44,
-                flexDirection: "row", alignItems: "center",
-                overflow: "hidden"
-              }}
+              style={styles.searchBar}
             >
               <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.8)" style={{ paddingLeft: 14, marginRight: 8 }} />
               <TextInput
-                style={{ flex: 1, color: "#fff", fontSize: 14 }}
+                style={styles.searchTextInput}
                 placeholder="Buscar plantas..."
                 placeholderTextColor="rgba(255,255,255,0.7)"
                 value={searchQuery}
@@ -210,30 +206,29 @@ export default function HomeIndex() {
 
         {/* AI ASSISTANT BANNER CARD */}
         <ImageBackground
-          source={require("../../../assets/images/bubbles.jpeg")}
-          style={{
-            marginHorizontal: 20, marginTop: 24,
-            borderWidth: 1, borderColor: "rgba(74,222,128,0.2)",
-            borderRadius: 20, padding: 24, minHeight: 140,
-            flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-            overflow: "hidden"
-          }}
+          source={theme.mode === "dark"
+            ? require("../../../assets/images/bubbles.jpeg")
+            : require("../../../assets/images/bubblesligth.jpeg")}
+          style={styles.aiCard}
           imageStyle={{ borderRadius: 20 }}
         >
-          <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)" }} />
+          <View style={styles.aiOverlay} />
 
-          <View style={{ flex: 1, marginRight: 60, zIndex: 10 }}>
-            <Text style={{ fontSize: 22, fontWeight: "700", color: "white", lineHeight: 28 }}>
-              Pregúntale al Asistente de <Text style={{ color: '#4ade80' }}>IA</Text> de iPlant!
+          <View style={styles.aiTextContent}>
+            <Text style={styles.aiTitle}>
+              Pregúntale al Asistente de <Text style={{ color: theme.colors.primary }}>IA</Text> de iPlant!
             </Text>
-            <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6, lineHeight: 18 }}>El Asistente está listo para verificar{"\n"}la salud de tus plantas, programar recordatorios y darte consejos personalizados.</Text>
-            <TouchableOpacity style={{ backgroundColor: "#4ade80", borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8, marginTop: 12, alignSelf: "flex-start" }}>
-              <Text style={{ fontSize: 13, fontWeight: "600", color: "#000" }}>Chatear</Text>
+            <Text style={styles.aiSub}>El Asistente está listo para verificar{"\n"}la salud de tus plantas, programar recordatorios y darte consejos personalizados.</Text>
+            <TouchableOpacity
+              style={styles.aiButton}
+              onPress={() => router.push("/(app)/(tabs)/asistente")}
+            >
+              <Text style={styles.aiButtonText}>Chatear</Text>
             </TouchableOpacity>
           </View>
           <Video
             source={require("../../../assets/images/cara.mp4")}
-            style={[{ position: "absolute", right: -30, width: 200, height: 200 }, { mixBlendMode: "screen" } as any]}
+            style={[styles.aiVideo, { mixBlendMode: "screen" } as any]}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
             isLooping
@@ -242,10 +237,10 @@ export default function HomeIndex() {
         </ImageBackground>
 
         {/* PLANT OF DAY SECTION */}
-        <View style={{ marginHorizontal: 20, marginTop: 24, marginBottom: 0, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ fontSize: 17, fontWeight: "500", color: "#fff" }}>Destacada hoy</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Destacada hoy</Text>
           <TouchableOpacity>
-            <Text style={{ fontSize: 13, color: "#4ade80" }}>Ver colección</Text>
+            <Text style={styles.sectionLink}>Ver colección</Text>
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -325,10 +320,10 @@ export default function HomeIndex() {
         </ScrollView>
 
         {/* MY PLANTS SECTION */}
-        <View style={{ marginHorizontal: 20, marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ fontSize: 17, fontWeight: "500", color: "#fff" }}>Mis Plantas</Text>
+        <View style={styles.myPlantsHeader}>
+          <Text style={styles.sectionTitle}>Mis Plantas</Text>
           <TouchableOpacity onPress={() => router.push("/(app)/(tabs)/plants")}>
-            <Text style={{ fontSize: 13, color: "#4ade80" }}>Ver todas</Text>
+            <Text style={styles.sectionLink}>Ver todas</Text>
           </TouchableOpacity>
         </View>
 
@@ -342,24 +337,34 @@ export default function HomeIndex() {
               <TouchableOpacity
                 key={planta.id}
                 activeOpacity={0.8}
-                style={{ width: 155, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}
+                style={styles.plantCard}
                 onPress={() => router.push(`/(app)/plants/${planta.id}`)}
               >
-                <Image source={{ uri: planta.imagen }} style={{ width: 155, height: 100, borderTopLeftRadius: 20, borderTopRightRadius: 20, objectFit: "cover" }} />
+                <Image source={{ uri: planta.imagen }} style={styles.plantImage} />
 
-                <View style={{ padding: 12 }}>
-                  <Text style={{ fontSize: 14, fontWeight: "500", color: "#fff", marginBottom: 6 }} numberOfLines={1}>{planta.nombre}</Text>
+                <View style={styles.plantInfo}>
+                  <Text style={styles.plantName} numberOfLines={1}>{planta.nombre}</Text>
 
-                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: planta.salud === "saludable" ? "#4ade80" : planta.salud === "atención" ? "#fbbf24" : "#f87171", marginRight: 6 }} />
-                    <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                  <View style={styles.healthRow}>
+                    <View style={[
+                      styles.healthDot,
+                      {
+                        backgroundColor:
+                          planta.salud === "saludable"
+                            ? theme.colors.primary
+                            : planta.salud === "atención"
+                              ? theme.colors.warning
+                              : theme.colors.error
+                      }
+                    ]} />
+                    <Text style={styles.healthText}>
                       {planta.salud === "saludable" ? "Saludable" : planta.salud === "atención" ? "Atención" : "Riesgo"}
                     </Text>
                   </View>
 
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Ionicons name="water-outline" size={11} color="#4ade80" style={{ marginRight: 4 }} />
-                    <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                  <View style={styles.wateringRow}>
+                    <Ionicons name="water-outline" size={11} color={theme.colors.primary} style={{ marginRight: 4 }} />
+                    <Text style={styles.wateringText}>
                       {planta.proximoRiego < 0
                         ? `${Math.abs(planta.proximoRiego)}d de retraso`
                         : planta.proximoRiego === 0
@@ -372,43 +377,42 @@ export default function HomeIndex() {
             ))}
           </ScrollView>
         ) : (
-          <View style={{ alignItems: "center", marginTop: 32, marginBottom: 16 }}>
-            <Ionicons name="leaf-outline" size={56} color="rgba(255,255,255,0.1)" />
-            <Text style={{ fontSize: 16, fontWeight: "300", color: "rgba(255,255,255,0.35)", marginTop: 12 }}>Aún no tienes plantas</Text>
-            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", marginTop: 6 }}>Agrega tu primera planta con el botón +</Text>
+          <View style={styles.emptyPlantsContainer}>
+            <Ionicons name="leaf-outline" size={56} color={theme.colors.disabledText} />
+            <Text style={styles.emptyPlantsText}>Aún no tienes plantas</Text>
+            <Text style={styles.emptyPlantsSub}>Agrega tu primera planta con el botón +</Text>
           </View>
         )}
 
         {/* HISTORY / RECENT ACTIVITY SECTION */}
-        <View style={{ marginHorizontal: 20, marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <Text style={{ fontSize: 17, fontWeight: "500", color: "#fff" }}>Actividad Reciente</Text>
+        <View style={styles.recentActivityHeader}>
+          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
           <TouchableOpacity>
-            <Text style={{ fontSize: 13, color: "#4ade80" }}>Ver todo</Text>
+            <Text style={styles.sectionLink}>Ver todo</Text>
           </TouchableOpacity>
         </View>
 
         <View style={{ marginHorizontal: 20 }}>
           {alertPlantas.length > 0 ? alertPlantas.map((p) => (
-            <View key={`act-${p.id}`} style={{
-              backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 16, padding: 14, marginBottom: 8,
-              borderWidth: 1, borderColor: "rgba(255,255,255,0.06)",
-              flexDirection: "row", alignItems: "center"
-            }}>
-              <Image source={{ uri: p.imagen }} style={{ width: 48, height: 48, borderRadius: 12, marginRight: 12 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, fontWeight: "500", color: "#fff" }}>{p.nombre}</Text>
-                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>
+            <View key={`act-${p.id}`} style={styles.activityCard}>
+              <Image source={{ uri: p.imagen }} style={styles.activityImage} />
+              <View style={styles.activityTextContainer}>
+                <Text style={styles.activityName}>{p.nombre}</Text>
+                <Text style={styles.activityStatus}>
                   {p.salud === "atención" ? "Necesita atención" : "En riesgo"}
                 </Text>
-                <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>Hace 1 hora</Text>
+                <Text style={styles.activityTime}>Hace 1 hora</Text>
               </View>
-              <TouchableOpacity style={{ backgroundColor: "rgba(74,222,128,0.12)", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 }}>
-                <Text style={{ fontSize: 12, color: "#4ade80", fontWeight: "500" }}>Revisar</Text>
+              <TouchableOpacity
+                style={styles.activityButton}
+                onPress={() => router.push(`/(app)/plants/${p.id}`)}
+              >
+                <Text style={styles.activityButtonText}>Revisar</Text>
               </TouchableOpacity>
             </View>
           )) : (
-            <View style={{ alignItems: "center", marginTop: 16 }}>
-              <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>Sin actividad reciente</Text>
+            <View style={styles.emptyActivity}>
+              <Text style={styles.emptyActivityText}>Sin actividad reciente</Text>
             </View>
           )}
         </View>
@@ -422,3 +426,291 @@ export default function HomeIndex() {
     </View>
   );
 }
+
+const createStyles = (theme: AppTheme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  headerBanner: {
+    position: "relative",
+    width: "100%",
+    height: 220,
+    overflow: "hidden",
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  bannerImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+    position: "absolute",
+  },
+  bannerContent: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    right: 16,
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#fff",
+    textShadowColor: "rgba(0,0,0,0.4)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  avatarImage: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  weatherContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 4,
+  },
+  weatherText: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.85)",
+  },
+  searchBar: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    borderRadius: 14,
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  searchTextInput: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 14,
+  },
+  aiCard: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    borderWidth: 1,
+    borderColor: theme.mode === "dark" ? "rgba(74,222,128,0.2)" : "rgba(74,222,128,0.3)",
+    borderRadius: 20,
+    padding: 24,
+    minHeight: 140,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    overflow: "hidden",
+    ...theme.shadows,
+  },
+  aiOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  aiTextContent: {
+    flex: 1,
+    marginRight: 60,
+    zIndex: 10,
+  },
+  aiTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "white",
+    lineHeight: 28,
+  },
+  aiSub: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.45)",
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  aiButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginTop: 12,
+    alignSelf: "flex-start",
+  },
+  aiButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: theme.colors.textOnAccent,
+  },
+  aiVideo: {
+    position: "absolute",
+    right: -35,
+    width: 190,
+    height: 200,
+  },
+  sectionHeader: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "500",
+    color: theme.colors.textPrimary,
+  },
+  sectionLink: {
+    fontSize: 13,
+    color: theme.colors.primary,
+  },
+  myPlantsHeader: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  plantCard: {
+    width: 155,
+    borderRadius: 20,
+    backgroundColor: theme.colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    overflow: "hidden",
+    ...theme.shadows,
+  },
+  plantImage: {
+    width: 155,
+    height: 100,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    objectFit: "cover",
+  },
+  plantInfo: {
+    padding: 12,
+  },
+  plantName: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.textPrimary,
+    marginBottom: 6,
+  },
+  healthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  healthDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  healthText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  wateringRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  wateringText: {
+    fontSize: 11,
+    color: theme.colors.disabledText,
+  },
+  emptyPlantsContainer: {
+    alignItems: "center",
+    marginTop: 32,
+    marginBottom: 16,
+  },
+  emptyPlantsText: {
+    fontSize: 16,
+    fontWeight: "300",
+    color: theme.colors.textSecondary,
+    marginTop: 12,
+  },
+  emptyPlantsSub: {
+    fontSize: 13,
+    color: theme.colors.disabledText,
+    marginTop: 6,
+  },
+  recentActivityHeader: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  activityCard: {
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+    ...theme.shadows,
+  },
+  activityImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  activityTextContainer: {
+    flex: 1,
+  },
+  activityName: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.textPrimary,
+  },
+  activityStatus: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  activityTime: {
+    fontSize: 11,
+    color: theme.colors.disabledText,
+    marginTop: 4,
+  },
+  activityButton: {
+    backgroundColor: theme.mode === "dark" ? "rgba(74,222,128,0.12)" : "rgba(74,222,128,0.18)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  activityButtonText: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontWeight: "500",
+  },
+  emptyActivity: {
+    alignItems: "center",
+    marginTop: 16,
+  },
+  emptyActivityText: {
+    fontSize: 13,
+    color: theme.colors.disabledText,
+  },
+});

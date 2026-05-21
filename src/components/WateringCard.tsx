@@ -4,12 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { PlantaCompletaInterface } from "../types-dtos/plant.types";
 import { getPlantsNeedingWater, getWateredTodayPercentage } from "../utils/wateringUtils";
+import { useTheme, AppTheme } from "../theme/desingSystem";
 
 interface WateringCardProps {
   plants: PlantaCompletaInterface[];
 }
 
 export default function WateringCard({ plants }: WateringCardProps) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const totalPlants = plants.length;
   const needWater = getPlantsNeedingWater(plants);
   const pendingCount = needWater.length;
@@ -34,6 +37,10 @@ export default function WateringCard({ plants }: WateringCardProps) {
     extrapolate: "clamp",
   });
 
+  const gradientColors = theme.mode === "dark" 
+    ? ["rgba(10, 10, 10, 1)", "rgba(10, 10, 10, 0)"] as const
+    : ["rgba(255, 255, 255, 1)", "rgba(255, 255, 255, 0)"] as const;
+
   return (
     <View style={styles.cardContainer}>
       {/* BACKGROUND IMAGE */}
@@ -44,7 +51,7 @@ export default function WateringCard({ plants }: WateringCardProps) {
 
       {/* LEFT GRADIENT OVER IMAGE */}
       <LinearGradient
-        colors={["rgba(10, 10, 10, 1)", "rgba(10, 10, 10, 0)"]}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.gradientOverlay}
@@ -54,7 +61,7 @@ export default function WateringCard({ plants }: WateringCardProps) {
       <View style={styles.contentContainer}>
         {/* TOP ROW */}
         <View style={styles.topRow}>
-          <Ionicons name="water-outline" size={13} color="#4ade80" />
+          <Ionicons name="water-outline" size={13} color={theme.colors.primary} />
           <Text style={styles.topLabel}>Riego pendiente</Text>
         </View>
 
@@ -99,16 +106,17 @@ export default function WateringCard({ plants }: WateringCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   cardContainer: {
     marginTop: 20, // Space for the 3D pop-out image to breathe
     marginBottom: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: theme.colors.backgroundCard,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: theme.colors.border,
     borderRadius: 24,
     height: 110,
     position: "relative",
+    ...theme.shadows,
   },
   bgImage: {
     position: "absolute",
@@ -146,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1.5,
     textTransform: "uppercase",
-    color: "#4ade80",
+    color: theme.colors.primary,
     marginLeft: 5,
   },
   countRow: {
@@ -157,11 +165,11 @@ const styles = StyleSheet.create({
   boldNumber: {
     fontSize: 22,
     fontWeight: "600",
-    color: "white",
+    color: theme.colors.textPrimary,
   },
   countLabel: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.5)",
+    color: theme.colors.textSecondary,
   },
   progressContainer: {
     marginTop: 10,
@@ -170,14 +178,14 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: theme.colors.border,
     width: 180,
     overflow: "hidden",
   },
   progressFill: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#4ade80",
+    backgroundColor: theme.colors.primary,
   },
   belowBarRow: {
     flexDirection: "row",
@@ -188,16 +196,16 @@ const styles = StyleSheet.create({
   },
   percentageText: {
     fontSize: 11,
-    color: "#4ade80",
+    color: theme.colors.primary,
     fontWeight: "600",
   },
   statusLabel: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.3)",
+    color: theme.colors.disabledText,
   },
   noPlantsText: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.3)",
+    color: theme.colors.disabledText,
     marginTop: 10,
   },
 });
