@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import MarketplaceEntryCard from "../../../src/components/MarketplaceEntryCard";
 import PlantDetailModal from "../../../src/components/PlantDetailModal";
 import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import { useAuth } from "../../../src/context/AuthContext";
@@ -138,7 +139,6 @@ export default function HomeIndex() {
     (p.nombre || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
     (p.categoria || "").toLowerCase().includes((searchQuery || "").toLowerCase())
   );
-  const alertPlantas = filteredPlantas.filter((p) => p.salud !== "saludable");
 
   return (
     <View style={styles.container}>
@@ -384,38 +384,15 @@ export default function HomeIndex() {
           </View>
         )}
 
-        {/* HISTORY / RECENT ACTIVITY SECTION */}
+        {/* MARKETPLACE SECTION */}
         <View style={styles.recentActivityHeader}>
-          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
-          <TouchableOpacity>
+          <Text style={styles.sectionTitle}>Marketplace</Text>
+          <TouchableOpacity onPress={() => router.push("/marketplace")}>
             <Text style={styles.sectionLink}>Ver todo</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ marginHorizontal: 20 }}>
-          {alertPlantas.length > 0 ? alertPlantas.map((p) => (
-            <View key={`act-${p.id}`} style={styles.activityCard}>
-              <Image source={{ uri: p.imagen }} style={styles.activityImage} />
-              <View style={styles.activityTextContainer}>
-                <Text style={styles.activityName}>{p.nombre}</Text>
-                <Text style={styles.activityStatus}>
-                  {p.salud === "atención" ? "Necesita atención" : "En riesgo"}
-                </Text>
-                <Text style={styles.activityTime}>Hace 1 hora</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.activityButton}
-                onPress={() => router.push(`/(app)/plants/${p.id}`)}
-              >
-                <Text style={styles.activityButtonText}>Revisar</Text>
-              </TouchableOpacity>
-            </View>
-          )) : (
-            <View style={styles.emptyActivity}>
-              <Text style={styles.emptyActivityText}>Sin actividad reciente</Text>
-            </View>
-          )}
-        </View>
+        <MarketplaceEntryCard />
       </ScrollView>
 
       <PlantDetailModal
@@ -443,7 +420,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 160,
   },
   headerBanner: {
     position: "relative",
@@ -525,7 +502,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: theme.mode === "dark" ? "rgba(243, 0, 0, 1)" : "rgba(255, 255, 255, 0.11)",
+    backgroundColor: theme.mode === "dark" ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.2)",
   },
   aiTextContent: {
     flex: 1,
@@ -658,59 +635,5 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
-  },
-  activityCard: {
-    backgroundColor: theme.colors.backgroundCard,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    ...theme.shadows,
-  },
-  activityImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    marginRight: 12,
-  },
-  activityTextContainer: {
-    flex: 1,
-  },
-  activityName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.textPrimary,
-  },
-  activityStatus: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    marginTop: 2,
-  },
-  activityTime: {
-    fontSize: 11,
-    color: theme.colors.disabledText,
-    marginTop: 4,
-  },
-  activityButton: {
-    backgroundColor: theme.mode === "dark" ? "rgba(74,222,128,0.12)" : "rgba(74,222,128,0.18)",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  activityButtonText: {
-    fontSize: 12,
-    color: theme.colors.primary,
-    fontWeight: "500",
-  },
-  emptyActivity: {
-    alignItems: "center",
-    marginTop: 16,
-  },
-  emptyActivityText: {
-    fontSize: 13,
-    color: theme.colors.disabledText,
   },
 });
