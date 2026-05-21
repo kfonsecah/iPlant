@@ -525,7 +525,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: theme.mode === "dark" ? "rgba(243, 0, 0, 1)" : "rgba(255, 255, 255, 0.11)",
   },
   aiTextContent: {
     flex: 1,
@@ -540,7 +540,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   aiSub: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255, 255, 255, 1)",
     marginTop: 6,
     lineHeight: 18,
   },
