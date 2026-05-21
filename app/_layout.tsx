@@ -5,11 +5,25 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import { Asset } from "expo-asset";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
+
+const IMAGE_ASSETS = [
+  require("../assets/images/banner.jpeg"),
+  require("../assets/images/bubbles.jpeg"),
+  require("../assets/images/bubblesligth.jpeg"),
+  require("../assets/images/monstera.png"),
+  require("../assets/images/ficus.png"),
+  require("../assets/images/andrea.png"),
+  require("../assets/images/strelitzia.png"),
+  require("../assets/images/heliconia.png"),
+  require("../assets/images/marketplacedark.png"),
+  require("../assets/images/marketplacelight.png"),
+];
 
 import { AuthProvider, useAuth } from "./../src/context/AuthContext";
 import { ConnectivityProvider } from "./../src/context/ConnectivityContext";
@@ -56,12 +70,19 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded]);
+    Asset.loadAsync(IMAGE_ASSETS)
+      .catch(() => {})
+      .finally(() => setAssetsLoaded(true));
+  }, []);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (fontsLoaded && assetsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded, assetsLoaded]);
+
+  if (!fontsLoaded || !assetsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

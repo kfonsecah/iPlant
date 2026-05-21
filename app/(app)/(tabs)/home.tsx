@@ -44,6 +44,7 @@ export default function HomeIndex() {
   const carouselRef = useRef<ScrollView>(null);
   const activeIndexRef = useRef(0);
   const timerRef = useRef<any>(null);
+  const hasLoadedOnce = useRef(false);
 
   const [selectedPlant, setSelectedPlant] = useState<FeaturedPlant | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -119,7 +120,8 @@ export default function HomeIndex() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchData();
+      fetchData(!hasLoadedOnce.current);
+      hasLoadedOnce.current = true;
     }, [fetchData])
   );
 
