@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   View, 
   Text, 
@@ -28,6 +29,7 @@ import WorldMap from '../../components/WorldMap';
 import * as Speech from 'expo-speech';
 import AppInput from '../../components/ui/appInput/AppInput';
 import WateringFrequencyPicker from '../../components/ui/wateringFrequencyPicker/WateringFrequencyPicker';
+import HealthCard from '../../components/ui/healthCard/HealthCard';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -45,6 +47,8 @@ export default function PlantDetailScreen() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   
+  const [isPremium, setIsPremium] = useState(false);
+
   // Edit form state
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState("");
@@ -54,6 +58,12 @@ export default function PlantDetailScreen() {
   // Track ScrollY for Parallax and 3D Pop Out Folding Effect
   const scrollY = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    AsyncStorage.getItem('IPLANT_PREMIUM_STATUS').then((val) => {
+      if (val === 'true') setIsPremium(true);
+    });
+  }, []);
 
   useEffect(() => {
     async function loadPlant() {
@@ -359,6 +369,15 @@ export default function PlantDetailScreen() {
             </View>
           </View>
 
+          {/* HEALTH CARD */}
+          <HealthCard
+            score={plant.healthScore ?? null}
+            lastUpdated={plant.healthLastUpdated ?? null}
+            isPremium={isPremium}
+            onPress={() => router.push(`/(app)/health-journal/${plant.id}`)}
+            onUpgrade={() => router.push('/(app)/(tabs)/asistente')}
+          />
+
           {/* ABOUT SECTION */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Sobre esta planta</Text>
@@ -372,7 +391,9 @@ export default function PlantDetailScreen() {
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Guía de cuidados</Text>
               <View style={styles.careCard}>
-                <View style={styles.tipDot} />
+                <View style={styles.careIconBadge}>
+                  <Ionicons name="leaf-outline" size={16} color={theme.colors.primary} />
+                </View>
                 <Text style={styles.tipText}>{plant.cuidados}</Text>
               </View>
             </View>
@@ -699,22 +720,24 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     lineHeight: 22,
   },
   careCard: {
-    backgroundColor: theme.mode === 'dark' ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.02)",
+    backgroundColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.06)" : "rgba(74, 222, 128, 0.08)",
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.15)" : "rgba(74, 222, 128, 0.25)",
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: 12,
     ...theme.shadows,
   },
-  tipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.primary,
-    marginTop: 7,
+  careIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: theme.mode === 'dark' ? "rgba(74, 222, 128, 0.12)" : "rgba(74, 222, 128, 0.15)",
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   tipText: {
     flex: 1,

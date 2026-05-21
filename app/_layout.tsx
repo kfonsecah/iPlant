@@ -23,6 +23,7 @@ const IMAGE_ASSETS = [
   require("../assets/images/heliconia.png"),
   require("../assets/images/marketplacedark.png"),
   require("../assets/images/marketplacelight.png"),
+  require("../assets/images/healthplant.png"),
 ];
 
 import { AuthProvider, useAuth } from "./../src/context/AuthContext";

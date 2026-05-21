@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import MarketplaceEntryCard from "../../../src/components/MarketplaceEntryCard";
 import PlantDetailModal from "../../../src/components/PlantDetailModal";
+import UserPlantDetailModal from "../../../src/components/UserPlantDetailModal";
 import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import { useAuth } from "../../../src/context/AuthContext";
 import { useConnectivity } from "../../../src/context/ConnectivityContext";
@@ -48,6 +49,8 @@ export default function HomeIndex() {
 
   const [selectedPlant, setSelectedPlant] = useState<FeaturedPlant | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedUserPlantId, setSelectedUserPlantId] = useState<string | null>(null);
+  const [userPlantModalVisible, setUserPlantModalVisible] = useState(false);
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -340,7 +343,10 @@ export default function HomeIndex() {
                 key={planta.id}
                 activeOpacity={0.8}
                 style={styles.plantCard}
-                onPress={() => router.push(`/(app)/plants/${planta.id}`)}
+                onPress={() => {
+                  setSelectedUserPlantId(planta.id);
+                  setUserPlantModalVisible(true);
+                }}
               >
                 <Image source={{ uri: planta.imagen }} style={styles.plantImage} />
 
@@ -401,6 +407,17 @@ export default function HomeIndex() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         plant={selectedPlant}
+      />
+
+      <UserPlantDetailModal
+        visible={userPlantModalVisible}
+        onClose={() => {
+          setUserPlantModalVisible(false);
+          setSelectedUserPlantId(null);
+        }}
+        plantId={selectedUserPlantId}
+        userId={userId}
+        onRefresh={() => fetchData(false)}
       />
     </View>
   );

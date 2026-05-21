@@ -74,6 +74,9 @@ export interface PlantAIFields {
   maxHeight?: string;
   bloomSeason?: string;
   toxicity?: string;
+  // Health Journal
+  healthScore?: number | null;
+  healthLastUpdated?: string;
   // Sync metadata
   isPending?: boolean;
   syncError?: string;
