@@ -8,6 +8,7 @@ import {
   FlatList,
   Alert,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Modal,
   ActivityIndicator,
@@ -126,6 +127,25 @@ export default function AsistenteScreen() {
   const styles = createStyles(theme);
   const { user } = useAuth();
   const { openPremium } = useLocalSearchParams<{ openPremium?: string }>();
+
+  const inputPaddingBottom = useSharedValue(80 + Math.max(insets.bottom, 12));
+  const inputSectionAnimStyle = useAnimatedStyle(() => ({
+    paddingBottom: inputPaddingBottom.value,
+  }));
+
+  useEffect(() => {
+    const targetOpen = Math.max(insets.bottom, 8);
+    const targetClosed = 80 + Math.max(insets.bottom, 12);
+    const show = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => { inputPaddingBottom.value = withTiming(targetOpen, { duration: 220 }); }
+    );
+    const hide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => { inputPaddingBottom.value = withTiming(targetClosed, { duration: 220 }); }
+    );
+    return () => { show.remove(); hide.remove(); };
+  }, [insets.bottom]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -629,7 +649,7 @@ export default function AsistenteScreen() {
       />
 
       {/* INPUT CARD CONTAINER (Claude/Gemini style) */}
-      <View style={[styles.inputSection, { paddingBottom: 80 + Math.max(insets.bottom, 12) }]}>
+      <Animated.View style={[styles.inputSection, inputSectionAnimStyle]}>
         <View style={styles.inputCard}>
           {/* Integrated Attachments Row */}
           {(selectedImage || selectedPlant) && (
@@ -703,7 +723,7 @@ export default function AsistenteScreen() {
             </Animated.View>
           </View>
         </View>
-      </View>
+      </Animated.View>
 
       {/* PLANT PICKER BOTTOM SHEET */}
       <BottomSheet

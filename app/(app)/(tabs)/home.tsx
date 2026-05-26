@@ -13,12 +13,12 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View
 } from "react-native";
 import MarketplaceEntryCard from "../../../src/components/MarketplaceEntryCard";
 import PlantDetailModal from "../../../src/components/PlantDetailModal";
+import SearchModal from "../../../src/components/SearchModal";
 import UserPlantDetailModal from "../../../src/components/UserPlantDetailModal";
 import PlantOfDayCard from "../../../src/components/PlantOfDayCard";
 import { useAuth } from "../../../src/context/AuthContext";
@@ -26,8 +26,10 @@ import { useConnectivity } from "../../../src/context/ConnectivityContext";
 import { useSync } from "../../../src/context/SyncContext";
 import { FeaturedPlant, featuredPlants } from "../../../src/data/featuredPlants";
 import { getPlantsByUserId } from "../../../src/services/plantService";
+import { getUserById } from "../../../src/services/userService";
 import { AppTheme, useTheme } from "../../../src/theme/desingSystem";
 import { PlantaCompletaInterface } from "../../../src/types-dtos/plant.types";
+import { UserInterface } from "../../../src/types-dtos/user.types";
 
 export default function HomeIndex() {
   const theme = useTheme();
@@ -39,8 +41,8 @@ export default function HomeIndex() {
   const { isConnected } = useConnectivity();
 
   const [plantas, setPlantas] = useState<PlantaCompletaInterface[]>([]);
+  const [userProfile, setUserProfile] = useState<UserInterface | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const carouselRef = useRef<ScrollView>(null);
   const activeIndexRef = useRef(0);
@@ -51,6 +53,7 @@ export default function HomeIndex() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUserPlantId, setSelectedUserPlantId] = useState<string | null>(null);
   const [userPlantModalVisible, setUserPlantModalVisible] = useState(false);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -112,8 +115,12 @@ export default function HomeIndex() {
     if (!userId) return;
     if (showLoading) setLoading(true);
     try {
-      const plantasData = await getPlantsByUserId(userId, isConnected);
+      const [plantasData, profile] = await Promise.all([
+        getPlantsByUserId(userId, isConnected),
+        getUserById(userId),
+      ]);
       setPlantas(plantasData);
+      if (profile) setUserProfile(profile);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -140,11 +147,6 @@ export default function HomeIndex() {
     );
   }
 
-  const filteredPlantas = plantas.filter((p) =>
-    (p.nombre || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
-    (p.categoria || "").toLowerCase().includes((searchQuery || "").toLowerCase())
-  );
-
   return (
     <View style={styles.container}>
       <StatusBar translucent barStyle={theme.mode === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
@@ -165,13 +167,13 @@ export default function HomeIndex() {
             <View style={{ marginBottom: 16 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <Text style={styles.welcomeText}>
-                  Hola, {authUser?.displayName || "Usuario"}!
+                  Hola, {userProfile?.nombre || authUser?.displayName || "Usuario"}!
                 </Text>
 
                 <View>
-                  {authUser?.photoURL ? (
+                  {(userProfile?.image || authUser?.photoURL) ? (
                     <Image
-                      source={{ uri: authUser.photoURL }}
+                      source={{ uri: userProfile?.image || authUser?.photoURL! }}
                       style={styles.avatarImage}
                     />
                   ) : (
@@ -187,25 +189,17 @@ export default function HomeIndex() {
             </View>
 
             {/* SEARCH BAR inside the banner */}
-            <BlurView
-              intensity={20}
-              tint="light"
-              style={styles.searchBar}
-            >
-              <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.8)" style={{ paddingLeft: 14, marginRight: 8 }} />
-              <TextInput
-                style={styles.searchTextInput}
-                placeholder="Buscar plantas..."
-                placeholderTextColor="rgba(255,255,255,0.7)"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery("")} style={{ paddingRight: 14 }}>
-                  <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.8)" />
-                </TouchableOpacity>
-              )}
-            </BlurView>
+            <TouchableOpacity activeOpacity={0.85} onPress={() => setSearchModalVisible(true)}>
+              <BlurView
+                intensity={20}
+                tint="light"
+                style={styles.searchBar}
+                pointerEvents="none"
+              >
+                <Ionicons name="search-outline" size={16} color="rgba(255,255,255,0.8)" style={{ paddingLeft: 14, marginRight: 8 }} />
+                <Text style={styles.searchPlaceholder}>Buscar plantas, secciones...</Text>
+              </BlurView>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -332,13 +326,13 @@ export default function HomeIndex() {
           </TouchableOpacity>
         </View>
 
-        {filteredPlantas.length > 0 ? (
+        {plantas.length > 0 ? (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20, marginTop: 12, gap: 12 }}
           >
-            {filteredPlantas.map((planta) => (
+            {plantas.map((planta) => (
               <TouchableOpacity
                 key={planta.id}
                 activeOpacity={0.8}
@@ -402,6 +396,20 @@ export default function HomeIndex() {
 
         <MarketplaceEntryCard />
       </ScrollView>
+
+      <SearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        userPlants={plantas}
+        onSelectUserPlant={(id) => {
+          setSelectedUserPlantId(id);
+          setUserPlantModalVisible(true);
+        }}
+        onSelectFeaturedPlant={(plant) => {
+          setSelectedPlant(plant);
+          setModalVisible(true);
+        }}
+      />
 
       <PlantDetailModal
         visible={modalVisible}
@@ -496,9 +504,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: "center",
     overflow: "hidden",
   },
-  searchTextInput: {
+  searchPlaceholder: {
     flex: 1,
-    color: "#fff",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 14,
   },
   aiCard: {

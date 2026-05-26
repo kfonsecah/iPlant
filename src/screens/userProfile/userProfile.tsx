@@ -926,7 +926,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalCard: {
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.mode === "dark" ? "rgba(14, 26, 18, 0.97)" : "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
