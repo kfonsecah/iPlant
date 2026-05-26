@@ -25,6 +25,7 @@ import { z } from "zod";
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView, TouchableOpacity as GHTouchableOpacity } from "react-native-gesture-handler";
 
+import * as ImagePicker from "expo-image-picker";
 import AppInput from "../../components/ui/appInput/AppInput";
 import { AppTheme, useTheme } from "../../theme/desingSystem";
 import Toast, { ToastType } from "../../components/ui/toast/Toast";
@@ -95,6 +96,25 @@ function EditProfileModal({
 
   const privacidad = watch("privacidad");
   const [saving, setSaving] = useState(false);
+  const [selectedAvatarUri, setSelectedAvatarUri] = useState<string | null>(null);
+
+  const handlePickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.3,
+      base64: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      const b64 = result.assets[0].base64;
+      if (b64) {
+        setSelectedAvatarUri(`data:image/jpeg;base64,${b64}`);
+      } else {
+        setSelectedAvatarUri(result.assets[0].uri);
+      }
+    }
+  };
 
   // Banner states
   const getInitialBannerIndex = () => {
@@ -125,7 +145,8 @@ function EditProfileModal({
       const initialIdx = getInitialBannerIndex();
       setSelectedBannerIndex(initialIdx);
       setTempBannerIndex(initialIdx);
-      
+      setSelectedAvatarUri(null);
+
       translateY.setValue(600);
       Animated.spring(translateY, {
         toValue: 0,
@@ -180,19 +201,20 @@ function EditProfileModal({
   const onSubmit = async (data: EditUserForm) => {
     setSaving(true);
     try {
-      const bannerImage = ""; // Clear custom URL since local selection is preferred when index is set or cleared
       const bannerIdentifier = selectedBannerIndex === 0 ? "" : `local:banner${selectedBannerIndex}`;
 
       const updatedData = {
         ...data,
         privacidad: data.privacidad as PrivacidadPerfil,
-        bannerImage,
+        bannerImage: "",
         bannerIdentifier,
+        image: selectedAvatarUri ?? user.image,
       };
       await updateUser(userId, updatedData);
       onSaved(updatedData);
       onClose();
-    } catch {
+    } catch (e) {
+      console.error("[EditProfile] onSubmit error:", e);
       onError("No se pudo guardar. Verifica tu conexion.");
     } finally {
       setSaving(false);
@@ -245,6 +267,29 @@ function EditProfileModal({
 
                 <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
                   <View style={{ gap: 16 }}>
+                    {/* AVATAR SECTION */}
+                    <View style={styles.avatarEditRow}>
+                      <TouchableOpacity style={styles.avatarEditWrapper} onPress={handlePickAvatar} activeOpacity={0.8}>
+                        {(selectedAvatarUri || user.image) ? (
+                          <Image
+                            source={{ uri: selectedAvatarUri || user.image }}
+                            style={styles.avatarEditImage}
+                          />
+                        ) : (
+                          <View style={styles.avatarEditPlaceholder}>
+                            <Ionicons name="person" size={32} color={theme.colors.textSecondary} />
+                          </View>
+                        )}
+                        <View style={styles.avatarEditCameraBadge}>
+                          <Ionicons name="camera" size={13} color="#fff" />
+                        </View>
+                      </TouchableOpacity>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.avatarEditLabel}>Foto de perfil</Text>
+                        <Text style={styles.avatarEditSub}>Toca para cambiar</Text>
+                      </View>
+                    </View>
+
                     {/* BANNER PREVIEW SECTION */}
                     <View style={styles.bannerPreviewContainer}>
                       {selectedBannerIndex > 0 ? (
@@ -960,6 +1005,57 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.secondary,
     justifyContent: "center",
     alignItems: "center",
+  },
+  avatarEditRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  avatarEditWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    position: "relative",
+  },
+  avatarEditImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  avatarEditPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.inputBackground,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarEditCameraBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: theme.mode === "dark" ? "rgba(14,26,18,0.97)" : "#FFFFFF",
+  },
+  avatarEditLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.textPrimary,
+  },
+  avatarEditSub: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
   fieldLabel: {
     fontSize: 13,
