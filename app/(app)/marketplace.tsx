@@ -295,16 +295,31 @@ const FLOWER_EMOJI_SIZE = 78;
 // Absolute-positioned slots. dx = offset from horizontal center. top = px from container top.
 // Rotation gives each flower a natural tilt.
 const BOUQUET_SLOTS = [
-  { dx: 0,    top: 88,  rotation:  0  },  // center  — first flower, most prominent
-  { dx: -22,  top: 78,  rotation: -8  },  // slightly left
-  { dx:  22,  top: 78,  rotation:  8  },  // slightly right
-  { dx: -48,  top: 65,  rotation: -15 },  // further left
-  { dx:  48,  top: 65,  rotation:  15 },  // further right
-  { dx: -68,  top: 90,  rotation: -12 },  // far left
-  { dx:  68,  top: 90,  rotation:  12 },  // far right
-  { dx: -30,  top: 55,  rotation: -5  },  // center-left upper
-  { dx:  30,  top: 55,  rotation:  5  },  // center-right upper
-  { dx: 0,    top: 35,  rotation:  3  },  // top center
+  { dx:   0,  top: 72,  rotation:  0  },  // 1  center peak
+  { dx: -22,  top: 78,  rotation: -8  },  // 2  near left
+  { dx:  22,  top: 78,  rotation:  8  },  // 3  near right
+  { dx:  -8,  top: 82,  rotation: -3  },  // 4  center-left
+  { dx:   8,  top: 82,  rotation:  3  },  // 5  center-right
+  { dx: -42,  top: 85,  rotation: -12 },  // 6  mid left
+  { dx:  42,  top: 85,  rotation:  12 },  // 7  mid right
+  { dx: -25,  top: 88,  rotation: -6  },  // 8  left lower
+  { dx:  25,  top: 88,  rotation:  6  },  // 9  right lower
+  { dx:   0,  top: 90,  rotation:  2  },  // 10 center lower
+  { dx: -60,  top: 88,  rotation: -16 },  // 11 far left
+  { dx:  60,  top: 88,  rotation:  16 },  // 12 far right
+  { dx: -12,  top: 75,  rotation: -2  },  // 13 near peak left
+  { dx:  12,  top: 75,  rotation:  2  },  // 14 near peak right
+  { dx: -38,  top: 92,  rotation: -9  },  // 15 mid left low
+  { dx:  38,  top: 92,  rotation:  9  },  // 16 mid right low
+  { dx: -55,  top: 94,  rotation: -14 },  // 17 far left low
+  { dx:  55,  top: 94,  rotation:  14 },  // 18 far right low
+  { dx:   0,  top: 96,  rotation: -1  },  // 19 bottom center
+  { dx: -75,  top: 90,  rotation: -18 },  // 20 outer left
+  { dx:  75,  top: 90,  rotation:  18 },  // 21 outer right
+  { dx: -18,  top: 94,  rotation: -4  },  // 22 near-center left low
+  { dx:  18,  top: 94,  rotation:  4  },  // 23 near-center right low
+  { dx: -48,  top: 80,  rotation: -10 },  // 24 mid left mid
+  { dx:  48,  top: 80,  rotation:  10 },  // 25 mid right mid
 ] as const;
 
 interface DisplayItem {
@@ -718,7 +733,7 @@ export default function MarketplaceScreen() {
   };
 
   const handleAddFlower = (flowerId: string) => {
-    if (bouquetTotalFlowers >= 10) { triggerMaxToast(); return; }
+    if (bouquetTotalFlowers >= 25) { triggerMaxToast(); return; }
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setBouquet((prev) => {
       const existing = prev.find((i) => i.flowerId === flowerId);
@@ -730,7 +745,7 @@ export default function MarketplaceScreen() {
   };
 
   const handleIncreaseFlower = (flowerId: string) => {
-    if (bouquetTotalFlowers >= 10) { triggerMaxToast(); return; }
+    if (bouquetTotalFlowers >= 25) { triggerMaxToast(); return; }
     setBouquet((prev) =>
       prev.map((i) => i.flowerId === flowerId ? { ...i, quantity: i.quantity + 1 } : i)
     );
@@ -1129,7 +1144,7 @@ export default function MarketplaceScreen() {
       {/* MAX TOAST */}
       {showMaxToast && (
         <View style={styles.maxToast}>
-          <Text style={styles.maxToastText}>Máximo 10 flores por ramo</Text>
+          <Text style={styles.maxToastText}>Máximo 25 flores por ramo</Text>
         </View>
       )}
 
@@ -1186,7 +1201,7 @@ export default function MarketplaceScreen() {
                 {selectedFlorist.flowers.map((flower) => {
                   const bouquetItem = bouquet.find((i) => i.flowerId === flower.id);
                   const isSelected = !!bouquetItem;
-                  const isMaxed = bouquetTotalFlowers >= 10;
+                  const isMaxed = bouquetTotalFlowers >= 25;
                   return (
                     <TouchableOpacity
                       key={flower.id}
