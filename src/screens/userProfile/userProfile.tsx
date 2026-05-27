@@ -557,6 +557,7 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [activeTab, setActiveTab] = useState<'jardin' | 'ventas'>('jardin');
+  const [healthFilter, setHealthFilter] = useState<'saludable' | 'atención' | 'riesgo' | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; type: ToastType; message: string }>({
     visible: false, type: "success", message: "",
   });
@@ -611,8 +612,12 @@ export default function UserProfile() {
   const riskCount = plants.filter(p => p.salud === "riesgo").length;
 
   // Grid logic
-  const hasMore = plants.length > 6;
-  const displayedPlants = plants.slice(0, hasMore ? 5 : 6);
+  const filteredPlants = healthFilter ? plants.filter(p => p.salud === healthFilter) : plants;
+  const hasMore = filteredPlants.length > 6;
+
+  const handleHealthFilter = (status: 'saludable' | 'atención' | 'riesgo') => {
+    setHealthFilter(prev => prev === status ? null : status);
+  };
 
   return (
     <View style={styles.safeArea}>
@@ -833,36 +838,62 @@ export default function UserProfile() {
           <View>
             {/* Health Summary Pills */}
             <View style={styles.healthSummary}>
-              <View style={[styles.healthPill, {
-                backgroundColor: theme.mode === "dark" ? "rgba(74,222,128,0.08)" : "rgba(74,222,128,0.12)",
-                borderColor: theme.mode === "dark" ? "rgba(74,222,128,0.18)" : "rgba(74,222,128,0.3)"
-              }]}>
+              <TouchableOpacity
+                style={[styles.healthPill, {
+                  backgroundColor: healthFilter === "saludable"
+                    ? "rgba(74,222,128,0.2)"
+                    : theme.mode === "dark" ? "rgba(74,222,128,0.08)" : "rgba(74,222,128,0.12)",
+                  borderColor: healthFilter === "saludable"
+                    ? theme.colors.primary
+                    : theme.mode === "dark" ? "rgba(74,222,128,0.18)" : "rgba(74,222,128,0.3)"
+                }]}
+                onPress={() => handleHealthFilter("saludable")}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="checkmark-circle-outline" color={theme.colors.primary} size={13} />
                 <Text style={[styles.healthText, { color: theme.colors.primary }]}>{healthyCount} Sanas</Text>
-              </View>
-              <View style={[styles.healthPill, {
-                backgroundColor: theme.mode === "dark" ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.12)",
-                borderColor: theme.mode === "dark" ? "rgba(251,191,36,0.18)" : "rgba(251,191,36,0.3)"
-              }]}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.healthPill, {
+                  backgroundColor: healthFilter === "atención"
+                    ? "rgba(251,191,36,0.2)"
+                    : theme.mode === "dark" ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.12)",
+                  borderColor: healthFilter === "atención"
+                    ? theme.colors.warning
+                    : theme.mode === "dark" ? "rgba(251,191,36,0.18)" : "rgba(251,191,36,0.3)"
+                }]}
+                onPress={() => handleHealthFilter("atención")}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="warning-outline" color={theme.colors.warning} size={13} />
                 <Text style={[styles.healthText, { color: theme.colors.warning }]}>{attentionCount} Atencion</Text>
-              </View>
-              <View style={[styles.healthPill, {
-                backgroundColor: theme.mode === "dark" ? "rgba(248,113,113,0.08)" : "rgba(248,113,113,0.12)",
-                borderColor: theme.mode === "dark" ? "rgba(248,113,113,0.18)" : "rgba(248,113,113,0.3)"
-              }]}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.healthPill, {
+                  backgroundColor: healthFilter === "riesgo"
+                    ? "rgba(248,113,113,0.2)"
+                    : theme.mode === "dark" ? "rgba(248,113,113,0.08)" : "rgba(248,113,113,0.12)",
+                  borderColor: healthFilter === "riesgo"
+                    ? theme.colors.error
+                    : theme.mode === "dark" ? "rgba(248,113,113,0.18)" : "rgba(248,113,113,0.3)"
+                }]}
+                onPress={() => handleHealthFilter("riesgo")}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="alert-circle-outline" color={theme.colors.error} size={13} />
                 <Text style={[styles.healthText, { color: theme.colors.error }]}>{riskCount} Riesgo</Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* Plants Mini Grid */}
             {(() => {
-              if (plants.length === 0) {
+              if (filteredPlants.length === 0) {
                 return (
                   <View style={styles.emptyGardenCard}>
                     <Ionicons name="leaf-outline" size={24} color={theme.colors.textSecondary} />
-                    <Text style={styles.emptyGardenText}>Aun no tienes plantas</Text>
+                    <Text style={styles.emptyGardenText}>
+                      {healthFilter ? "Sin plantas en esta categoría" : "Aun no tienes plantas"}
+                    </Text>
                   </View>
                 );
               }
@@ -870,7 +901,7 @@ export default function UserProfile() {
               const itemsToRender: Array<
                 | { type: "plant"; data: PlantaCompletaInterface; globalIndex: number }
                 | { type: "more"; data: null; globalIndex: number }
-              > = plants.slice(0, hasMore ? 5 : 6).map((plant, idx) => ({
+              > = filteredPlants.slice(0, hasMore ? 5 : 6).map((plant, idx) => ({
                 type: "plant",
                 data: plant,
                 globalIndex: idx,

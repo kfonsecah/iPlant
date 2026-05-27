@@ -36,6 +36,8 @@ import Reanimated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 
 import { db } from "../../src/config/firebase";
@@ -85,7 +87,7 @@ interface FlowerData {
   emoji: string;
   price: number;
   available: boolean;
-  image: null;
+  image: number | null;
 }
 
 interface FloristData {
@@ -224,7 +226,7 @@ const FLORISTS: FloristData[] = [
     phone: "+50688881111",
     coverColors: ["#4a0030", "#b91c7c"],
     flowers: [
-      { id: "fl1_rosa_roja", name: "Rosa Roja", color: "#c0192c", emoji: "🌹", price: 1500, available: true, image: null },
+      { id: "fl1_rosa_roja", name: "Rosa Roja", color: "#c0192c", emoji: "🌹", price: 1500, available: true, image: require('../../assets/images/flowers/rosa.png') },
       { id: "fl1_girasol", name: "Girasol", color: "#d97706", emoji: "🌻", price: 1200, available: true, image: null },
       { id: "fl1_lirio", name: "Lirio Blanco", color: "#c084fc", emoji: "🌷", price: 1800, available: true, image: null },
       { id: "fl1_clavel", name: "Clavel Rosa", color: "#f472b6", emoji: "🌸", price: 800, available: true, image: null },
@@ -286,82 +288,125 @@ const FLORISTS: FloristData[] = [
 
 // ─── Bouquet Preview ──────────────────────────────────────────────────────────
 
-const PREVIEW_HEIGHT = 260;
-const FLOWER_SIZE = 44;
+const PREVIEW_HEIGHT = 320;
+const FLOWER_IMG_SIZE  = 70;
+const FLOWER_EMOJI_SIZE = 60;
 
-// Half-circle arc slots above the bouquet wrap (dx/dy from wrap center)
+// Absolute-positioned slots. dx = offset from horizontal center. top = px from container top.
+// Rotation gives each flower a natural tilt.
 const BOUQUET_SLOTS = [
-  { dx: 0, dy: -110 },
-  { dx: -55, dy: -100 },
-  { dx: 55, dy: -100 },
-  { dx: -110, dy: -80 },
-  { dx: 110, dy: -80 },
-  { dx: -72, dy: -158 },
-  { dx: 72, dy: -158 },
-  { dx: 0, dy: -172 },
-  { dx: -128, dy: -130 },
-  { dx: 128, dy: -130 },
+  { dx: 0,    top: 110, rotation:  0  },  // center  — first flower, most prominent
+  { dx: -42,  top: 88,  rotation: -8  },  // slightly left
+  { dx:  42,  top: 88,  rotation:  8  },  // slightly right
+  { dx: -85,  top: 72,  rotation: -15 },  // further left
+  { dx:  85,  top: 72,  rotation:  15 },  // further right
+  { dx: -118, top: 108, rotation: -12 },  // far left
+  { dx:  118, top: 108, rotation:  12 },  // far right
+  { dx: -52,  top: 52,  rotation: -5  },  // center-left upper
+  { dx:  52,  top: 52,  rotation:  5  },  // center-right upper
+  { dx: 0,    top: 28,  rotation:  3  },  // top center
 ] as const;
 
-function BouquetFlowerDot({
+interface DisplayItem {
+  flowerId: string;
+  quantity: number;
+  isExiting: boolean;
+}
+
+function BouquetFlowerPin({
   flower,
   quantity,
-  left,
-  top,
+  slotIndex,
+  containerWidth,
+  isExiting,
+  onExitDone,
 }: {
   flower: FlowerData;
   quantity: number;
-  left: number;
-  top: number;
+  slotIndex: number;
+  containerWidth: number;
+  isExiting: boolean;
+  onExitDone: () => void;
 }) {
-  const svScale = useSharedValue(0);
-  const svOpacity = useSharedValue(0);
-  const svLeft = useSharedValue(left);
-  const svTop = useSharedValue(top);
+  const flowerSize = flower.image ? FLOWER_IMG_SIZE : FLOWER_EMOJI_SIZE;
+  const slot = BOUQUET_SLOTS[Math.min(slotIndex, BOUQUET_SLOTS.length - 1)];
 
+  const targetLeft = containerWidth / 2 + slot.dx - flowerSize / 2;
+  const targetTop  = slot.top;
+
+  // Entry: start from bottom-center (wrap opening ~72% down)
+  const svLeft    = useSharedValue(containerWidth / 2 - flowerSize / 2);
+  const svTop     = useSharedValue(PREVIEW_HEIGHT * 0.72);
+  const svScale   = useSharedValue(0.3);
+  const svOpacity = useSharedValue(0);
+
+  // Mount → spring to slot
   useEffect(() => {
-    svScale.value = withSpring(1, { damping: 12, stiffness: 200 });
-    svOpacity.value = withSpring(1, { damping: 16, stiffness: 180 });
+    svScale.value   = withSpring(1, { damping: 14, stiffness: 180 });
+    svOpacity.value = withSpring(1, { damping: 20, stiffness: 200 });
+    svLeft.value    = withSpring(targetLeft, { damping: 16, stiffness: 200 });
+    svTop.value     = withSpring(targetTop,  { damping: 16, stiffness: 200 });
   }, []);
 
+  // Reflow when slot index changes (not during exit)
   useEffect(() => {
-    svLeft.value = withSpring(left, { damping: 16, stiffness: 200 });
-    svTop.value = withSpring(top, { damping: 16, stiffness: 200 });
-  }, [left, top]);
+    if (!isExiting) {
+      svLeft.value = withSpring(targetLeft, { damping: 16, stiffness: 200 });
+      svTop.value  = withSpring(targetTop,  { damping: 16, stiffness: 200 });
+    }
+  }, [slotIndex, containerWidth]);
+
+  // Exit animation
+  useEffect(() => {
+    if (isExiting) {
+      svScale.value   = withTiming(0, { duration: 250 });
+      svOpacity.value = withTiming(0, { duration: 250 }, (finished) => {
+        if (finished) runOnJS(onExitDone)();
+      });
+    }
+  }, [isExiting]);
 
   const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: svScale.value }],
-    opacity: svOpacity.value,
-    left: svLeft.value,
-    top: svTop.value,
+    position:  "absolute" as const,
+    zIndex:    1,
+    left:      svLeft.value,
+    top:       svTop.value,
+    opacity:   svOpacity.value,
+    transform: [{ scale: svScale.value }, { rotate: `${slot.rotation}deg` }],
   }));
 
   return (
-    <Reanimated.View style={[{ position: "absolute", width: FLOWER_SIZE, height: FLOWER_SIZE }, animStyle]}>
-      <View
-        style={{
-          width: FLOWER_SIZE,
-          height: FLOWER_SIZE,
-          borderRadius: FLOWER_SIZE / 2,
-          backgroundColor: flower.color,
-          borderWidth: 2,
-          borderColor: "#fff",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ fontSize: 22 }}>{flower.emoji}</Text>
-      </View>
+    <Reanimated.View style={animStyle}>
+      {flower.image ? (
+        <Image
+          source={flower.image}
+          style={{ width: FLOWER_IMG_SIZE, height: FLOWER_IMG_SIZE }}
+          resizeMode="contain"
+        />
+      ) : (
+        <View
+          style={{
+            width: FLOWER_EMOJI_SIZE,
+            height: FLOWER_EMOJI_SIZE,
+            borderRadius: FLOWER_EMOJI_SIZE / 2,
+            backgroundColor: flower.color,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 28 }}>{flower.emoji}</Text>
+        </View>
+      )}
       {quantity > 1 && (
         <View
           style={{
             position: "absolute",
-            top: -3,
-            right: -3,
+            top: -4,
+            right: -4,
             width: 18,
             height: 18,
             borderRadius: 9,
-            backgroundColor: PRIMARY,
+            backgroundColor: "#4ade80",
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -385,97 +430,133 @@ function BouquetPreview({
   theme: AppTheme;
 }) {
   const [containerWidth, setContainerWidth] = useState(0);
-  const anchorX = containerWidth / 2;
-  const anchorY = PREVIEW_HEIGHT - 48;
-  const visibleItems = bouquet.slice(0, 10);
+  const [displayItems, setDisplayItems] = useState<DisplayItem[]>([]);
+
+  // Sync displayItems with bouquet prop, handling exit animations
+  useEffect(() => {
+    setDisplayItems((prev) => {
+      const active = prev.filter((p) => !p.isExiting);
+
+      // Detect flowers removed from bouquet → mark as exiting
+      const removedIds = active
+        .filter((a) => !bouquet.find((b) => b.flowerId === a.flowerId))
+        .map((a) => a.flowerId);
+
+      if (removedIds.length > 0) {
+        return prev.map((p) => {
+          if (removedIds.includes(p.flowerId)) return { ...p, isExiting: true };
+          const updated = bouquet.find((b) => b.flowerId === p.flowerId);
+          return updated ? { ...p, quantity: updated.quantity } : p;
+        });
+      }
+
+      // Add new flowers and update quantities of existing ones
+      const exiting = prev.filter((p) => p.isExiting);
+      const next: DisplayItem[] = [];
+      bouquet.forEach((b) => {
+        const existing = active.find((a) => a.flowerId === b.flowerId);
+        next.push(
+          existing
+            ? { ...existing, quantity: b.quantity }
+            : { flowerId: b.flowerId, quantity: b.quantity, isExiting: false }
+        );
+      });
+      return [...exiting, ...next];
+    });
+  }, [bouquet]);
+
+  const handleExitDone = useCallback((flowerId: string) => {
+    setDisplayItems((prev) => prev.filter((p) => p.flowerId !== flowerId));
+  }, []);
+
+  const activeItems = displayItems.filter((d) => !d.isExiting);
 
   return (
     <View
       style={{
         width: "100%",
         height: PREVIEW_HEIGHT,
-        backgroundColor: theme.colors.background,
+        backgroundColor: theme.colors.surface,
         borderBottomWidth: 1,
         borderBottomColor: theme.colors.border,
         overflow: "hidden",
+        position: "relative",
       }}
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
     >
-      {visibleItems.length === 0 ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <View
-            style={{
-              width: 130,
-              height: 130,
-              borderRadius: 65,
-              borderWidth: 1.5,
-              borderColor: theme.colors.border,
-              borderStyle: "dashed",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text
+      {containerWidth > 0 && (
+        <>
+          {/* Empty state — shown when no active flowers */}
+          {activeItems.length === 0 && (
+            <View
               style={{
-                fontSize: 12,
-                color: theme.colors.disabledText,
-                textAlign: "center",
-                paddingHorizontal: 18,
-                lineHeight: 17,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 118,
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              Selecciona flores para comenzar
-            </Text>
-          </View>
-        </View>
-      ) : (
-        containerWidth > 0 && (
-          <>
-            {/* Kraft wrap shape */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: anchorX - 28,
-                width: 56,
-                height: 48,
-                backgroundColor: "#92671e",
-                borderTopLeftRadius: 28,
-                borderTopRightRadius: 28,
-                borderBottomLeftRadius: 6,
-                borderBottomRightRadius: 6,
-                opacity: 0.82,
-              }}
-            />
-            {/* Stems line */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 44,
-                left: anchorX - 1,
-                width: 2,
-                height: 40,
-                backgroundColor: "#4a7c59",
-                opacity: 0.6,
-              }}
-            />
-            {/* Flower dots */}
-            {visibleItems.map((item, index) => {
-              const flower = flowers.find((f) => f.id === item.flowerId);
-              if (!flower) return null;
-              const slot = BOUQUET_SLOTS[index];
-              return (
-                <BouquetFlowerDot
-                  key={item.flowerId}
-                  flower={flower}
-                  quantity={item.quantity}
-                  left={anchorX + slot.dx - FLOWER_SIZE / 2}
-                  top={anchorY + slot.dy - FLOWER_SIZE / 2}
-                />
-              );
-            })}
-          </>
-        )
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: theme.colors.textSecondary,
+                  textAlign: "center",
+                  marginBottom: 10,
+                }}
+              >
+                Elige flores para tu ramo
+              </Text>
+              <View
+                style={{
+                  width: 120,
+                  height: 62,
+                  borderRadius: 60,
+                  borderWidth: 1.5,
+                  borderStyle: "dashed",
+                  borderColor: theme.colors.border,
+                }}
+              />
+            </View>
+          )}
+
+          {/* Flowers — zIndex 1 (behind wrap) */}
+          {displayItems.map((item) => {
+            const flower = flowers.find((f) => f.id === item.flowerId);
+            if (!flower) return null;
+            const slotIndex = item.isExiting
+              ? 0
+              : activeItems.findIndex((a) => a.flowerId === item.flowerId);
+            if (slotIndex < 0 || slotIndex >= BOUQUET_SLOTS.length) return null;
+            return (
+              <BouquetFlowerPin
+                key={item.flowerId}
+                flower={flower}
+                quantity={item.quantity}
+                slotIndex={slotIndex}
+                containerWidth={containerWidth}
+                isExiting={item.isExiting}
+                onExitDone={() => handleExitDone(item.flowerId)}
+              />
+            );
+          })}
+
+          {/* Paper wrap — zIndex 2 (overlaps flower stems) */}
+          <Image
+            source={require("../../assets/images/flowers/papel.png")}
+            style={{
+              position: "absolute",
+              bottom: -20,
+              left: containerWidth / 2 - 90,
+              width: 180,
+              height: 220,
+              zIndex: 2,
+            }}
+            resizeMode="contain"
+          />
+        </>
       )}
     </View>
   );
@@ -1135,7 +1216,15 @@ export default function MarketplaceScreen() {
                           <Ionicons name="checkmark" size={10} color="#000" />
                         </View>
                       )}
-                      <Text style={styles.flowerEmoji}>{flower.emoji}</Text>
+                      {flower.image ? (
+                        <Image
+                          source={flower.image}
+                          style={{ width: 40, height: 40, borderRadius: 8 }}
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <Text style={styles.flowerEmoji}>{flower.emoji}</Text>
+                      )}
                       <Text style={styles.flowerName} numberOfLines={2}>
                         {flower.name}
                       </Text>
