@@ -235,7 +235,7 @@ const FLORISTS: FloristData[] = [
       { id: "fl1_lavanda", name: "Lavanda", color: "#818cf8", emoji: "💜", price: 900, available: true, image: require('../../assets/images/flowers/lavanda.png') },
       { id: "fl1_margarita", name: "Margarita", color: "#fbbf24", emoji: "🌼", price: 700, available: true, image: require('../../assets/images/flowers/margarita.png') },
       { id: "fl1_peonia", name: "Peonía Rosa", color: "#fb7185", emoji: "🌸", price: 2200, available: true, image: require('../../assets/images/flowers/peoniarosa.png') },
-      { id: "fl1_nube", name: "Nube (Gypsophila)", color: "#cbd5e1", emoji: "🤍", price: 500, available: false, image: require('../../assets/images/flowers/nube.png') },
+      { id: "fl1_nube", name: "Nube (Gypsophila)", color: "#cbd5e1", emoji: "🤍", price: 500, available: true, image: require('../../assets/images/flowers/nube.png') },
     ],
   },
   {
@@ -295,31 +295,31 @@ const FLOWER_EMOJI_SIZE = 78;
 // Absolute-positioned slots. dx = offset from horizontal center. top = px from container top.
 // Rotation gives each flower a natural tilt.
 const BOUQUET_SLOTS = [
-  { dx:   0,  top: 72,  rotation:  0  },  // 1  center peak
-  { dx: -22,  top: 78,  rotation: -8  },  // 2  near left
-  { dx:  22,  top: 78,  rotation:  8  },  // 3  near right
-  { dx:  -8,  top: 82,  rotation: -3  },  // 4  center-left
-  { dx:   8,  top: 82,  rotation:  3  },  // 5  center-right
-  { dx: -42,  top: 85,  rotation: -12 },  // 6  mid left
-  { dx:  42,  top: 85,  rotation:  12 },  // 7  mid right
-  { dx: -25,  top: 88,  rotation: -6  },  // 8  left lower
-  { dx:  25,  top: 88,  rotation:  6  },  // 9  right lower
-  { dx:   0,  top: 90,  rotation:  2  },  // 10 center lower
-  { dx: -60,  top: 88,  rotation: -16 },  // 11 far left
-  { dx:  60,  top: 88,  rotation:  16 },  // 12 far right
-  { dx: -12,  top: 75,  rotation: -2  },  // 13 near peak left
-  { dx:  12,  top: 75,  rotation:  2  },  // 14 near peak right
-  { dx: -38,  top: 92,  rotation: -9  },  // 15 mid left low
-  { dx:  38,  top: 92,  rotation:  9  },  // 16 mid right low
-  { dx: -55,  top: 94,  rotation: -14 },  // 17 far left low
-  { dx:  55,  top: 94,  rotation:  14 },  // 18 far right low
-  { dx:   0,  top: 96,  rotation: -1  },  // 19 bottom center
-  { dx: -75,  top: 90,  rotation: -18 },  // 20 outer left
-  { dx:  75,  top: 90,  rotation:  18 },  // 21 outer right
-  { dx: -18,  top: 94,  rotation: -4  },  // 22 near-center left low
-  { dx:  18,  top: 94,  rotation:  4  },  // 23 near-center right low
-  { dx: -48,  top: 80,  rotation: -10 },  // 24 mid left mid
-  { dx:  48,  top: 80,  rotation:  10 },  // 25 mid right mid
+  { dx:   0,  top: 85,  rotation:  0  },  // 1  center
+  { dx: -22,  top: 80,  rotation: -8  },  // 2  near left
+  { dx:  22,  top: 80,  rotation:  8  },  // 3  near right
+  { dx:  -8,  top: 92,  rotation: -3  },  // 4  center-left front
+  { dx:   8,  top: 92,  rotation:  3  },  // 5  center-right front
+  { dx: -42,  top: 82,  rotation: -12 },  // 6  mid left
+  { dx:  42,  top: 82,  rotation:  12 },  // 7  mid right
+  { dx: -25,  top: 95,  rotation: -6  },  // 8  left front
+  { dx:  25,  top: 95,  rotation:  6  },  // 9  right front
+  { dx:   0,  top: 100, rotation:  2  },  // 10 center front
+  { dx: -48,  top: 84,  rotation: -16 },  // 11 far left
+  { dx:  48,  top: 84,  rotation:  16 },  // 12 far right
+  { dx: -12,  top: 88,  rotation: -2  },  // 13 near-center left
+  { dx:  12,  top: 88,  rotation:  2  },  // 14 near-center right
+  { dx: -32,  top: 98,  rotation: -9  },  // 15 mid left front
+  { dx:  32,  top: 98,  rotation:  9  },  // 16 mid right front
+  { dx: -45,  top: 86,  rotation: -14 },  // 17 far left low
+  { dx:  45,  top: 86,  rotation:  14 },  // 18 far right low
+  { dx:   0,  top: 105, rotation: -1  },  // 19 bottom center front
+  { dx: -55,  top: 87,  rotation: -18 },  // 20 outer left
+  { dx:  55,  top: 87,  rotation:  18 },  // 21 outer right
+  { dx: -18,  top: 102, rotation: -4  },  // 22 near-center left front
+  { dx:  18,  top: 102, rotation:  4  },  // 23 near-center right front
+  { dx: -38,  top: 78,  rotation: -10 },  // 24 mid left back
+  { dx:  38,  top: 78,  rotation:  10 },  // 25 mid right back
 ] as const;
 
 interface DisplayItem {
@@ -437,23 +437,32 @@ function BouquetPreview({
         }
       });
 
-      const targetKeySet   = new Set(targetPins.map((p) => p.pinKey));
-      const prevActive     = prev.filter((p) => !p.isExiting);
-      const prevExiting    = prev.filter((p) => p.isExiting);
-      const prevActiveKeys = new Set(prevActive.map((p) => p.pinKey));
+      const targetKeySet    = new Set(targetPins.map((p) => p.pinKey));
+      const prevAllKeySet   = new Set(prev.map((p) => p.pinKey));
+      const prevActive      = prev.filter((p) => !p.isExiting);
+      const prevActiveKeys  = new Set(prevActive.map((p) => p.pinKey));
 
-      // Pins no longer in target → start exit animation
+      // Exiting pins that came back into target → cancel exit (resurrect)
+      const resurrected = prev
+        .filter((p) => p.isExiting && targetKeySet.has(p.pinKey))
+        .map((p) => ({ ...p, isExiting: false }));
+
+      // Exiting pins still not in target → keep exiting
+      const stillExiting = prev
+        .filter((p) => p.isExiting && !targetKeySet.has(p.pinKey));
+
+      // Active pins no longer in target → start exit animation
       const nowExiting = prevActive
         .filter((p) => !targetKeySet.has(p.pinKey))
         .map((p) => ({ ...p, isExiting: true }));
 
-      // Pins still in target → keep as-is
+      // Active pins still in target → keep as-is
       const kept = prevActive.filter((p) => targetKeySet.has(p.pinKey));
 
-      // Brand-new pins → add
-      const added = targetPins.filter((p) => !prevActiveKeys.has(p.pinKey));
+      // Brand-new pins not present anywhere in prev → add
+      const added = targetPins.filter((p) => !prevAllKeySet.has(p.pinKey));
 
-      return [...prevExiting, ...nowExiting, ...kept, ...added];
+      return [...stillExiting, ...nowExiting, ...kept, ...resurrected, ...added];
     });
   }, [bouquet]);
 
