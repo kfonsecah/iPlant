@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Animated,
+  Dimensions,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -70,6 +71,7 @@ function EditProfileModal({
   visible,
   user,
   userId,
+  plants,
   onClose,
   onSaved,
   onError,
@@ -77,6 +79,7 @@ function EditProfileModal({
   visible:  boolean;
   user:     UserInterface;
   userId:   string;
+  plants:   PlantaCompletaInterface[];
   onClose:  () => void;
   onSaved:  (updated: Partial<UserInterface>) => void;
   onError:  (msg: string) => void;
@@ -127,6 +130,9 @@ function EditProfileModal({
 
   const [selectedBannerIndex, setSelectedBannerIndex] = useState<number>(getInitialBannerIndex());
   const [tempBannerIndex, setTempBannerIndex] = useState<number>(getInitialBannerIndex());
+  const [selectedFavPlant, setSelectedFavPlant] = useState<{ nombre: string; imagen?: string } | null>(
+    user.plantaFavorita?.nombre ? user.plantaFavorita : null
+  );
 
   // Bottom Sheet references
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -146,6 +152,7 @@ function EditProfileModal({
       setSelectedBannerIndex(initialIdx);
       setTempBannerIndex(initialIdx);
       setSelectedAvatarUri(null);
+      setSelectedFavPlant(user.plantaFavorita?.nombre ? user.plantaFavorita : null);
 
       translateY.setValue(600);
       Animated.spring(translateY, {
@@ -209,6 +216,7 @@ function EditProfileModal({
         bannerImage: "",
         bannerIdentifier,
         image: selectedAvatarUri ?? user.image,
+        plantaFavorita: selectedFavPlant ?? { nombre: "", imagen: "" },
       };
       await updateUser(userId, updatedData);
       onSaved(updatedData);
@@ -253,7 +261,7 @@ function EditProfileModal({
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={handleClose}>
-            <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ width: "100%" }}>
+            <View style={{ width: "100%" }}>
               <Animated.View style={[styles.modalCard, { transform: [{ translateY }] }]}>
                 {/* Drag handle at the top */}
                 <View style={styles.modalHandle} {...panResponder.panHandlers} />
@@ -265,7 +273,12 @@ function EditProfileModal({
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                  style={{ maxHeight: Dimensions.get("window").height * 0.55 }}
+                >
                   <View style={{ gap: 16 }}>
                     {/* AVATAR SECTION */}
                     <View style={styles.avatarEditRow}>
@@ -363,6 +376,55 @@ function EditProfileModal({
                       )}
                     />
 
+                    {/* Planta favorita */}
+                    {plants.length > 0 && (
+                      <View>
+                        <Text style={styles.fieldLabel}>Planta favorita</Text>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+                        >
+                          {/* Opción "Ninguna" */}
+                          <TouchableOpacity
+                            style={[styles.favPlantCard, !selectedFavPlant && styles.favPlantCardSelected]}
+                            onPress={() => setSelectedFavPlant(null)}
+                            activeOpacity={0.7}
+                          >
+                            <View style={[styles.favPlantImgBox, !selectedFavPlant && styles.favPlantImgBoxSelected]}>
+                              <Ionicons name="ban-outline" size={22} color={!selectedFavPlant ? theme.colors.primary : theme.colors.textSecondary} />
+                            </View>
+                            <Text style={[styles.favPlantName, !selectedFavPlant && styles.favPlantNameSelected]} numberOfLines={1}>
+                              Ninguna
+                            </Text>
+                          </TouchableOpacity>
+
+                          {plants.map((p) => {
+                            const isSelected = selectedFavPlant?.nombre === p.nombre;
+                            return (
+                              <TouchableOpacity
+                                key={p.id}
+                                style={[styles.favPlantCard, isSelected && styles.favPlantCardSelected]}
+                                onPress={() => setSelectedFavPlant({ nombre: p.nombre, imagen: p.imagen })}
+                                activeOpacity={0.7}
+                              >
+                                <View style={[styles.favPlantImgBox, isSelected && styles.favPlantImgBoxSelected]}>
+                                  {p.imagen ? (
+                                    <Image source={{ uri: p.imagen }} style={styles.favPlantImg} />
+                                  ) : (
+                                    <Ionicons name="leaf" size={22} color={isSelected ? theme.colors.primary : theme.colors.textSecondary} />
+                                  )}
+                                </View>
+                                <Text style={[styles.favPlantName, isSelected && styles.favPlantNameSelected]} numberOfLines={1}>
+                                  {p.nombre}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      </View>
+                    )}
+
                     {/* Privacidad — chips */}
                     <View>
                       <Text style={styles.fieldLabel}>Privacidad</Text>
@@ -398,7 +460,7 @@ function EditProfileModal({
                   </Text>
                 </TouchableOpacity>
               </Animated.View>
-            </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         </KeyboardAvoidingView>
 
@@ -693,11 +755,25 @@ export default function UserProfile() {
           <View style={styles.favCard}>
             {user.plantaFavorita?.nombre ? (
               <>
+                {!!user.plantaFavorita.imagen && (
+                  <Image
+                    source={{ uri: user.plantaFavorita.imagen }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                  />
+                )}
+                <LinearGradient
+                  colors={[
+                    theme.mode === "dark" ? "rgba(10,22,14,1)" : "rgba(240,253,244,1)",
+                    theme.mode === "dark" ? "rgba(10,22,14,0.9)" : "rgba(240,253,244,0.9)",
+                    "transparent",
+                  ]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={StyleSheet.absoluteFillObject}
+                />
                 <Text style={styles.favTitle}>Favorita</Text>
                 <Text style={styles.favName} numberOfLines={1}>{user.plantaFavorita.nombre}</Text>
-                {!!user.plantaFavorita.imagen && (
-                  <Image source={{ uri: user.plantaFavorita.imagen }} style={styles.favImage} resizeMode="contain" />
-                )}
               </>
             ) : (
               <View style={styles.favEmpty}>
@@ -955,6 +1031,7 @@ export default function UserProfile() {
           visible={showEdit}
           user={user}
           userId={userId}
+          plants={plants}
           onClose={() => setShowEdit(false)}
           onSaved={handleSaved}
           onError={(msg) => showToast("error", msg)}
@@ -1056,6 +1133,42 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     fontSize: 12,
     color: theme.colors.textSecondary,
     marginTop: 2,
+  },
+  favPlantCard: {
+    width: 76,
+    alignItems: "center",
+    gap: 6,
+  },
+  favPlantCardSelected: {},
+  favPlantImgBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.inputBackground,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  favPlantImgBoxSelected: {
+    borderColor: theme.colors.primary,
+    backgroundColor: "rgba(74,222,128,0.08)",
+  },
+  favPlantImg: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  favPlantName: {
+    fontSize: 11,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+    width: 72,
+  },
+  favPlantNameSelected: {
+    color: theme.colors.primary,
+    fontWeight: "500",
   },
   fieldLabel: {
     fontSize: 13,
@@ -1312,14 +1425,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginTop: 4,
     paddingRight: 60,
   },
-  favImage: {
-    position: "absolute",
-    right: -10,
-    bottom: -10,
-    width: 80,
-    height: 80,
-    opacity: 0.85,
-  },
+  favImage: {},
   favEmpty: {
     flexDirection: "column",
     gap: 6,
@@ -1591,7 +1697,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
 
   // Bottom Sheet Styles
   bottomSheetBackground: {
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.mode === "dark" ? "rgba(14, 26, 18, 0.97)" : "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
