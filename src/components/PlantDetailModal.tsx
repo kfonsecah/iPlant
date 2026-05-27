@@ -191,7 +191,7 @@ export default function PlantDetailModal({ visible, onClose, plant }: PlantDetai
             />
             
             <LinearGradient
-              colors={["transparent", theme.colors.background]}
+              colors={["transparent", "rgba(0,0,0,0.55)"]}
               style={styles.heroGradient}
             />
           </Animated.View>
@@ -210,8 +210,8 @@ export default function PlantDetailModal({ visible, onClose, plant }: PlantDetai
             {/* HERO PLACEHOLDER & TEXTS */}
             <View style={styles.heroPlaceholder}>
               <View style={styles.heroTextContainer}>
-                <Text style={styles.latinName}>{plant.latinName}</Text>
-                <Text style={styles.plantName}>{plant.name}</Text>
+                <Text style={[styles.latinName, { color: "rgba(255,255,255,0.85)", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }]}>{plant.latinName}</Text>
+                <Text style={[styles.plantName, { color: "#FFFFFF", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 }]}>{plant.name}</Text>
               </View>
 
               <TouchableOpacity style={styles.closeButton} onPress={animateClose}>
@@ -428,7 +428,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   latinName: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
+    color: "rgba(255,255,255,0.7)",
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -436,7 +436,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   plantName: {
     fontSize: 28,
     fontWeight: "300",
-    color: theme.colors.textPrimary,
+    color: "#FFFFFF",
     letterSpacing: -0.5,
   },
   closeButton: {

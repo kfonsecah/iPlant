@@ -444,7 +444,7 @@ export default function UserPlantDetailModal({
                 />
                 
                 <LinearGradient
-                  colors={["transparent", theme.colors.background]}
+                  colors={["transparent", "rgba(0,0,0,0.55)"]}
                   style={styles.heroGradient}
                 />
               </Animated.View>
@@ -953,7 +953,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   latinName: {
     fontSize: 11,
-    color: theme.mode === 'dark' ? "rgba(255, 255, 255, 0.4)" : "rgba(45, 45, 42, 0.65)",
+    color: "rgba(255,255,255,0.7)",
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -961,7 +961,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   plantName: {
     fontSize: 26,
     fontWeight: "300",
-    color: theme.colors.textPrimary,
+    color: "#FFFFFF",
     letterSpacing: -0.5,
     marginTop: 2,
   },

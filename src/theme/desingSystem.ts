@@ -318,12 +318,12 @@ const darkColors: ThemeColors = {
 // ─── Light Colors ─────────────────────────────────────────────────────────────
 const lightColors: ThemeColors = {
     // Backgrounds
-    background: "#FAF9F6", // warm off-white
-    backgroundCard: "#FFFFFF", // white card
-    backgroundChip: "#F2F2EC", // light grey/warm chip
+    background: "#ECEAE7", // warm gray
+    backgroundCard: "#F2F1EE", // gray card
+    backgroundChip: "#E8E7E2", // gray chip
     // Semantic surfaces
-    surface: "#FFFFFF",
-    surfaceElevated: "#FFFFFF",
+    surface: "#F2F1EE",
+    surfaceElevated: "#F5F4F1",
     // Border
     border: "#E0DFD8", // light grey
     // Brand – Primary
