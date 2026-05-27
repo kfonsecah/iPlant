@@ -20,7 +20,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Image,
+  LayoutAnimation,
   Linking,
+  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -30,6 +32,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 
 import { db } from "../../src/config/firebase";
 import { useAuth } from "../../src/context/AuthContext";
@@ -69,6 +76,34 @@ interface MarketplaceListing {
   contactoTipo: "whatsapp" | "email";
   contacto: string;
   createdAt: unknown;
+}
+
+interface FlowerData {
+  id: string;
+  name: string;
+  color: string;
+  emoji: string;
+  price: number;
+  available: boolean;
+  image: null;
+}
+
+interface FloristData {
+  id: string;
+  name: string;
+  description: string;
+  rating: number;
+  reviewCount: number;
+  distance: string;
+  schedule: string;
+  phone: string;
+  coverColors: readonly [string, string];
+  flowers: FlowerData[];
+}
+
+interface BouquetItem {
+  flowerId: string;
+  quantity: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -176,6 +211,276 @@ const LISTING_CATEGORIES = [
   "Interior", "Tropical", "Suculenta", "Aromática", "Cactus", "Frutal", "Ornamental",
 ];
 
+const FLORISTS: FloristData[] = [
+  {
+    id: "fl1",
+    name: "Flores del Valle",
+    description:
+      "Arreglos florales frescos con flores de temporada y tropicales. Entrega a domicilio en San José y alrededores.",
+    rating: 4.9,
+    reviewCount: 87,
+    distance: "0.9 km",
+    schedule: "Lun–Sáb 8:00–18:00",
+    phone: "+50688881111",
+    coverColors: ["#4a0030", "#b91c7c"],
+    flowers: [
+      { id: "fl1_rosa_roja", name: "Rosa Roja", color: "#c0192c", emoji: "🌹", price: 1500, available: true, image: null },
+      { id: "fl1_girasol", name: "Girasol", color: "#d97706", emoji: "🌻", price: 1200, available: true, image: null },
+      { id: "fl1_lirio", name: "Lirio Blanco", color: "#c084fc", emoji: "🌷", price: 1800, available: true, image: null },
+      { id: "fl1_clavel", name: "Clavel Rosa", color: "#f472b6", emoji: "🌸", price: 800, available: true, image: null },
+      { id: "fl1_orquidea", name: "Orquídea Morada", color: "#7c3aed", emoji: "🪷", price: 2500, available: true, image: null },
+      { id: "fl1_tulipan", name: "Tulipán Rojo", color: "#ef4444", emoji: "🌷", price: 1400, available: true, image: null },
+      { id: "fl1_lavanda", name: "Lavanda", color: "#818cf8", emoji: "💜", price: 900, available: true, image: null },
+      { id: "fl1_margarita", name: "Margarita", color: "#fbbf24", emoji: "🌼", price: 700, available: true, image: null },
+      { id: "fl1_peonia", name: "Peonía Rosa", color: "#fb7185", emoji: "🌸", price: 2200, available: true, image: null },
+      { id: "fl1_nube", name: "Nube (Gypsophila)", color: "#cbd5e1", emoji: "🤍", price: 500, available: false, image: null },
+    ],
+  },
+  {
+    id: "fl2",
+    name: "Jardín Rosa",
+    description:
+      "Especialistas en ramos de novia, decoración para eventos y bouquets personalizados. Calidad premium garantizada.",
+    rating: 4.7,
+    reviewCount: 134,
+    distance: "2.1 km",
+    schedule: "Lun–Dom 9:00–19:00",
+    phone: "+50688882222",
+    coverColors: ["#3b0764", "#7e22ce"],
+    flowers: [
+      { id: "fl2_rosa_blanca", name: "Rosa Blanca", color: "#fce7f3", emoji: "🤍", price: 1600, available: true, image: null },
+      { id: "fl2_rosa_amarilla", name: "Rosa Amarilla", color: "#eab308", emoji: "💛", price: 1600, available: true, image: null },
+      { id: "fl2_tulipan_naranja", name: "Tulipán Naranja", color: "#f97316", emoji: "🌷", price: 1300, available: true, image: null },
+      { id: "fl2_clavel_rojo", name: "Clavel Rojo", color: "#dc2626", emoji: "🌺", price: 850, available: true, image: null },
+      { id: "fl2_lirio_amarillo", name: "Lirio Amarillo", color: "#fde047", emoji: "🌼", price: 1900, available: true, image: null },
+      { id: "fl2_orquidea_blanca", name: "Orquídea Blanca", color: "#e0e7ff", emoji: "🌸", price: 2400, available: true, image: null },
+      { id: "fl2_margarita_amarilla", name: "Margarita Amarilla", color: "#fcd34d", emoji: "🌼", price: 650, available: true, image: null },
+      { id: "fl2_lavanda", name: "Lavanda", color: "#a78bfa", emoji: "💜", price: 950, available: true, image: null },
+      { id: "fl2_girasol_mini", name: "Girasol Mini", color: "#f59e0b", emoji: "🌻", price: 1100, available: false, image: null },
+    ],
+  },
+  {
+    id: "fl3",
+    name: "La Orquídea Dorada",
+    description:
+      "Floristería especializada en orquídeas exóticas y flores importadas. El regalo perfecto para cualquier ocasión.",
+    rating: 4.8,
+    reviewCount: 61,
+    distance: "3.5 km",
+    schedule: "Mar–Dom 10:00–17:00",
+    phone: "+50688883333",
+    coverColors: ["#713f12", "#ca8a04"],
+    flowers: [
+      { id: "fl3_orquidea_amarilla", name: "Orquídea Amarilla", color: "#ca8a04", emoji: "🌼", price: 2500, available: true, image: null },
+      { id: "fl3_orquidea_rosa", name: "Orquídea Rosa", color: "#ec4899", emoji: "🪷", price: 2300, available: true, image: null },
+      { id: "fl3_rosa_naranja", name: "Rosa Naranja", color: "#ea580c", emoji: "🌹", price: 1700, available: true, image: null },
+      { id: "fl3_clavel_blanco", name: "Clavel Blanco", color: "#e0f2f1", emoji: "🤍", price: 800, available: true, image: null },
+      { id: "fl3_lirio_naranja", name: "Lirio Naranja", color: "#fb923c", emoji: "🌷", price: 2000, available: true, image: null },
+      { id: "fl3_tulipan_morado", name: "Tulipán Morado", color: "#7c3aed", emoji: "🌷", price: 1500, available: true, image: null },
+      { id: "fl3_peonia_blanca", name: "Peonía Blanca", color: "#fdf2f8", emoji: "🌸", price: 2200, available: true, image: null },
+      { id: "fl3_nube", name: "Nube (Gypsophila)", color: "#e2e8f0", emoji: "🤍", price: 550, available: true, image: null },
+      { id: "fl3_margarita_rosa", name: "Margarita Rosa", color: "#f9a8d4", emoji: "🌸", price: 700, available: false, image: null },
+    ],
+  },
+];
+
+// ─── Bouquet Preview ──────────────────────────────────────────────────────────
+
+const PREVIEW_HEIGHT = 260;
+const FLOWER_SIZE = 44;
+
+// Half-circle arc slots above the bouquet wrap (dx/dy from wrap center)
+const BOUQUET_SLOTS = [
+  { dx: 0, dy: -110 },
+  { dx: -55, dy: -100 },
+  { dx: 55, dy: -100 },
+  { dx: -110, dy: -80 },
+  { dx: 110, dy: -80 },
+  { dx: -72, dy: -158 },
+  { dx: 72, dy: -158 },
+  { dx: 0, dy: -172 },
+  { dx: -128, dy: -130 },
+  { dx: 128, dy: -130 },
+] as const;
+
+function BouquetFlowerDot({
+  flower,
+  quantity,
+  left,
+  top,
+}: {
+  flower: FlowerData;
+  quantity: number;
+  left: number;
+  top: number;
+}) {
+  const svScale = useSharedValue(0);
+  const svOpacity = useSharedValue(0);
+  const svLeft = useSharedValue(left);
+  const svTop = useSharedValue(top);
+
+  useEffect(() => {
+    svScale.value = withSpring(1, { damping: 12, stiffness: 200 });
+    svOpacity.value = withSpring(1, { damping: 16, stiffness: 180 });
+  }, []);
+
+  useEffect(() => {
+    svLeft.value = withSpring(left, { damping: 16, stiffness: 200 });
+    svTop.value = withSpring(top, { damping: 16, stiffness: 200 });
+  }, [left, top]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: svScale.value }],
+    opacity: svOpacity.value,
+    left: svLeft.value,
+    top: svTop.value,
+  }));
+
+  return (
+    <Reanimated.View style={[{ position: "absolute", width: FLOWER_SIZE, height: FLOWER_SIZE }, animStyle]}>
+      <View
+        style={{
+          width: FLOWER_SIZE,
+          height: FLOWER_SIZE,
+          borderRadius: FLOWER_SIZE / 2,
+          backgroundColor: flower.color,
+          borderWidth: 2,
+          borderColor: "#fff",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: 22 }}>{flower.emoji}</Text>
+      </View>
+      {quantity > 1 && (
+        <View
+          style={{
+            position: "absolute",
+            top: -3,
+            right: -3,
+            width: 18,
+            height: 18,
+            borderRadius: 9,
+            backgroundColor: PRIMARY,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 10, fontWeight: "700", color: "#000" }}>
+            {quantity}
+          </Text>
+        </View>
+      )}
+    </Reanimated.View>
+  );
+}
+
+function BouquetPreview({
+  bouquet,
+  flowers,
+  theme,
+}: {
+  bouquet: BouquetItem[];
+  flowers: FlowerData[];
+  theme: AppTheme;
+}) {
+  const [containerWidth, setContainerWidth] = useState(0);
+  const anchorX = containerWidth / 2;
+  const anchorY = PREVIEW_HEIGHT - 48;
+  const visibleItems = bouquet.slice(0, 10);
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        height: PREVIEW_HEIGHT,
+        backgroundColor: theme.colors.background,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
+        overflow: "hidden",
+      }}
+      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+    >
+      {visibleItems.length === 0 ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <View
+            style={{
+              width: 130,
+              height: 130,
+              borderRadius: 65,
+              borderWidth: 1.5,
+              borderColor: theme.colors.border,
+              borderStyle: "dashed",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                color: theme.colors.disabledText,
+                textAlign: "center",
+                paddingHorizontal: 18,
+                lineHeight: 17,
+              }}
+            >
+              Selecciona flores para comenzar
+            </Text>
+          </View>
+        </View>
+      ) : (
+        containerWidth > 0 && (
+          <>
+            {/* Kraft wrap shape */}
+            <View
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: anchorX - 28,
+                width: 56,
+                height: 48,
+                backgroundColor: "#92671e",
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                borderBottomLeftRadius: 6,
+                borderBottomRightRadius: 6,
+                opacity: 0.82,
+              }}
+            />
+            {/* Stems line */}
+            <View
+              style={{
+                position: "absolute",
+                bottom: 44,
+                left: anchorX - 1,
+                width: 2,
+                height: 40,
+                backgroundColor: "#4a7c59",
+                opacity: 0.6,
+              }}
+            />
+            {/* Flower dots */}
+            {visibleItems.map((item, index) => {
+              const flower = flowers.find((f) => f.id === item.flowerId);
+              if (!flower) return null;
+              const slot = BOUQUET_SLOTS[index];
+              return (
+                <BouquetFlowerDot
+                  key={item.flowerId}
+                  flower={flower}
+                  quantity={item.quantity}
+                  left={anchorX + slot.dx - FLOWER_SIZE / 2}
+                  top={anchorY + slot.dy - FLOWER_SIZE / 2}
+                />
+              );
+            })}
+          </>
+        )
+      )}
+    </View>
+  );
+}
+
 // ─── Stars ────────────────────────────────────────────────────────────────────
 
 function Stars({ rating, size = 11 }: { rating: number; size?: number }) {
@@ -200,13 +505,16 @@ export default function MarketplaceScreen() {
   const styles = createStyles(theme);
   const router = useRouter();
   const { user: authUser } = useAuth();
+  const sheetBg = theme.mode === "dark" ? "#1C1C1C" : "#FFFFFF";
 
   const storeSheetRef = useRef<BottomSheet>(null);
   const addSheetRef = useRef<BottomSheet>(null);
+  const bouquetSheetRef = useRef<BottomSheet>(null);
   const storeSnapPoints = useMemo(() => ["88%"], []);
   const addSnapPoints = useMemo(() => ["78%"], []);
+  const bouquetSnapPoints = useMemo(() => ["92%"], []);
 
-  const [activeTab, setActiveTab] = useState<"tiendas" | "plantas">("tiendas");
+  const [activeTab, setActiveTab] = useState<"tiendas" | "plantas" | "florerias">("tiendas");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStore, setSelectedStore] = useState<StoreData | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("Todos");
@@ -222,6 +530,13 @@ export default function MarketplaceScreen() {
   const [addContactoTipo, setAddContactoTipo] = useState<"whatsapp" | "email">("whatsapp");
   const [addContacto, setAddContacto] = useState("");
   const [addSaving, setAddSaving] = useState(false);
+
+  // Florerias state
+  const [selectedFlorist, setSelectedFlorist] = useState<FloristData | null>(null);
+  const [bouquet, setBouquet] = useState<BouquetItem[]>([]);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showMaxToast, setShowMaxToast] = useState(false);
+  const maxToastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const filteredStores = useMemo(() => {
     if (!searchQuery) return STORES;
@@ -245,6 +560,27 @@ export default function MarketplaceScreen() {
       return matchesSearch && matchesCategory;
     });
   }, [listings, searchQuery, categoryFilter]);
+
+  const filteredFlorists = useMemo(() => {
+    if (!searchQuery) return FLORISTS;
+    const q = searchQuery.toLowerCase();
+    return FLORISTS.filter(
+      (f) => f.name.toLowerCase().includes(q) || f.description.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  const bouquetTotalFlowers = useMemo(
+    () => bouquet.reduce((sum, item) => sum + item.quantity, 0),
+    [bouquet]
+  );
+
+  const bouquetTotal = useMemo(() => {
+    if (!selectedFlorist) return 0;
+    return bouquet.reduce((sum, item) => {
+      const flower = selectedFlorist.flowers.find((f) => f.id === item.flowerId);
+      return sum + (flower?.price ?? 0) * item.quantity;
+    }, 0);
+  }, [bouquet, selectedFlorist]);
 
   useEffect(() => {
     fetchListings();
@@ -296,6 +632,63 @@ export default function MarketplaceScreen() {
     setAddCategoria("");
     setAddContactoTipo("whatsapp");
     setAddContacto("");
+  };
+
+  const triggerMaxToast = () => {
+    if (maxToastTimeout.current) clearTimeout(maxToastTimeout.current);
+    setShowMaxToast(true);
+    maxToastTimeout.current = setTimeout(() => setShowMaxToast(false), 2000);
+  };
+
+  const openBouquetBuilder = (florist: FloristData) => {
+    setSelectedFlorist(florist);
+    setBouquet([]);
+    bouquetSheetRef.current?.expand();
+  };
+
+  const handleAddFlower = (flowerId: string) => {
+    if (bouquetTotalFlowers >= 10) { triggerMaxToast(); return; }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setBouquet((prev) => {
+      const existing = prev.find((i) => i.flowerId === flowerId);
+      if (existing) {
+        return prev.map((i) => i.flowerId === flowerId ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...prev, { flowerId, quantity: 1 }];
+    });
+  };
+
+  const handleIncreaseFlower = (flowerId: string) => {
+    if (bouquetTotalFlowers >= 10) { triggerMaxToast(); return; }
+    setBouquet((prev) =>
+      prev.map((i) => i.flowerId === flowerId ? { ...i, quantity: i.quantity + 1 } : i)
+    );
+  };
+
+  const handleDecreaseFlower = (flowerId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setBouquet((prev) => {
+      const item = prev.find((i) => i.flowerId === flowerId);
+      if (!item) return prev;
+      if (item.quantity <= 1) return prev.filter((i) => i.flowerId !== flowerId);
+      return prev.map((i) => i.flowerId === flowerId ? { ...i, quantity: i.quantity - 1 } : i);
+    });
+  };
+
+  const handleOrderWhatsApp = () => {
+    if (!selectedFlorist || bouquet.length === 0) return;
+    const flowerList = bouquet
+      .map((item) => {
+        const flower = selectedFlorist.flowers.find((f) => f.id === item.flowerId);
+        return `${item.quantity}x ${flower?.name ?? "Flor"}`;
+      })
+      .join("\n");
+    const message =
+      `Hola! Me gustaría pedir un ramo de:\n${flowerList}\n\nTotal: ₡${bouquetTotal.toLocaleString()}\n(Pedido desde iPlant 🌿)`;
+    Linking.openURL(
+      `whatsapp://send?phone=${selectedFlorist.phone}&text=${encodeURIComponent(message)}`
+    );
+    setShowOrderModal(false);
   };
 
   const handlePublish = async () => {
@@ -459,7 +852,7 @@ export default function MarketplaceScreen() {
 
         {/* SECTION TABS */}
         <View style={styles.tabContainer}>
-          {(["tiendas", "plantas"] as const).map((tab) => (
+          {(["tiendas", "plantas", "florerias"] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
@@ -471,7 +864,11 @@ export default function MarketplaceScreen() {
                   activeTab === tab ? styles.tabTextActive : styles.tabTextInactive,
                 ]}
               >
-                {tab === "tiendas" ? "Tiendas Locales" : "Plantas de Usuarios"}
+                {tab === "tiendas"
+                  ? "Tiendas"
+                  : tab === "plantas"
+                  ? "Usuarios"
+                  : "Floristerías"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -608,6 +1005,42 @@ export default function MarketplaceScreen() {
           </View>
         )}
 
+        {/* ── TAB C: FLORISTERÍAS ── */}
+        {activeTab === "florerias" && (
+          <View style={styles.storesList}>
+            {filteredFlorists.map((florist) => (
+              <TouchableOpacity
+                key={florist.id}
+                activeOpacity={0.88}
+                style={styles.storeCard}
+                onPress={() => openBouquetBuilder(florist)}
+              >
+                <LinearGradient
+                  colors={florist.coverColors}
+                  style={styles.storeCardImage}
+                />
+                <View style={styles.storeCardContent}>
+                  <Text style={styles.storeCardName}>{florist.name}</Text>
+                  <Text style={styles.storeCardDesc} numberOfLines={2}>
+                    {florist.description}
+                  </Text>
+                  <View style={styles.storeCardBottom}>
+                    <View style={styles.storeRatingRow}>
+                      <Stars rating={florist.rating} />
+                      <Text style={styles.storeRatingText}>{florist.rating}</Text>
+                    </View>
+                    <View style={styles.storeDistChip}>
+                      <Ionicons name="location-outline" size={11} color={theme.colors.textSecondary} />
+                      <Text style={styles.storeDistText}>{florist.distance}</Text>
+                    </View>
+                    <Text style={styles.storeLink}>Armar ramo →</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <View style={{ height: 120 }} />
       </ScrollView>
 
@@ -622,6 +1055,194 @@ export default function MarketplaceScreen() {
         </TouchableOpacity>
       )}
 
+      {/* MAX TOAST */}
+      {showMaxToast && (
+        <View style={styles.maxToast}>
+          <Text style={styles.maxToastText}>Máximo 10 flores por ramo</Text>
+        </View>
+      )}
+
+      {/* ── BOUQUET BUILDER BOTTOM SHEET ── */}
+      <BottomSheet
+        ref={bouquetSheetRef}
+        index={-1}
+        snapPoints={bouquetSnapPoints}
+        enableDynamicSizing={false}
+        enablePanDownToClose={false}
+        enableContentPanningGesture={false}
+        enableHandlePanningGesture={false}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={{ backgroundColor: sheetBg }}
+        handleIndicatorStyle={{ backgroundColor: theme.colors.border }}
+      >
+        {selectedFlorist && (
+          <View style={{ flex: 1 }}>
+            {/* Sheet header */}
+            <View style={styles.bouquetHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.bouquetHeaderTitle}>{selectedFlorist.name}</Text>
+                <Text style={styles.bouquetHeaderSub}>{selectedFlorist.schedule}</Text>
+              </View>
+              <Text style={styles.bouquetTotal}>
+                ₡{bouquetTotal.toLocaleString()}
+              </Text>
+              <TouchableOpacity
+                style={styles.bouquetCloseBtn}
+                onPress={() => {
+                  bouquetSheetRef.current?.close();
+                  setBouquet([]);
+                }}
+              >
+                <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Bouquet preview */}
+            <BouquetPreview
+              bouquet={bouquet}
+              flowers={selectedFlorist.flowers}
+              theme={theme}
+            />
+
+            {/* Flower selector */}
+            <BottomSheetScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={styles.flowerSelectorContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.flowerSelectorTitle}>Flores disponibles</Text>
+              <View style={styles.flowerGrid}>
+                {selectedFlorist.flowers.map((flower) => {
+                  const bouquetItem = bouquet.find((i) => i.flowerId === flower.id);
+                  const isSelected = !!bouquetItem;
+                  const isMaxed = bouquetTotalFlowers >= 10;
+                  return (
+                    <TouchableOpacity
+                      key={flower.id}
+                      style={[
+                        styles.flowerCell,
+                        isSelected && styles.flowerCellSelected,
+                        !flower.available && styles.flowerCellUnavailable,
+                      ]}
+                      onPress={() => {
+                        if (!flower.available || isSelected) return;
+                        handleAddFlower(flower.id);
+                      }}
+                      activeOpacity={flower.available && !isSelected ? 0.7 : 1}
+                    >
+                      {isSelected && (
+                        <View style={styles.flowerCheckBadge}>
+                          <Ionicons name="checkmark" size={10} color="#000" />
+                        </View>
+                      )}
+                      <Text style={styles.flowerEmoji}>{flower.emoji}</Text>
+                      <Text style={styles.flowerName} numberOfLines={2}>
+                        {flower.name}
+                      </Text>
+                      <Text style={styles.flowerPrice}>₡{flower.price.toLocaleString()}</Text>
+                      {isSelected && (
+                        <View style={styles.flowerQtyRow}>
+                          <TouchableOpacity
+                            style={styles.flowerQtyBtn}
+                            onPress={() => handleDecreaseFlower(flower.id)}
+                          >
+                            <Text style={styles.flowerQtyBtnText}>−</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.flowerQtyNum}>{bouquetItem.quantity}</Text>
+                          <TouchableOpacity
+                            style={[styles.flowerQtyBtn, isMaxed && { opacity: 0.35 }]}
+                            onPress={() => handleIncreaseFlower(flower.id)}
+                            disabled={isMaxed}
+                          >
+                            <Text style={styles.flowerQtyBtnText}>+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      {!flower.available && (
+                        <Text style={styles.flowerUnavailableLabel}>Agotado</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </BottomSheetScrollView>
+
+            {/* Order button */}
+            <View style={styles.bouquetOrderSection}>
+              <TouchableOpacity
+                style={[
+                  styles.bouquetOrderBtn,
+                  bouquet.length === 0 && styles.bouquetOrderBtnDisabled,
+                ]}
+                onPress={() => bouquet.length > 0 && setShowOrderModal(true)}
+                activeOpacity={bouquet.length > 0 ? 0.85 : 1}
+              >
+                <Text
+                  style={[
+                    styles.bouquetOrderBtnText,
+                    bouquet.length === 0 && styles.bouquetOrderBtnTextDisabled,
+                  ]}
+                >
+                  {bouquet.length === 0
+                    ? "Agrega flores para continuar"
+                    : `Pedir ramo — ₡${bouquetTotal.toLocaleString()}`}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </BottomSheet>
+
+      {/* ── ORDER CONFIRM MODAL ── */}
+      <Modal
+        visible={showOrderModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowOrderModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: sheetBg }]}>
+            <Text style={styles.modalTitle}>Confirmar pedido</Text>
+            {selectedFlorist && (
+              <>
+                <Text style={styles.modalFloristName}>{selectedFlorist.name}</Text>
+                <View style={styles.modalDivider} />
+                {bouquet.map((item) => {
+                  const flower = selectedFlorist.flowers.find((f) => f.id === item.flowerId);
+                  return (
+                    <View key={item.flowerId} style={styles.modalFlowerRow}>
+                      <Text style={styles.modalFlowerEmoji}>{flower?.emoji ?? "🌸"}</Text>
+                      <Text style={styles.modalFlowerName} numberOfLines={1}>
+                        {flower?.name ?? "Flor"}
+                      </Text>
+                      <Text style={styles.modalFlowerQty}>×{item.quantity}</Text>
+                      <Text style={styles.modalFlowerSubtotal}>
+                        ₡{((flower?.price ?? 0) * item.quantity).toLocaleString()}
+                      </Text>
+                    </View>
+                  );
+                })}
+                <View style={styles.modalDivider} />
+                <View style={styles.modalTotalRow}>
+                  <Text style={styles.modalTotalLabel}>Total</Text>
+                  <Text style={styles.modalTotalPrice}>₡{bouquetTotal.toLocaleString()}</Text>
+                </View>
+                <TouchableOpacity style={styles.modalWhatsappBtn} onPress={handleOrderWhatsApp}>
+                  <Ionicons name="logo-whatsapp" size={18} color="#000" />
+                  <Text style={styles.modalWhatsappText}>Pedir por WhatsApp</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  onPress={() => setShowOrderModal(false)}
+                >
+                  <Text style={styles.modalCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       {/* ── STORE DETAIL BOTTOM SHEET ── */}
       <BottomSheet
         ref={storeSheetRef}
@@ -632,7 +1253,7 @@ export default function MarketplaceScreen() {
         enableContentPanningGesture={false}
         enableHandlePanningGesture
         backdropComponent={renderBackdrop}
-        backgroundStyle={{ backgroundColor: theme.colors.surface }}
+        backgroundStyle={{ backgroundColor: sheetBg }}
         handleIndicatorStyle={{ backgroundColor: theme.colors.border }}
       >
         <BottomSheetScrollView showsVerticalScrollIndicator={false}>
@@ -726,7 +1347,7 @@ export default function MarketplaceScreen() {
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         backdropComponent={renderBackdrop}
-        backgroundStyle={{ backgroundColor: theme.colors.surface }}
+        backgroundStyle={{ backgroundColor: sheetBg }}
         handleIndicatorStyle={{ backgroundColor: theme.colors.border }}
       >
         <BottomSheetScrollView
@@ -1508,5 +2129,269 @@ const createStyles = (theme: AppTheme) =>
       fontSize: 15,
       fontWeight: "600",
       color: "#000",
+    },
+    // Max toast
+    maxToast: {
+      position: "absolute",
+      bottom: 110,
+      alignSelf: "center",
+      backgroundColor: "rgba(30,30,30,0.92)",
+      borderRadius: 20,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.08)",
+    },
+    maxToastText: {
+      fontSize: 13,
+      color: "#fff",
+      fontWeight: "500",
+    },
+    // Bouquet builder sheet
+    bouquetHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      gap: 12,
+    },
+    bouquetHeaderTitle: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: theme.colors.textPrimary,
+    },
+    bouquetHeaderSub: {
+      fontSize: 11,
+      color: theme.colors.textSecondary,
+      marginTop: 1,
+    },
+    bouquetTotal: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: PRIMARY,
+    },
+    bouquetCloseBtn: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: theme.colors.backgroundChip,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    // Flower selector
+    flowerSelectorContent: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+    flowerSelectorTitle: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: theme.colors.textSecondary,
+      letterSpacing: 1.2,
+      textTransform: "uppercase",
+      marginBottom: 12,
+    },
+    flowerGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    flowerCell: {
+      width: "30.5%",
+      backgroundColor: theme.mode === "dark" ? "#252525" : theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 16,
+      padding: 12,
+      alignItems: "center",
+      position: "relative",
+    },
+    flowerCellSelected: {
+      borderColor: PRIMARY,
+      backgroundColor: "rgba(74,222,128,0.08)",
+    },
+    flowerCellUnavailable: {
+      opacity: 0.35,
+    },
+    flowerCheckBadge: {
+      position: "absolute",
+      top: 6,
+      right: 6,
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    flowerEmoji: {
+      fontSize: 32,
+    },
+    flowerName: {
+      fontSize: 12,
+      fontWeight: "500",
+      color: theme.colors.textPrimary,
+      marginTop: 6,
+      textAlign: "center",
+    },
+    flowerPrice: {
+      fontSize: 11,
+      color: PRIMARY,
+      marginTop: 2,
+    },
+    flowerUnavailableLabel: {
+      fontSize: 10,
+      color: theme.colors.disabledText,
+      marginTop: 4,
+    },
+    flowerQtyRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 8,
+    },
+    flowerQtyBtn: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: "rgba(74,222,128,0.15)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    flowerQtyBtnText: {
+      fontSize: 14,
+      color: PRIMARY,
+      lineHeight: 18,
+    },
+    flowerQtyNum: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: theme.colors.textPrimary,
+      minWidth: 14,
+      textAlign: "center",
+    },
+    // Order button
+    bouquetOrderSection: {
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border,
+    },
+    bouquetOrderBtn: {
+      height: 52,
+      borderRadius: 14,
+      backgroundColor: PRIMARY,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    bouquetOrderBtnDisabled: {
+      backgroundColor: "rgba(255,255,255,0.06)",
+    },
+    bouquetOrderBtnText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: "#000",
+    },
+    bouquetOrderBtnTextDisabled: {
+      color: theme.colors.disabledText,
+    },
+    // Order confirm modal
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.72)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    modalCard: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 24,
+      padding: 24,
+      marginHorizontal: 24,
+      width: "88%",
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: theme.colors.textPrimary,
+      marginBottom: 4,
+    },
+    modalFloristName: {
+      fontSize: 13,
+      color: theme.colors.textSecondary,
+      marginBottom: 14,
+    },
+    modalDivider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      marginVertical: 12,
+    },
+    modalFlowerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 8,
+    },
+    modalFlowerEmoji: {
+      fontSize: 18,
+    },
+    modalFlowerName: {
+      flex: 1,
+      fontSize: 13,
+      color: theme.colors.textPrimary,
+    },
+    modalFlowerQty: {
+      fontSize: 13,
+      color: theme.colors.textSecondary,
+    },
+    modalFlowerSubtotal: {
+      fontSize: 13,
+      fontWeight: "500",
+      color: theme.colors.textPrimary,
+      minWidth: 60,
+      textAlign: "right",
+    },
+    modalTotalRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 20,
+    },
+    modalTotalLabel: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: theme.colors.textSecondary,
+    },
+    modalTotalPrice: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: PRIMARY,
+    },
+    modalWhatsappBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      height: 52,
+      borderRadius: 14,
+      backgroundColor: PRIMARY,
+    },
+    modalWhatsappText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: "#000",
+    },
+    modalCancelBtn: {
+      alignItems: "center",
+      marginTop: 14,
+      paddingVertical: 4,
+    },
+    modalCancelText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
     },
   });
