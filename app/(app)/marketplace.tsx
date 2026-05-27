@@ -227,15 +227,15 @@ const FLORISTS: FloristData[] = [
     coverColors: ["#4a0030", "#b91c7c"],
     flowers: [
       { id: "fl1_rosa_roja", name: "Rosa Roja", color: "#c0192c", emoji: "🌹", price: 1500, available: true, image: require('../../assets/images/flowers/rosa.png') },
-      { id: "fl1_girasol", name: "Girasol", color: "#d97706", emoji: "🌻", price: 1200, available: true, image: null },
-      { id: "fl1_lirio", name: "Lirio Blanco", color: "#c084fc", emoji: "🌷", price: 1800, available: true, image: null },
-      { id: "fl1_clavel", name: "Clavel Rosa", color: "#f472b6", emoji: "🌸", price: 800, available: true, image: null },
-      { id: "fl1_orquidea", name: "Orquídea Morada", color: "#7c3aed", emoji: "🪷", price: 2500, available: true, image: null },
-      { id: "fl1_tulipan", name: "Tulipán Rojo", color: "#ef4444", emoji: "🌷", price: 1400, available: true, image: null },
-      { id: "fl1_lavanda", name: "Lavanda", color: "#818cf8", emoji: "💜", price: 900, available: true, image: null },
-      { id: "fl1_margarita", name: "Margarita", color: "#fbbf24", emoji: "🌼", price: 700, available: true, image: null },
-      { id: "fl1_peonia", name: "Peonía Rosa", color: "#fb7185", emoji: "🌸", price: 2200, available: true, image: null },
-      { id: "fl1_nube", name: "Nube (Gypsophila)", color: "#cbd5e1", emoji: "🤍", price: 500, available: false, image: null },
+      { id: "fl1_girasol", name: "Girasol", color: "#d97706", emoji: "🌻", price: 1200, available: true, image: require('../../assets/images/flowers/girasol.png') },
+      { id: "fl1_lirio", name: "Lirio Blanco", color: "#c084fc", emoji: "🌷", price: 1800, available: true, image: require('../../assets/images/flowers/lirioblanco.png') },
+      { id: "fl1_clavel", name: "Clavel Rosa", color: "#f472b6", emoji: "🌸", price: 800, available: true, image: require('../../assets/images/flowers/clavelrosa.png') },
+      { id: "fl1_orquidea", name: "Orquídea Morada", color: "#7c3aed", emoji: "🪷", price: 2500, available: true, image: require('../../assets/images/flowers/orquideamorada.png') },
+      { id: "fl1_tulipan", name: "Tulipán Rojo", color: "#ef4444", emoji: "🌷", price: 1400, available: true, image: require('../../assets/images/flowers/tulipanrojo.png') },
+      { id: "fl1_lavanda", name: "Lavanda", color: "#818cf8", emoji: "💜", price: 900, available: true, image: require('../../assets/images/flowers/lavanda.png') },
+      { id: "fl1_margarita", name: "Margarita", color: "#fbbf24", emoji: "🌼", price: 700, available: true, image: require('../../assets/images/flowers/margarita.png') },
+      { id: "fl1_peonia", name: "Peonía Rosa", color: "#fb7185", emoji: "🌸", price: 2200, available: true, image: require('../../assets/images/flowers/peoniarosa.png') },
+      { id: "fl1_nube", name: "Nube (Gypsophila)", color: "#cbd5e1", emoji: "🤍", price: 500, available: false, image: require('../../assets/images/flowers/nube.png') },
     ],
   },
   {
@@ -289,40 +289,38 @@ const FLORISTS: FloristData[] = [
 // ─── Bouquet Preview ──────────────────────────────────────────────────────────
 
 const PREVIEW_HEIGHT = 320;
-const FLOWER_IMG_SIZE  = 70;
-const FLOWER_EMOJI_SIZE = 60;
+const FLOWER_IMG_SIZE  = 90;
+const FLOWER_EMOJI_SIZE = 78;
 
 // Absolute-positioned slots. dx = offset from horizontal center. top = px from container top.
 // Rotation gives each flower a natural tilt.
 const BOUQUET_SLOTS = [
-  { dx: 0,    top: 110, rotation:  0  },  // center  — first flower, most prominent
-  { dx: -42,  top: 88,  rotation: -8  },  // slightly left
-  { dx:  42,  top: 88,  rotation:  8  },  // slightly right
-  { dx: -85,  top: 72,  rotation: -15 },  // further left
-  { dx:  85,  top: 72,  rotation:  15 },  // further right
-  { dx: -118, top: 108, rotation: -12 },  // far left
-  { dx:  118, top: 108, rotation:  12 },  // far right
-  { dx: -52,  top: 52,  rotation: -5  },  // center-left upper
-  { dx:  52,  top: 52,  rotation:  5  },  // center-right upper
-  { dx: 0,    top: 28,  rotation:  3  },  // top center
+  { dx: 0,    top: 88,  rotation:  0  },  // center  — first flower, most prominent
+  { dx: -22,  top: 78,  rotation: -8  },  // slightly left
+  { dx:  22,  top: 78,  rotation:  8  },  // slightly right
+  { dx: -48,  top: 65,  rotation: -15 },  // further left
+  { dx:  48,  top: 65,  rotation:  15 },  // further right
+  { dx: -68,  top: 90,  rotation: -12 },  // far left
+  { dx:  68,  top: 90,  rotation:  12 },  // far right
+  { dx: -30,  top: 55,  rotation: -5  },  // center-left upper
+  { dx:  30,  top: 55,  rotation:  5  },  // center-right upper
+  { dx: 0,    top: 35,  rotation:  3  },  // top center
 ] as const;
 
 interface DisplayItem {
+  pinKey: string;   // unique per unit: `${flowerId}_${index}`
   flowerId: string;
-  quantity: number;
   isExiting: boolean;
 }
 
 function BouquetFlowerPin({
   flower,
-  quantity,
   slotIndex,
   containerWidth,
   isExiting,
   onExitDone,
 }: {
   flower: FlowerData;
-  quantity: number;
   slotIndex: number;
   containerWidth: number;
   isExiting: boolean;
@@ -368,7 +366,7 @@ function BouquetFlowerPin({
 
   const animStyle = useAnimatedStyle(() => ({
     position:  "absolute" as const,
-    zIndex:    1,
+    zIndex:    2,
     left:      svLeft.value,
     top:       svTop.value,
     opacity:   svOpacity.value,
@@ -397,25 +395,6 @@ function BouquetFlowerPin({
           <Text style={{ fontSize: 28 }}>{flower.emoji}</Text>
         </View>
       )}
-      {quantity > 1 && (
-        <View
-          style={{
-            position: "absolute",
-            top: -4,
-            right: -4,
-            width: 18,
-            height: 18,
-            borderRadius: 9,
-            backgroundColor: "#4ade80",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ fontSize: 10, fontWeight: "700", color: "#000" }}>
-            {quantity}
-          </Text>
-        </View>
-      )}
     </Reanimated.View>
   );
 }
@@ -432,41 +411,39 @@ function BouquetPreview({
   const [containerWidth, setContainerWidth] = useState(0);
   const [displayItems, setDisplayItems] = useState<DisplayItem[]>([]);
 
-  // Sync displayItems with bouquet prop, handling exit animations
+  // Sync displayItems with bouquet prop — each quantity unit gets its own pin
   useEffect(() => {
     setDisplayItems((prev) => {
-      const active = prev.filter((p) => !p.isExiting);
-
-      // Detect flowers removed from bouquet → mark as exiting
-      const removedIds = active
-        .filter((a) => !bouquet.find((b) => b.flowerId === a.flowerId))
-        .map((a) => a.flowerId);
-
-      if (removedIds.length > 0) {
-        return prev.map((p) => {
-          if (removedIds.includes(p.flowerId)) return { ...p, isExiting: true };
-          const updated = bouquet.find((b) => b.flowerId === p.flowerId);
-          return updated ? { ...p, quantity: updated.quantity } : p;
-        });
-      }
-
-      // Add new flowers and update quantities of existing ones
-      const exiting = prev.filter((p) => p.isExiting);
-      const next: DisplayItem[] = [];
+      // Expand bouquet into individual pins (one per unit)
+      const targetPins: DisplayItem[] = [];
       bouquet.forEach((b) => {
-        const existing = active.find((a) => a.flowerId === b.flowerId);
-        next.push(
-          existing
-            ? { ...existing, quantity: b.quantity }
-            : { flowerId: b.flowerId, quantity: b.quantity, isExiting: false }
-        );
+        for (let i = 0; i < b.quantity; i++) {
+          targetPins.push({ pinKey: `${b.flowerId}_${i}`, flowerId: b.flowerId, isExiting: false });
+        }
       });
-      return [...exiting, ...next];
+
+      const targetKeySet   = new Set(targetPins.map((p) => p.pinKey));
+      const prevActive     = prev.filter((p) => !p.isExiting);
+      const prevExiting    = prev.filter((p) => p.isExiting);
+      const prevActiveKeys = new Set(prevActive.map((p) => p.pinKey));
+
+      // Pins no longer in target → start exit animation
+      const nowExiting = prevActive
+        .filter((p) => !targetKeySet.has(p.pinKey))
+        .map((p) => ({ ...p, isExiting: true }));
+
+      // Pins still in target → keep as-is
+      const kept = prevActive.filter((p) => targetKeySet.has(p.pinKey));
+
+      // Brand-new pins → add
+      const added = targetPins.filter((p) => !prevActiveKeys.has(p.pinKey));
+
+      return [...prevExiting, ...nowExiting, ...kept, ...added];
     });
   }, [bouquet]);
 
-  const handleExitDone = useCallback((flowerId: string) => {
-    setDisplayItems((prev) => prev.filter((p) => p.flowerId !== flowerId));
+  const handleExitDone = useCallback((pinKey: string) => {
+    setDisplayItems((prev) => prev.filter((p) => p.pinKey !== pinKey));
   }, []);
 
   const activeItems = displayItems.filter((d) => !d.isExiting);
@@ -522,37 +499,50 @@ function BouquetPreview({
             </View>
           )}
 
-          {/* Flowers — zIndex 1 (behind wrap) */}
+          {/* Back wrap layer — zIndex 1 (behind flowers) */}
+          <Image
+            source={require("../../assets/images/flowers/papelback.png")}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: containerWidth / 2 - 90,
+              width: 180,
+              height: 220,
+              zIndex: 1,
+            }}
+            resizeMode="contain"
+          />
+
+          {/* Flowers — zIndex 2 (between back and front wrap layers) */}
           {displayItems.map((item) => {
             const flower = flowers.find((f) => f.id === item.flowerId);
             if (!flower) return null;
             const slotIndex = item.isExiting
               ? 0
-              : activeItems.findIndex((a) => a.flowerId === item.flowerId);
+              : activeItems.findIndex((a) => a.pinKey === item.pinKey);
             if (slotIndex < 0 || slotIndex >= BOUQUET_SLOTS.length) return null;
             return (
               <BouquetFlowerPin
-                key={item.flowerId}
+                key={item.pinKey}
                 flower={flower}
-                quantity={item.quantity}
                 slotIndex={slotIndex}
                 containerWidth={containerWidth}
                 isExiting={item.isExiting}
-                onExitDone={() => handleExitDone(item.flowerId)}
+                onExitDone={() => handleExitDone(item.pinKey)}
               />
             );
           })}
 
-          {/* Paper wrap — zIndex 2 (overlaps flower stems) */}
+          {/* Front wrap layer — zIndex 3 (overlaps flower stems) */}
           <Image
             source={require("../../assets/images/flowers/papel.png")}
             style={{
               position: "absolute",
-              bottom: -20,
+              bottom: 0,
               left: containerWidth / 2 - 90,
               width: 180,
               height: 220,
-              zIndex: 2,
+              zIndex: 3,
             }}
             resizeMode="contain"
           />
