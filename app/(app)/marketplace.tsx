@@ -5,6 +5,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
@@ -61,6 +62,7 @@ interface StoreData {
   distance: string;
   hours: string;
   gradientColors: readonly [string, string];
+  coverImage?: ReturnType<typeof require>;
   featuredPlants: FeaturedPlantCard[];
 }
 
@@ -100,6 +102,7 @@ interface FloristData {
   schedule: string;
   phone: string;
   coverColors: readonly [string, string];
+  coverImage?: ReturnType<typeof require>;
   flowers: FlowerData[];
 }
 
@@ -124,6 +127,7 @@ const STORES: StoreData[] = [
     distance: "1.2 km",
     hours: "Lun–Sáb 8:00–17:00",
     gradientColors: ["#0f2a0f", "#1f5c2a"],
+    coverImage: require('../../assets/images/viverolaceiba.jpeg'),
     featuredPlants: [
       { name: "Heliconia", gradientColors: ["#7c2d12", "#ea580c"] },
       { name: "Anthurium", gradientColors: ["#831843", "#db2777"] },
@@ -142,6 +146,7 @@ const STORES: StoreData[] = [
     distance: "2.3 km",
     hours: "Lun–Dom 9:00–18:00",
     gradientColors: ["#1a2e0a", "#3d6b1f"],
+    coverImage: require('../../assets/images/jardinesdelvalle.jpeg'),
     featuredPlants: [
       { name: "Rosa", gradientColors: ["#831843", "#ec4899"] },
       { name: "Orquídea", gradientColors: ["#4c1d95", "#8b5cf6"] },
@@ -160,6 +165,7 @@ const STORES: StoreData[] = [
     distance: "3.8 km",
     hours: "Lun–Sáb 7:30–16:30",
     gradientColors: ["#042f2e", "#0f766e"],
+    coverImage: require('../../assets/images/plantastropicales.jpeg'),
     featuredPlants: [
       { name: "Guaria Morada", gradientColors: ["#4c1d95", "#8b5cf6"] },
       { name: "Palma Real", gradientColors: ["#14532d", "#16a34a"] },
@@ -178,6 +184,7 @@ const STORES: StoreData[] = [
     distance: "4.1 km",
     hours: "Mar–Dom 9:00–17:00",
     gradientColors: ["#1a1f0d", "#3d5c1a"],
+    coverImage: require('../../assets/images/vergelbotanico.jpeg'),
     featuredPlants: [
       { name: "Aloe Vera", gradientColors: ["#14532d", "#22c55e"] },
       { name: "Lavanda", gradientColors: ["#4c1d95", "#7c3aed"] },
@@ -196,6 +203,7 @@ const STORES: StoreData[] = [
     distance: "0.8 km",
     hours: "Lun–Sáb 9:00–19:00",
     gradientColors: ["#0a2a0a", "#1f5c1f"],
+    coverImage: require('../../assets/images/verdevivo.jpeg'),
     featuredPlants: [
       { name: "Pothos", gradientColors: ["#14532d", "#22c55e"] },
       { name: "Sansevieria", gradientColors: ["#1a2e0a", "#4d7c0f"] },
@@ -225,6 +233,7 @@ const FLORISTS: FloristData[] = [
     schedule: "Lun–Sáb 8:00–18:00",
     phone: "+50688881111",
     coverColors: ["#4a0030", "#b91c7c"],
+    coverImage: require('../../assets/images/delvalle.jpeg'),
     flowers: [
       { id: "fl1_rosa_roja", name: "Rosa Roja", color: "#c0192c", emoji: "🌹", price: 1500, available: true, image: require('../../assets/images/flowers/rosa.png') },
       { id: "fl1_girasol", name: "Girasol", color: "#d97706", emoji: "🌻", price: 1200, available: true, image: require('../../assets/images/flowers/girasol.png') },
@@ -249,6 +258,7 @@ const FLORISTS: FloristData[] = [
     schedule: "Lun–Dom 9:00–19:00",
     phone: "+50688882222",
     coverColors: ["#3b0764", "#7e22ce"],
+    coverImage: require('../../assets/images/jardinrosa.jpeg'),
     flowers: [
       { id: "fl2_rosa_blanca", name: "Rosa Blanca", color: "#fce7f3", emoji: "🤍", price: 1600, available: true, image: require('../../assets/images/flowers/rosablanca.png') },
       { id: "fl2_rosa_amarilla", name: "Rosa Amarilla", color: "#eab308", emoji: "💛", price: 1600, available: true, image: require('../../assets/images/flowers/rosaamarilla.png') },
@@ -272,6 +282,7 @@ const FLORISTS: FloristData[] = [
     schedule: "Mar–Dom 10:00–17:00",
     phone: "+50688883333",
     coverColors: ["#713f12", "#ca8a04"],
+    coverImage: require('../../assets/images/orquideadorada.jpeg'),
     flowers: [
       { id: "fl3_orquidea_amarilla", name: "Orquídea Amarilla", color: "#ca8a04", emoji: "🌼", price: 2500, available: true, image: null },
       { id: "fl3_orquidea_rosa", name: "Orquídea Rosa", color: "#ec4899", emoji: "🪷", price: 2300, available: true, image: null },
@@ -391,10 +402,12 @@ function BouquetFlowerPin({
   return (
     <Reanimated.View style={animStyle}>
       {flower.image ? (
-        <Image
+        <ExpoImage
           source={flower.image}
           style={{ width: FLOWER_IMG_SIZE, height: FLOWER_IMG_SIZE }}
-          resizeMode="contain"
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          transition={0}
         />
       ) : (
         <View
@@ -524,8 +537,10 @@ function BouquetPreview({
           )}
 
           {/* Back wrap layer — zIndex 1 (behind flowers) */}
-          <Image
+          <ExpoImage
             source={require("../../assets/images/flowers/papelback.png")}
+            cachePolicy="memory-disk"
+            transition={0}
             style={{
               position: "absolute",
               bottom: 0,
@@ -534,7 +549,7 @@ function BouquetPreview({
               height: 220,
               zIndex: 1,
             }}
-            resizeMode="contain"
+            contentFit="contain"
           />
 
           {/* Flowers — zIndex 2 (between back and front wrap layers) */}
@@ -558,7 +573,7 @@ function BouquetPreview({
           })}
 
           {/* Front wrap layer — zIndex 3 (overlaps flower stems) */}
-          <Image
+          <ExpoImage
             source={require("../../assets/images/flowers/papel.png")}
             style={{
               position: "absolute",
@@ -568,7 +583,9 @@ function BouquetPreview({
               height: 220,
               zIndex: 3,
             }}
-            resizeMode="contain"
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            transition={0}
           />
         </>
       )}
@@ -704,7 +721,7 @@ export default function MarketplaceScreen() {
 
   const openStoreDetail = (store: StoreData) => {
     setSelectedStore(store);
-    storeSheetRef.current?.expand();
+    storeSheetRef.current?.snapToIndex(0);
   };
 
   const handlePickImage = async () => {
@@ -978,10 +995,17 @@ export default function MarketplaceScreen() {
               style={styles.featuredBanner}
               onPress={() => openStoreDetail(featuredStore)}
             >
-              <LinearGradient
-                colors={featuredStore.gradientColors}
-                style={StyleSheet.absoluteFill}
-              />
+              {featuredStore.coverImage ? (
+                <ExpoImage
+                  source={featuredStore.coverImage}
+                  style={styles.featuredBannerImage}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  transition={0}
+                />
+              ) : (
+                <LinearGradient colors={featuredStore.gradientColors} style={StyleSheet.absoluteFill} />
+              )}
               <LinearGradient
                 colors={["transparent", "rgba(0,0,0,0.75)"]}
                 style={styles.featuredOverlay}
@@ -1009,10 +1033,11 @@ export default function MarketplaceScreen() {
                   style={styles.storeCard}
                   onPress={() => openStoreDetail(store)}
                 >
-                  <LinearGradient
-                    colors={store.gradientColors}
-                    style={styles.storeCardImage}
-                  />
+                  {store.coverImage ? (
+                    <ExpoImage source={store.coverImage} style={styles.storeCardImage} contentFit="cover" cachePolicy="memory-disk" transition={0} />
+                  ) : (
+                    <LinearGradient colors={store.gradientColors} style={styles.storeCardImage} />
+                  )}
                   <View style={styles.storeCardContent}>
                     <Text style={styles.storeCardName}>{store.name}</Text>
                     <Text style={styles.storeCardDesc} numberOfLines={2}>{store.description}</Text>
@@ -1110,10 +1135,20 @@ export default function MarketplaceScreen() {
                 style={styles.storeCard}
                 onPress={() => openBouquetBuilder(florist)}
               >
-                <LinearGradient
-                  colors={florist.coverColors}
-                  style={styles.storeCardImage}
-                />
+                {florist.coverImage ? (
+                  <ExpoImage
+                    source={florist.coverImage}
+                    style={styles.storeCardImage}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={0}
+                  />
+                ) : (
+                  <LinearGradient
+                    colors={florist.coverColors}
+                    style={styles.storeCardImage}
+                  />
+                )}
                 <View style={styles.storeCardContent}>
                   <Text style={styles.storeCardName}>{florist.name}</Text>
                   <Text style={styles.storeCardDesc} numberOfLines={2}>
@@ -1231,10 +1266,12 @@ export default function MarketplaceScreen() {
                         </View>
                       )}
                       {flower.image ? (
-                        <Image
+                        <ExpoImage
                           source={flower.image}
                           style={{ width: 40, height: 40, borderRadius: 8 }}
-                          resizeMode="contain"
+                          contentFit="contain"
+                          cachePolicy="memory-disk"
+                          transition={0}
                         />
                       ) : (
                         <Text style={styles.flowerEmoji}>{flower.emoji}</Text>
@@ -1364,10 +1401,17 @@ export default function MarketplaceScreen() {
             <View>
               {/* Store banner */}
               <View style={styles.sheetBanner}>
-                <LinearGradient
-                  colors={selectedStore.gradientColors}
-                  style={StyleSheet.absoluteFill}
-                />
+                {selectedStore.coverImage ? (
+                  <ExpoImage
+                    source={selectedStore.coverImage}
+                    style={styles.sheetBannerImage}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={0}
+                  />
+                ) : (
+                  <LinearGradient colors={selectedStore.gradientColors} style={StyleSheet.absoluteFill} />
+                )}
                 <LinearGradient
                   colors={["transparent", "rgba(0,0,0,0.75)"]}
                   style={styles.sheetBannerOverlay}
@@ -1699,6 +1743,13 @@ const createStyles = (theme: AppTheme) =>
       overflow: "hidden",
       justifyContent: "flex-end",
     },
+    featuredBannerImage: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: 160,
+    },
     featuredOverlay: {
       position: "absolute",
       bottom: 0,
@@ -1760,6 +1811,7 @@ const createStyles = (theme: AppTheme) =>
       width: 70,
       height: 70,
       borderRadius: 12,
+      overflow: "hidden",
     },
     storeCardContent: { flex: 1 },
     storeCardName: {
@@ -1982,6 +2034,13 @@ const createStyles = (theme: AppTheme) =>
       height: 200,
       overflow: "hidden",
       justifyContent: "flex-end",
+    },
+    sheetBannerImage: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: 200,
     },
     sheetBannerOverlay: {
       position: "absolute",
