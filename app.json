@@ -14,8 +14,10 @@
       "infoPlist": {
         "NSCameraUsageDescription": "iPlant necesita acceso a tu cámara para diagnosticar tus plantas.",
         "NSPhotoLibraryUsageDescription": "iPlant necesita acceso a tu galería para que puedas subir fotos de tus plantas.",
-        "NSMotionUsageDescription": "iPlant usa los sensores de movimiento para efectos visuales de profundidad."
-      }
+        "NSMotionUsageDescription": "iPlant usa los sensores de movimiento para efectos visuales de profundidad.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.kenexpo777.iPlant"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +27,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kenexpo777.iPlant"
     },
     "web": {
       "output": "static",
@@ -52,7 +55,11 @@
       "reactCompiler": true
     },
     "extra": {
-      "plantIdApiKey": "YOUR_PLANT_ID_API_KEY_HERE"
+      "plantIdApiKey": "YOUR_PLANT_ID_API_KEY_HERE",
+      "router": {},
+      "eas": {
+        "projectId": "357f9e0a-046b-4467-bf30-8b7f85e30e02"
+      }
     }
   }
 }

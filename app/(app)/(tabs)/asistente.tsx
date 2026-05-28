@@ -127,6 +127,8 @@ export default function AsistenteScreen() {
   const styles = createStyles(theme);
   const { user } = useAuth();
   const { openPremium } = useLocalSearchParams<{ openPremium?: string }>();
+  const chatKey = `IPLANT_CHAT_HISTORY_${user?.uid ?? 'anon'}`;
+  const premiumKey = `IPLANT_PREMIUM_STATUS_${user?.uid ?? 'anon'}`;
 
   const inputPaddingBottom = useSharedValue(80 + Math.max(insets.bottom, 12));
   const inputSectionAnimStyle = useAnimatedStyle(() => ({
@@ -184,11 +186,11 @@ export default function AsistenteScreen() {
   useEffect(() => {
     const loadChatHistory = async () => {
       try {
-        const saved = await AsyncStorage.getItem('IPLANT_CHAT_HISTORY');
+        const saved = await AsyncStorage.getItem(chatKey);
         if (saved) {
           setMessages(JSON.parse(saved));
         }
-        const premiumStatus = await AsyncStorage.getItem('IPLANT_PREMIUM_STATUS');
+        const premiumStatus = await AsyncStorage.getItem(premiumKey);
         if (premiumStatus === 'true') {
           setIsPremium(true);
         }
@@ -217,7 +219,7 @@ export default function AsistenteScreen() {
 
   const saveChatHistory = async (newMessages: ChatMessage[]) => {
     try {
-      await AsyncStorage.setItem('IPLANT_CHAT_HISTORY', JSON.stringify(newMessages));
+      await AsyncStorage.setItem(chatKey, JSON.stringify(newMessages));
     } catch (e) {
       console.error('Failed to save chat history:', e);
     }
@@ -276,7 +278,7 @@ export default function AsistenteScreen() {
         style: "destructive",
         onPress: async () => {
           setMessages([]);
-          await AsyncStorage.removeItem('IPLANT_CHAT_HISTORY');
+          await AsyncStorage.removeItem(chatKey);
           showToast("Conversación limpiada.", "success");
         }
       }
@@ -288,7 +290,7 @@ export default function AsistenteScreen() {
         style: "destructive",
         onPress: async () => {
           setIsPremium(false);
-          await AsyncStorage.setItem('IPLANT_PREMIUM_STATUS', 'false');
+          await AsyncStorage.setItem(premiumKey, 'false');
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           showToast("Suscripción cancelada.", "warning");
         }
@@ -317,7 +319,7 @@ export default function AsistenteScreen() {
     setTimeout(async () => {
       try {
         setIsPremium(true);
-        await AsyncStorage.setItem('IPLANT_PREMIUM_STATUS', 'true');
+        await AsyncStorage.setItem(premiumKey, 'true');
         setUpgradeModalVisible(false);
         setPurchasing(false);
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -333,7 +335,7 @@ export default function AsistenteScreen() {
   const handleDeactivatePremium = async () => {
     try {
       setIsPremium(false);
-      await AsyncStorage.setItem('IPLANT_PREMIUM_STATUS', 'false');
+      await AsyncStorage.setItem(premiumKey, 'false');
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       showToast("Premium desactivado (Simulación) 🌿", "warning");
     } catch (e) {

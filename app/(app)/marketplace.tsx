@@ -41,7 +41,8 @@ import Reanimated, {
   runOnJS,
 } from "react-native-reanimated";
 
-import { db } from "../../src/config/firebase";
+import { db, storage } from "../../src/config/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../../src/context/AuthContext";
 import { AppTheme, useTheme } from "../../src/theme/desingSystem";
 
@@ -113,7 +114,6 @@ interface BouquetItem {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PRIMARY = "#4ade80";
 
 const STORES: StoreData[] = [
   {
@@ -450,10 +450,9 @@ function BouquetPreview({
         }
       });
 
-      const targetKeySet    = new Set(targetPins.map((p) => p.pinKey));
-      const prevAllKeySet   = new Set(prev.map((p) => p.pinKey));
-      const prevActive      = prev.filter((p) => !p.isExiting);
-      const prevActiveKeys  = new Set(prevActive.map((p) => p.pinKey));
+      const targetKeySet  = new Set(targetPins.map((p) => p.pinKey));
+      const prevAllKeySet = new Set(prev.map((p) => p.pinKey));
+      const prevActive    = prev.filter((p) => !p.isExiting);
 
       // Exiting pins that came back into target → cancel exit (resurrect)
       const resurrected = prev
@@ -614,7 +613,7 @@ function Stars({ rating, size = 11 }: { rating: number; size?: number }) {
 
 export default function MarketplaceScreen() {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const { user: authUser } = useAuth();
   const sheetBg = theme.mode === "dark" ? "#1C1C1C" : "#FFFFFF";
@@ -698,6 +697,12 @@ export default function MarketplaceScreen() {
     fetchListings();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (maxToastTimeout.current) clearTimeout(maxToastTimeout.current);
+    };
+  }, []);
+
   const fetchListings = async () => {
     setListingsLoading(true);
     try {
@@ -755,7 +760,7 @@ export default function MarketplaceScreen() {
   const openBouquetBuilder = (florist: FloristData) => {
     setSelectedFlorist(florist);
     setBouquet([]);
-    bouquetSheetRef.current?.expand();
+    bouquetSheetRef.current?.snapToIndex(0);
   };
 
   const handleAddFlower = (flowerId: string) => {
@@ -809,12 +814,20 @@ export default function MarketplaceScreen() {
     if (isNaN(precioNum)) return;
     setAddSaving(true);
     try {
+      let imageUrl = "";
+      if (addImage) {
+        const response = await fetch(addImage);
+        const blob = await response.blob();
+        const imageRef = ref(storage, `marketplace/${authUser?.uid}_${Date.now()}`);
+        await uploadBytes(imageRef, blob);
+        imageUrl = await getDownloadURL(imageRef);
+      }
       await addDoc(collection(db, "marketplace"), {
         nombre: addNombre.trim(),
         descripcion: addDescripcion.trim(),
         precio: precioNum,
         categoria: addCategoria,
-        imagen: addImage || "",
+        imagen: imageUrl,
         ownerId: authUser?.uid || "",
         ownerName: authUser?.displayName || "Usuario",
         ownerImage: authUser?.photoURL || "",
@@ -1093,7 +1106,7 @@ export default function MarketplaceScreen() {
             {/* Listings */}
             {listingsLoading ? (
               <ActivityIndicator
-                color={PRIMARY}
+                color={theme.colors.primary}
                 style={{ marginTop: 40 }}
               />
             ) : filteredListings.length > 0 ? (
@@ -1451,7 +1464,7 @@ export default function MarketplaceScreen() {
                     )
                   }
                 >
-                  <Ionicons name="map-outline" size={18} color={PRIMARY} />
+                  <Ionicons name="map-outline" size={18} color={theme.colors.primary} />
                   <Text style={styles.mapsBtnText}>Abrir en Google Maps</Text>
                 </TouchableOpacity>
 
@@ -1606,7 +1619,7 @@ export default function MarketplaceScreen() {
                   <Ionicons
                     name={tipo === "whatsapp" ? "logo-whatsapp" : "mail-outline"}
                     size={14}
-                    color={addContactoTipo === tipo ? PRIMARY : theme.colors.textSecondary}
+                    color={addContactoTipo === tipo ? theme.colors.primary : theme.colors.textSecondary}
                   />
                   <Text style={[styles.toggleText, addContactoTipo === tipo && styles.toggleTextActive]}>
                     {tipo === "whatsapp" ? "WhatsApp" : "Email"}
@@ -1729,7 +1742,7 @@ const createStyles = (theme: AppTheme) =>
     },
     tabButtonActive: {
       borderBottomWidth: 2,
-      borderBottomColor: PRIMARY,
+      borderBottomColor: theme.colors.primary,
     },
     tabText: { fontSize: 14 },
     tabTextActive: { fontWeight: "500", color: theme.colors.textPrimary },
@@ -1763,7 +1776,7 @@ const createStyles = (theme: AppTheme) =>
     },
     featuredBadge: {
       alignSelf: "flex-start",
-      backgroundColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
       borderRadius: 20,
       paddingHorizontal: 10,
       paddingVertical: 4,
@@ -1856,7 +1869,7 @@ const createStyles = (theme: AppTheme) =>
     storeLink: {
       marginLeft: "auto",
       fontSize: 12,
-      color: PRIMARY,
+      color: theme.colors.primary,
     },
     // Category filter chips
     categoryScroll: { marginTop: 16 },
@@ -1869,8 +1882,8 @@ const createStyles = (theme: AppTheme) =>
       borderColor: theme.colors.border,
     },
     filterChipActive: {
-      backgroundColor: PRIMARY,
-      borderColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
     },
     filterChipText: {
       fontSize: 13,
@@ -1986,7 +1999,7 @@ const createStyles = (theme: AppTheme) =>
     },
     contactBtnText: {
       fontSize: 12,
-      color: PRIMARY,
+      color: theme.colors.primary,
     },
     // Empty state
     emptyState: {
@@ -2008,7 +2021,7 @@ const createStyles = (theme: AppTheme) =>
     },
     emptyLink: {
       fontSize: 14,
-      color: PRIMARY,
+      color: theme.colors.primary,
       fontWeight: "500",
     },
     // FAB
@@ -2019,10 +2032,10 @@ const createStyles = (theme: AppTheme) =>
       width: 52,
       height: 52,
       borderRadius: 26,
-      backgroundColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: PRIMARY,
+      shadowColor: theme.colors.primary,
       shadowOpacity: 0.4,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 4 },
@@ -2109,7 +2122,7 @@ const createStyles = (theme: AppTheme) =>
     },
     mapsBtnText: {
       fontSize: 14,
-      color: PRIMARY,
+      color: theme.colors.primary,
       fontWeight: "500",
     },
     sheetSectionTitle: {
@@ -2237,8 +2250,8 @@ const createStyles = (theme: AppTheme) =>
       borderColor: theme.colors.border,
     },
     catChipActive: {
-      backgroundColor: PRIMARY,
-      borderColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
     },
     catChipText: {
       fontSize: 13,
@@ -2266,20 +2279,20 @@ const createStyles = (theme: AppTheme) =>
     },
     toggleBtnActive: {
       backgroundColor: "rgba(74,222,128,0.1)",
-      borderColor: PRIMARY,
+      borderColor: theme.colors.primary,
     },
     toggleText: {
       fontSize: 13,
       color: theme.colors.textSecondary,
     },
     toggleTextActive: {
-      color: PRIMARY,
+      color: theme.colors.primary,
       fontWeight: "500",
     },
     publishBtn: {
       height: 52,
       borderRadius: 14,
-      backgroundColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
       alignItems: "center",
       justifyContent: "center",
       marginTop: 4,
@@ -2332,7 +2345,7 @@ const createStyles = (theme: AppTheme) =>
     bouquetTotal: {
       fontSize: 18,
       fontWeight: "600",
-      color: PRIMARY,
+      color: theme.colors.primary,
     },
     bouquetCloseBtn: {
       width: 30,
@@ -2374,7 +2387,7 @@ const createStyles = (theme: AppTheme) =>
       position: "relative",
     },
     flowerCellSelected: {
-      borderColor: PRIMARY,
+      borderColor: theme.colors.primary,
       backgroundColor: "rgba(74,222,128,0.08)",
     },
     flowerCellUnavailable: {
@@ -2387,7 +2400,7 @@ const createStyles = (theme: AppTheme) =>
       width: 16,
       height: 16,
       borderRadius: 8,
-      backgroundColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -2403,7 +2416,7 @@ const createStyles = (theme: AppTheme) =>
     },
     flowerPrice: {
       fontSize: 11,
-      color: PRIMARY,
+      color: theme.colors.primary,
       marginTop: 2,
     },
     flowerUnavailableLabel: {
@@ -2427,7 +2440,7 @@ const createStyles = (theme: AppTheme) =>
     },
     flowerQtyBtnText: {
       fontSize: 14,
-      color: PRIMARY,
+      color: theme.colors.primary,
       lineHeight: 18,
     },
     flowerQtyNum: {
@@ -2447,7 +2460,7 @@ const createStyles = (theme: AppTheme) =>
     bouquetOrderBtn: {
       height: 52,
       borderRadius: 14,
-      backgroundColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -2531,7 +2544,7 @@ const createStyles = (theme: AppTheme) =>
     modalTotalPrice: {
       fontSize: 22,
       fontWeight: "700",
-      color: PRIMARY,
+      color: theme.colors.primary,
     },
     modalWhatsappBtn: {
       flexDirection: "row",
@@ -2540,7 +2553,7 @@ const createStyles = (theme: AppTheme) =>
       gap: 8,
       height: 52,
       borderRadius: 14,
-      backgroundColor: PRIMARY,
+      backgroundColor: theme.colors.primary,
     },
     modalWhatsappText: {
       fontSize: 15,
