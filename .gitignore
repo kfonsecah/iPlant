@@ -50,6 +50,9 @@ scripts/serviceAccountKey.json
 # Python virtual environment
 scripts/.venv/
 
+# Chat backend (deployed on Render, not needed in app repo)
+proyecto_chat/
+
 .claude
 .opencode
 .gemini

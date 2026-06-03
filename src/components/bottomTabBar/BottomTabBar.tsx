@@ -26,17 +26,19 @@ const ROUTE_MAP: Record<string, string> = {
   home:      "/home",
   asistente: "/asistente",
   plants:    "/plants",
+  chat:      "/chat",
   profile:   "/profile",
 };
 
 const LEFT_TABS: TabItem[] = [
-  { key: "home",      label: "Para Ti",  icon: "home-outline",                 iconActive: "home" },
-  { key: "asistente", label: "Asistente", icon: "chatbubble-ellipses-outline", iconActive: "chatbubble-ellipses" },
+  { key: "home",      label: "Para Ti",   icon: "home-outline",                 iconActive: "home" },
+  { key: "asistente", label: "Asistente", icon: "chatbubble-ellipses-outline",  iconActive: "chatbubble-ellipses" },
 ];
 
 const RIGHT_TABS: TabItem[] = [
-  { key: "plants",  label: "Mis Plantas", icon: "leaf-outline",   iconActive: "leaf"   },
-  { key: "profile", label: "Mi Perfil",   icon: "person-outline", iconActive: "person" },
+  { key: "plants",  label: "Mis Plantas", icon: "leaf-outline",    iconActive: "leaf"    },
+  { key: "chat",    label: "Comunidad",   icon: "people-outline",  iconActive: "people"  },
+  { key: "profile", label: "Mi Perfil",   icon: "person-outline",  iconActive: "person"  },
 ];
 
 // ─── TabButton ────────────────────────────────────────────────────────────────
